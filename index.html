@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadweight</title>
+
+    <link rel="stylesheet" href="stylee.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header>
+            <div>
+                <h1>Deadweight</h1>
+                <p>Unused packages & files</p>
+            </div>
+
+            <button class="scan-btn">
+                Scan Project
+            </button>
+        </header>
+
+
+        <!-- Summary -->
+        <section class="summary">
+
+            <div class="summary-card">
+                <span>Files Scanned</span>
+                <strong>148</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Unused Packages</span>
+                <strong>12</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Unused Files</span>
+                <strong>5</strong>
+            </div>
+
+        </section>
+
+
+        <!-- Unused Packages -->
+        <section class="result-section">
+
+            <div class="section-title">
+                <h2>Unused Packages</h2>
+                <span class="count">12</span>
+            </div>
+
+            <div class="item">
+
+                <input type="checkbox" checked>
+
+                <div class="item-info">
+                    <h3>lodash</h3>
+                    <p>No import found across 148 scanned files</p>
+                </div>
+
+                <span class="confidence high">
+                    HIGH
+                </span>
+
+            </div>
+
+
+            <div class="item">
+
+                <input type="checkbox" checked>
+
+                <div class="item-info">
+                    <h3>moment</h3>
+                    <p>No import found across 148 scanned files</p>
+                </div>
+
+                <span class="confidence high">
+                    HIGH
+                </span>
+
+            </div>
+
+
+            <div class="item">
+
+                <input type="checkbox">
+
+                <div class="item-info">
+                    <h3>axios</h3>
+                    <p>Possibly used by configuration</p>
+                </div>
+
+                <span class="confidence medium">
+                    MEDIUM
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <!-- Unused Files -->
+        <section class="result-section">
+
+            <div class="section-title">
+                <h2>Unused Files</h2>
+                <span class="count">5</span>
+            </div>
+
+
+            <div class="item">
+
+                <input type="checkbox" checked>
+
+                <div class="item-info">
+                    <h3>src/oldComponent.ts</h3>
+                    <p>No references found</p>
+                </div>
+
+                <span class="confidence high">
+                    HIGH
+                </span>
+
+            </div>
+
+
+            <div class="item">  
+
+                <input type="checkbox">
+
+                <div class="item-info">
+                    <h3>src/test-old.ts</h3>
+                    <p>Dynamic reference may exist</p>
+                </div>
+
+                <span class="confidence low">
+                    LOW
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <!-- Action -->
+        <div class="action">
+
+            <button class="review-btn">
+                Review & Remove
+            </button>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
