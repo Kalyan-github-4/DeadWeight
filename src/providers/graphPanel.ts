@@ -8,10 +8,12 @@ import type { ConnectionGraph } from '../graphTypes';
 type PanelMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
+  | { type: 'export' }
   | { type: 'open'; path: string };
 
 export interface GraphPanelHandlers {
   build: () => Promise<{ graph: ConnectionGraph; folder: vscode.WorkspaceFolder } | undefined>;
+  exportMap: (graph: ConnectionGraph, folder: vscode.WorkspaceFolder) => void;
 }
 
 const ICON = {
@@ -21,6 +23,7 @@ const ICON = {
   minus: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7.25h12v1.5H2z"/></svg>',
   fit: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h4v1.5H3.5V6H2zm8 0h4v4h-1.5V3.5H10zM2 10h1.5v2.5H6V14H2zm10.5 0H14v4h-4v-1.5h2.5z"/></svg>',
   folder: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3h4.8l1.5 1.5h6.7v8.5h-13zM3 6v5.5h10V6z"/></svg>',
+  sparkle: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1l1.2 3.8L11 6 7.2 7.2 6 11 4.8 7.2 1 6l3.8-1.2zm6 7l.7 2.3L15 11l-2.3.7L12 14l-.7-2.3L9 11l2.3-.7z"/></svg>',
 };
 
 function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: string): string {
@@ -100,10 +103,14 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: st
   .zoom button:hover { background: var(--vscode-toolbar-hoverBackground); color: var(--vscode-foreground); }
   .legend { left: 16px; bottom: 16px; padding: 8px 12px; font-size: 0.85em; color: var(--muted); display: grid; grid-template-columns: auto auto; gap: 4px 18px; }
   .legend .row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-  .line { display: inline-block; width: 24px; border-top: 2px solid var(--muted); }
+  /* Match the edge styles in src/webview/graph.ts. */
+  .line { display: inline-block; width: 24px; border-top: 2px solid color-mix(in srgb, var(--vscode-editor-foreground) 55%, transparent); }
   .line.type { border-top-style: dashed; }
   .line.config { border-top-style: dotted; border-top-width: 3px; }
   .line.maybe { border-top-style: dashed; border-color: var(--maybe); }
+  .line.to-package { border-color: color-mix(in srgb, var(--package) 65%, transparent); }
+  .line.out { width: 16px; border-top-width: 3px; border-color: var(--vscode-focusBorder); }
+  .line.in { width: 16px; border-top-width: 3px; border-color: var(--vscode-charts-orange, #d18616); }
   .tooltip { position: absolute; pointer-events: none; padding: 6px 10px; max-width: 320px; font-size: 0.88em; z-index: 5; }
   .tooltip .t-name { font-weight: 600; }
   .tooltip .t-path { color: var(--muted); font-family: var(--vscode-editor-font-family); word-break: break-all; }
@@ -166,6 +173,7 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: st
         <button data-layout="tree" title="Flow from the entry points">Tree</button>
       </div>
       <button class="icon-btn" id="toggle-folders" aria-pressed="true" title="Group files in folder boxes">${ICON.folder} Folders</button>
+      <button class="icon-btn" id="export-ai" title="Export a compact project map for AI agents, so they understand the structure without reading every file">${ICON.sparkle} Export for AI</button>
       <button class="icon-btn" id="refresh" title="Rebuild the graph">${ICON.refresh}</button>
     </div>
   </header>
@@ -185,6 +193,8 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: st
       <span class="row"><span class="line config"></span>path in a config</span>
       <span class="row"><span class="shape unused"></span>unused</span>
       <span class="row"><span class="line maybe"></span>computed import</span>
+      <span class="row"></span>
+      <span class="row"><span class="line to-package"></span>uses a package</span>
     </div>
     <div class="floating zoom" role="group" aria-label="Zoom">
       <button id="zoom-in" title="Zoom in">${ICON.plus}</button>
@@ -204,6 +214,7 @@ export class GraphPanel {
   private ready = false;
   private pendingFocus: string | undefined;
   private folder: vscode.WorkspaceFolder | undefined;
+  private graph: ConnectionGraph | undefined;
   private readonly panel: vscode.WebviewPanel;
 
   static show(extensionUri: vscode.Uri, handlers: GraphPanelHandlers, focusId?: string) {
@@ -250,6 +261,11 @@ export class GraphPanel {
         case 'refresh':
           void this.rebuild();
           break;
+        case 'export':
+          if (this.graph && this.folder) {
+            this.handlers.exportMap(this.graph, this.folder);
+          }
+          break;
         case 'open':
           if (this.folder && typeof message.path === 'string') {
             void vscode.commands.executeCommand(
@@ -285,6 +301,7 @@ export class GraphPanel {
       }
 
       this.folder = built.folder;
+      this.graph = built.graph;
       await this.panel.webview.postMessage({ type: 'graph', graph: built.graph, folderName: built.folder.name });
 
       if (this.pendingFocus) {

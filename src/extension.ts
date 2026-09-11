@@ -6,16 +6,48 @@ import {
   reviewAndRemove,
   type RemovalContext,
 } from './actions/commands';
+import { exportProjectMap, refreshSavedProjectMaps } from './actions/projectMapCommand';
+import { posix } from 'node:path';
 import { CancelledError } from './engine/exec';
 import { buildConnectionGraph } from './engine/graph';
-import type { PackageManager } from './engine/packageManager';
-import { scanWorkspace } from './engine/scan';
+import { detectPackageManagerFor } from './engine/packageManager';
+import { findProjectRoots } from './engine/project';
+import { scanFolder } from './engine/scan';
 import { DeadFileDecorations } from './providers/deadFileDecorations';
 import { DeadweightTreeProvider, type DeadweightTreeItem } from './providers/deadweightTreeProvider';
 import { GraphPanel } from './providers/graphPanel';
 import { PREVIEW_SCHEME, PreviewDocumentProvider } from './providers/previewDocumentProvider';
 import { readSettings } from './providers/settings';
 import type { Finding } from './types';
+
+// Up to this many projects are scanned without asking. Each one is a knip run of a
+// few seconds, so a folder of many repos gets a choice instead of a long wait.
+const MAX_AUTO_PROJECTS = 8;
+
+async function chooseProjects(
+  folder: vscode.WorkspaceFolder,
+  projects: string[],
+): Promise<string[] | undefined> {
+  if (projects.length <= MAX_AUTO_PROJECTS) {
+    return projects;
+  }
+
+  const picked = await vscode.window.showQuickPick(
+    projects.map((project) => ({
+      label: project || folder.name,
+      description: project ? undefined : 'folder root',
+      picked: true,
+      project,
+    })),
+    {
+      canPickMany: true,
+      title: `Deadweight found ${projects.length} projects in ${folder.name}`,
+      placeHolder: 'Choose the projects to scan',
+    },
+  );
+
+  return picked && picked.length > 0 ? picked.map((item) => item.project) : undefined;
+}
 
 export function activate(context: vscode.ExtensionContext) {
   const treeProvider = new DeadweightTreeProvider();
@@ -28,8 +60,6 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   treeProvider.setMinimumConfidence(readSettings().minimumConfidence);
-
-  let packageManager: PackageManager = 'npm';
 
   // The folder the current findings came from; decorations resolve paths against it.
   let scannedFolder: vscode.WorkspaceFolder | undefined;
@@ -113,13 +143,41 @@ export function activate(context: vscode.ExtensionContext) {
     const settings = readSettings(folder.uri);
 
     try {
+      // The opened folder may be a project, or a parent holding one or more.
+      const projects = await vscode.window.withProgress(
+        { location: vscode.ProgressLocation.Window, title: 'Deadweight: Looking for projects' },
+        () => findProjectRoots(folder.uri.fsPath),
+      );
+
+      if (projects.length === 0) {
+        const showGraph = 'Show Connection Graph';
+
+        vscode.window
+          .showWarningMessage(
+            `Deadweight: No package.json found in ${folder.name} or its subfolders. Deadweight scans JavaScript/TypeScript projects.`,
+            showGraph,
+          )
+          .then((choice) => {
+            if (choice === showGraph) {
+              vscode.commands.executeCommand('deadweight.showGraph');
+            }
+          });
+        return;
+      }
+
+      const selected = await chooseProjects(folder, projects);
+
+      if (!selected) {
+        return;
+      }
+
       const result = await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: 'Deadweight: Scanning workspace...',
+          title: 'Deadweight: Scanning',
           cancellable: true,
         },
-        async (_progress, token) => {
+        async (progress, token) => {
           const controller = new AbortController();
 
           const cancellationListener =
@@ -128,11 +186,16 @@ export function activate(context: vscode.ExtensionContext) {
             });
 
           try {
-            return await scanWorkspace(folder.uri.fsPath, {
+            return await scanFolder(folder.uri.fsPath, {
               signal: controller.signal,
               exclude: settings.exclude,
               entryPoints: settings.entryPoints,
               packageManager: settings.packageManager,
+              projects: selected,
+              onProject: (project, index, total) => progress.report({
+                message: total > 1 ? `${index + 1}/${total} · ${project || folder.name}` : project || folder.name,
+                increment: index === 0 ? undefined : 100 / total,
+              }),
             });
           } finally {
             cancellationListener.dispose();
@@ -140,7 +203,6 @@ export function activate(context: vscode.ExtensionContext) {
         },
       );
 
-      packageManager = result.packageManager;
       scannedFolder = folder;
       treeProvider.setFindings(result.findings);
       await vscode.commands.executeCommand(
@@ -165,9 +227,14 @@ export function activate(context: vscode.ExtensionContext) {
         (finding) => finding.kind === 'export',
       ).length;
 
+      const projectCount = result.projects?.length ?? 1;
+      const scope = projectCount > 1
+        ? `${result.scannedFileCount} files in ${projectCount} projects`
+        : `${result.scannedFileCount} files`;
+
       const summary = result.findings.length === 0
-        ? `Deadweight: No deadweight found across ${result.scannedFileCount} files.`
-        : `Deadweight: Found ${packageCount} unused package(s), ${fileCount} unused file(s) and ${exportCount} unused export(s) across ${result.scannedFileCount} files.`;
+        ? `Deadweight: No deadweight found across ${scope}.`
+        : `Deadweight: Found ${packageCount} unused package(s), ${fileCount} unused file(s) and ${exportCount} unused export(s) across ${scope}.`;
 
       if (result.warnings.length === 0) {
         vscode.window.showInformationMessage(summary);
@@ -213,14 +280,17 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const remove = exclusive(async () => {
-    const folder = getFolder();
+    // Findings are relative to the folder they were scanned from.
+    const folder = scannedFolder ?? getFolder();
 
     if (folder) {
+      // Read at removal time, so a changed override applies without rescanning.
+      const override = readSettings(folder.uri).packageManager;
+
       await reviewAndRemove(
         removalContext(folder),
         treeProvider.getCheckedFindings(),
-        // A changed override applies without rescanning.
-        readSettings(folder.uri).packageManager ?? packageManager,
+        (manifest) => override ?? detectPackageManagerFor(folder.uri.fsPath, posix.dirname(manifest)),
         {
           onRemoved: (ids) => treeProvider.removeFindings(ids),
           onUndo: (record) => exclusive(() => restoreRecord(removalContext(folder), record))(),
@@ -228,6 +298,20 @@ export function activate(context: vscode.ExtensionContext) {
       );
     }
   });
+
+  const buildGraph = async (folder: vscode.WorkspaceFolder, location: vscode.ProgressLocation) => {
+    const graph = await vscode.window.withProgress(
+      { location, title: 'Deadweight: Building connection graph' },
+      () => buildConnectionGraph(folder.uri.fsPath, { entryPoints: readSettings(folder.uri).entryPoints }),
+    );
+
+    // A saved project map would otherwise go stale as the code changes.
+    refreshSavedProjectMaps(folder, graph).catch((error: unknown) =>
+      output.appendLine(`Couldn't refresh the saved project map: ${(error as Error).message}`),
+    );
+
+    return graph;
+  };
 
   const showGraph = (focusId?: string) => GraphPanel.show(context.extensionUri, {
     build: async () => {
@@ -237,14 +321,24 @@ export function activate(context: vscode.ExtensionContext) {
         return undefined;
       }
 
-      const graph = await vscode.window.withProgress(
-        { location: vscode.ProgressLocation.Window, title: 'Deadweight: Building connection graph' },
-        () => buildConnectionGraph(folder.uri.fsPath, { entryPoints: readSettings(folder.uri).entryPoints }),
-      );
-
-      return { graph, folder };
+      return { graph: await buildGraph(folder, vscode.ProgressLocation.Window), folder };
     },
+    exportMap: (graph, folder) => void exportProjectMap(folder, graph),
   }, focusId);
+
+  const exportMap = async () => {
+    const folder = getFolder();
+
+    if (!folder) {
+      return;
+    }
+
+    try {
+      await exportProjectMap(folder, await buildGraph(folder, vscode.ProgressLocation.Notification));
+    } catch (error) {
+      vscode.window.showErrorMessage(`Deadweight: Couldn't build the project map: ${(error as Error).message}`);
+    }
+  };
 
   const restore = exclusive(async () => {
     const folder = getFolder();
@@ -269,6 +363,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('deadweight.reviewRemove', remove),
     vscode.commands.registerCommand('deadweight.restore', restore),
     vscode.commands.registerCommand('deadweight.showGraph', () => showGraph()),
+    vscode.commands.registerCommand('deadweight.exportProjectMap', exportMap),
     vscode.commands.registerCommand('deadweight.showInGraph', (item?: DeadweightTreeItem) => {
       const finding = item?.finding;
       const nodeId = !finding
@@ -277,7 +372,7 @@ export function activate(context: vscode.ExtensionContext) {
       showGraph(nodeId);
     }),
     vscode.commands.registerCommand('deadweight.openFinding', async (finding: Finding) => {
-      const folder = getFolder();
+      const folder = scannedFolder ?? getFolder();
 
       if (!folder) {
         return;

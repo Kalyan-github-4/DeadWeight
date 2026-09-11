@@ -3,7 +3,7 @@ import { copyFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 
 import { dirname, join, posix } from 'node:path';
 import type { Finding } from '../types';
 import { runProcess } from '../engine/exec';
-import type { PackageManager } from '../engine/packageManager';
+import { selfAndAncestors, type PackageManager } from '../engine/packageManager';
 import { TRASH_DIR } from '../engine/project';
 
 // Layout of one removal:
@@ -35,6 +35,9 @@ const NPM_PACKAGE_NAME = /^(?:@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]
 export interface PackageGroup {
   manifest: string;   // workspace-relative package.json path
   names: string[];
+  // Set when the opened folder holds several projects that may use different
+  // managers; falls back to the plan's (or record's) packageManager.
+  packageManager?: PackageManager;
 }
 
 export interface RemovalPlan {
@@ -65,9 +68,11 @@ export interface RestoreOutcome {
   errors: string[];
 }
 
+// `packageManagerFor` picks the manager per package.json when projects differ.
 export function planRemoval(
   findings: Finding[],
   packageManager: PackageManager,
+  packageManagerFor?: (manifest: string) => PackageManager,
 ): RemovalPlan {
   const groups = new Map<string, string[]>();
 
@@ -80,7 +85,12 @@ export function planRemoval(
 
   return {
     packageManager,
-    packages: [...groups].map(([manifest, names]) => ({ manifest, names })),
+    packages: [...groups].map(([manifest, names]) => {
+      const groupManager = packageManagerFor?.(manifest);
+      return groupManager && groupManager !== packageManager
+        ? { manifest, names, packageManager: groupManager }
+        : { manifest, names };
+    }),
     files: findings.filter((f) => f.kind === 'file').map((f) => f.name),
   };
 }
@@ -194,13 +204,15 @@ export async function executeRemoval(
   if (plan.packages.length > 0) {
     const candidates = new Set<string>();
 
+    // The lockfile can sit anywhere from the package.json's dir up to the opened
+    // folder: a monorepo root, or a project nested inside the opened folder.
     for (const { manifest } of plan.packages) {
-      const manifestDir = posix.dirname(manifest);
       candidates.add(manifest);
 
-      for (const lockfile of LOCKFILES) {
-        candidates.add(lockfile);
-        candidates.add(posix.join(manifestDir, lockfile));
+      for (const dir of selfAndAncestors(posix.dirname(manifest))) {
+        for (const lockfile of LOCKFILES) {
+          candidates.add(posix.join(dir, lockfile));
+        }
       }
     }
 
@@ -241,7 +253,7 @@ export async function executeRemoval(
       continue;
     }
 
-    const { command, args } = uninstallCommand(plan.packageManager, group.names);
+    const { command, args } = uninstallCommand(group.packageManager ?? plan.packageManager, group.names);
     const cwd = join(root, posix.dirname(group.manifest));
 
     try {
@@ -350,21 +362,43 @@ export async function restoreSnapshot(
       await copyFile(join(dir, BACKUP_DIR, path), join(root, path));
     }
 
-    try {
-      const result = await runProcess(record.packageManager, ['install'], { cwd: root });
+    // Install once per project, where its lockfile lives: the deepest backed-up
+    // lockfile dir that contains the package.json, else the package.json's own dir.
+    const lockfileDirs = record.backups
+      .filter(({ path }) => LOCKFILES.includes(posix.basename(path)))
+      .map(({ path }) => (posix.dirname(path) === '.' ? '' : posix.dirname(path)));
 
-      if (result.code === 0) {
-        outcome.reinstalled = true;
-      } else {
+    const installs = new Map<string, PackageManager>();
+
+    for (const group of record.packages) {
+      const manifestDir = posix.dirname(group.manifest) === '.' ? '' : posix.dirname(group.manifest);
+      const installDir = selfAndAncestors(manifestDir).find((candidate) => lockfileDirs.includes(candidate)) ?? manifestDir;
+      installs.set(installDir, group.packageManager ?? record.packageManager);
+    }
+
+    let allInstalled = true;
+
+    for (const [installDir, manager] of installs) {
+      const where = installDir ? ` in ${installDir}` : '';
+
+      try {
+        const result = await runProcess(manager, ['install'], { cwd: join(root, installDir) });
+
+        if (result.code !== 0) {
+          allInstalled = false;
+          outcome.errors.push(
+            `package.json was restored, but \`${manager} install\` failed${where}. Run it yourself to reinstall:\n${lastLines(result.stderr || result.stdout)}`,
+          );
+        }
+      } catch (error) {
+        allInstalled = false;
         outcome.errors.push(
-          `package.json was restored, but \`${record.packageManager} install\` failed. Run it yourself to reinstall:\n${lastLines(result.stderr || result.stdout)}`,
+          `package.json was restored, but ${manager} couldn't run${where}: ${(error as Error).message}`,
         );
       }
-    } catch (error) {
-      outcome.errors.push(
-        `package.json was restored, but ${record.packageManager} couldn't run: ${(error as Error).message}`,
-      );
     }
+
+    outcome.reinstalled = allInstalled;
   }
 
   const leftovers = [

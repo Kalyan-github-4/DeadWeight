@@ -17,6 +17,7 @@ const ALWAYS_SKIPPED_DIRS = new Set([
   '.turbo',
   '.cache',
   'coverage',
+  '.deadweight',    // generated project maps for AI agents
 ]);
 
 export const SOURCE_FILE = /\.(?:[cm]?[jt]sx?|vue|svelte|astro)$/;
@@ -109,6 +110,59 @@ export async function listFiles(root: string, signal?: AbortSignal): Promise<str
   await walk('', []);
 
   return files;
+}
+
+// How far below the opened folder to look for projects. Deep enough for
+// `repos/org/app/`, shallow enough to stay fast on a home directory.
+const MAX_PROJECT_DEPTH = 6;
+
+// Folder-relative posix dirs of the JavaScript/TypeScript projects inside `root`:
+// the outermost dirs holding a package.json ('' when root is a project itself).
+// A project's nested workspaces belong to it, so the walk stops at each one.
+export async function findProjectRoots(root: string, signal?: AbortSignal): Promise<string[]> {
+  const projects: string[] = [];
+
+  const walk = async (dir: string, scopes: IgnoreScope[], depth: number) => {
+    signal?.throwIfAborted();
+
+    let entries;
+
+    try {
+      entries = await readdir(join(root, dir), { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    if (entries.some((entry) => entry.isFile() && entry.name === 'package.json')) {
+      projects.push(dir);
+      return;
+    }
+
+    if (depth >= MAX_PROJECT_DEPTH) {
+      return;
+    }
+
+    const scope = await readIgnoreScope(root, dir);
+    const activeScopes = scope ? [...scopes, scope] : scopes;
+
+    for (const entry of entries) {
+      const path = dir ? `${dir}/${entry.name}` : entry.name;
+
+      // Dot folders (.git, .vscode, .github, caches) never hold a project.
+      if (
+        entry.isDirectory() &&
+        !entry.name.startsWith('.') &&
+        !ALWAYS_SKIPPED_DIRS.has(entry.name) &&
+        !isIgnored(path, true, activeScopes)
+      ) {
+        await walk(path, activeScopes, depth + 1);
+      }
+    }
+  };
+
+  await walk('', [], 0);
+
+  return projects.sort();
 }
 
 export async function readSmallFile(path: string): Promise<string | undefined> {

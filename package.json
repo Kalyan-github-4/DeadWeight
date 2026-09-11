@@ -2,7 +2,7 @@
   "name": "deadweight",
   "displayName": "Deadweight",
   "description": "Find unused packages, dead files and unused exports, see how every file connects, and remove them safely with a safe-to-delete score and one-click undo.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "kalyanmanna",
   "author": {
     "name": "Kalyan Manna"
@@ -63,7 +63,7 @@
     "viewsWelcome": [
       {
         "view": "deadweight.findings",
-        "contents": "Find unused packages and dead files in this workspace.\n[Scan Workspace](command:deadweight.scan)\nOr see how every file connects, instantly and offline:\n[Show Connection Graph](command:deadweight.showGraph)",
+        "contents": "Find unused packages and dead files in this workspace, or in every project inside it.\n[Scan Workspace](command:deadweight.scan)\nOr see how every file connects, instantly and offline:\n[Show Connection Graph](command:deadweight.showGraph)\nGive your AI agent the whole project structure in one compact file, so it reads less and spends fewer tokens:\n[Export Project Map for AI Agents](command:deadweight.exportProjectMap)",
         "when": "!deadweight.hasScanned"
       },
       {
@@ -107,6 +107,12 @@
         "title": "Show in Connection Graph",
         "category": "Deadweight",
         "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "deadweight.exportProjectMap",
+        "title": "Export Project Map for AI Agents",
+        "category": "Deadweight",
+        "icon": "$(sparkle)"
       }
     ],
     "configuration": {
@@ -188,6 +194,11 @@
           "command": "deadweight.showGraph",
           "when": "view == deadweight.findings",
           "group": "navigation@0"
+        },
+        {
+          "command": "deadweight.exportProjectMap",
+          "when": "view == deadweight.findings",
+          "group": "1_ai"
         }
       ],
       "view/item/context": [

@@ -20,4 +20,5 @@ export interface ScanResult {
   packageManager: 'npm' | 'yarn' | 'pnpm' | 'bun';
   durationMs: number;
   warnings: string[];
+  projects?: string[];    // folder-relative project dirs scanned ('' is the folder itself)
 }

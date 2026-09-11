@@ -79,10 +79,12 @@ export interface RemovalCallbacks {
 
 // Returns once the removal is done. The Undo notification is not awaited, since it
 // can stay open indefinitely; clicking it calls `onUndo`.
+// `packageManagerFor` picks the manager for each package.json, since the opened
+// folder may hold several projects.
 export async function reviewAndRemove(
   context: RemovalContext,
   selected: Finding[],
-  packageManager: PackageManager,
+  packageManagerFor: (manifest: string) => PackageManager,
   { onRemoved, onUndo }: RemovalCallbacks,
 ): Promise<void> {
   const { folder, output, previews } = context;
@@ -95,7 +97,9 @@ export async function reviewAndRemove(
     return;
   }
 
-  const plan = planRemoval(selected, packageManager);
+  const firstPackage = selected.find((finding) => finding.kind === 'package');
+  const defaultManager = packageManagerFor(posix.join(firstPackage?.workspace ?? '', 'package.json'));
+  const plan = planRemoval(selected, defaultManager, packageManagerFor);
   const previewUris = new Map<string, vscode.Uri>();
 
   try {
@@ -112,8 +116,8 @@ export async function reviewAndRemove(
 
   const confirmed = await showReviewPanel(
     {
-      packageGroups: plan.packages.map(({ manifest, names }) => {
-        const { command, args } = uninstallCommand(packageManager, names);
+      packageGroups: plan.packages.map(({ manifest, names, packageManager }) => {
+        const { command, args } = uninstallCommand(packageManager ?? plan.packageManager, names);
         return {
           manifest,
           command: `${command} ${args.join(' ')}`,

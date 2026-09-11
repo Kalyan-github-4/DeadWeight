@@ -83,21 +83,56 @@ function themeColor(variable: string, fallback: string): string {
   return getComputedStyle(document.body).getPropertyValue(variable).trim() || fallback;
 }
 
+// `color` (#rgb, #rrggbb, #rrggbbaa or rgb()/rgba()) at the given opacity, as rgba().
+// Lets edges take the theme's text color and stay readable on light and dark themes.
+function withAlpha(color: string, alpha: number): string {
+  const hex = color.match(/^#([\da-f]{3,8})$/i)?.[1];
+  let channels: number[] | undefined;
+
+  if (hex && (hex.length === 3 || hex.length === 4)) {
+    channels = [...hex.slice(0, 3)].map((digit) => parseInt(digit + digit, 16));
+  } else if (hex && (hex.length === 6 || hex.length === 8)) {
+    channels = [0, 2, 4].map((start) => parseInt(hex.slice(start, start + 2), 16));
+  } else {
+    channels = color.match(/^rgba?\(([^)]+)\)$/i)?.[1].split(/[\s,/]+/).slice(0, 3).map(Number);
+  }
+
+  return channels && channels.length === 3 && channels.every((n) => Number.isFinite(n))
+    ? `rgba(${channels.join(', ')}, ${alpha})`
+    : color;
+}
+
 function colors() {
+  const text = themeColor('--vscode-editor-foreground', '#cccccc');
+  const packageColor = themeColor('--vscode-charts-purple', '#b180d7');
+
   return {
     entry: themeColor('--vscode-charts-blue', '#3794ff'),
     used: themeColor('--vscode-charts-green', '#89d185'),
     maybe: themeColor('--vscode-charts-yellow', '#cca700'),
     unused: themeColor('--vscode-charts-red', '#f14c4c'),
-    package: themeColor('--vscode-charts-purple', '#b180d7'),
-    text: themeColor('--vscode-editor-foreground', '#cccccc'),
+    package: packageColor,
+    text,
     muted: themeColor('--vscode-descriptionForeground', '#999999'),
-    edge: themeColor('--vscode-editorLineNumber-foreground', '#6e7681'),
+    // Edges use the text color, so they contrast with the background on any theme.
+    edge: withAlpha(text, 0.55),
+    packageEdge: withAlpha(packageColor, 0.65),
+    incoming: themeColor('--vscode-charts-orange', '#d18616'),
     border: themeColor('--vscode-panel-border', '#444444'),
     background: themeColor('--vscode-editor-background', '#1e1e1e'),
     folder: themeColor('--vscode-sideBar-background', '#252526'),
     selection: themeColor('--vscode-focusBorder', '#007fd4'),
   };
+}
+
+// Edge widths are in graph units, so zooming out on a big graph shrinks lines to
+// hairlines. Widths are multiplied by this, stepped so zooming doesn't restyle
+// every frame.
+let edgeScale = 1;
+
+function edgeScaleFor(zoom: number): number {
+  const raw = Math.min(3, Math.max(1, Math.pow(zoom, -0.6)));
+  return Math.round(raw * 4) / 4;
 }
 
 function escapeHtml(text: string): string {
@@ -208,6 +243,7 @@ function buildElements(): cytoscape.ElementDefinition[] {
 function style(): cytoscape.StylesheetJson {
   const c = colors();
   const tree = state.layout === 'tree';
+  const w = (px: number) => px * edgeScale;
 
   return [
     {
@@ -256,7 +292,7 @@ function style(): cytoscape.StylesheetJson {
       style: {
         shape: 'round-rectangle',
         'background-color': c.folder,
-        'background-opacity': 0.45,
+        'background-opacity': 0.3,
         'border-width': 1,
         'border-color': c.border,
         color: c.muted,
@@ -275,29 +311,35 @@ function style(): cytoscape.StylesheetJson {
     {
       selector: 'edge',
       style: {
-        width: 1.2,
+        width: w(1.6),
         'line-color': c.edge,
+        'line-cap': 'round',
         'target-arrow-color': c.edge,
         'target-arrow-shape': 'triangle',
-        'arrow-scale': 0.7,
+        'arrow-scale': 1.05,
+        'target-distance-from-node': 2,
         'curve-style': tree ? 'taxi' : 'bezier',
         'taxi-direction': 'downward',
         'taxi-turn': '50%',
-        opacity: 0.55,
+        // Draw above folder boxes; otherwise edges crossing a box disappear behind it.
+        'z-compound-depth': 'top',
         'transition-property': 'opacity, line-color, width',
         'transition-duration': 150,
       },
     },
-    { selector: 'edge.to-package', style: { width: 0.8, opacity: 0.3 } },
-    { selector: 'edge.type', style: { 'line-style': 'dashed', 'line-dash-pattern': [4, 3] } },
-    { selector: 'edge.config', style: { 'line-style': 'dotted', width: 1.8 } },
-    { selector: 'edge.maybe', style: { 'line-style': 'dashed', 'line-color': c.maybe, 'target-arrow-color': c.maybe, opacity: 0.8 } },
-    { selector: '.faded', style: { opacity: 0.1, 'underlay-opacity': 0.02 } },
-    { selector: 'edge.highlighted', style: { width: 2.4, opacity: 1, 'line-color': c.selection, 'target-arrow-color': c.selection } },
+    { selector: 'edge.to-package', style: { width: w(1.3), 'line-color': c.packageEdge, 'target-arrow-color': c.packageEdge } },
+    { selector: 'edge.type', style: { 'line-style': 'dashed', 'line-dash-pattern': [6, 4] } },
+    { selector: 'edge.config', style: { 'line-style': 'dotted', width: w(2.2) } },
+    { selector: 'edge.maybe', style: { 'line-style': 'dashed', 'line-dash-pattern': [6, 4], 'line-color': c.maybe, 'target-arrow-color': c.maybe } },
+    { selector: '.faded', style: { opacity: 0.12, 'underlay-opacity': 0.02 } },
+    { selector: 'edge.hover', style: { width: w(2.6), 'line-color': c.selection, 'target-arrow-color': c.selection, 'arrow-scale': 1.25, 'z-index': 10 } },
+    // Selected node: what it imports in the focus color, what imports it in orange.
+    { selector: 'edge.highlighted', style: { width: w(2.8), opacity: 1, 'arrow-scale': 1.3, 'z-index': 10 } },
+    { selector: 'edge.hl-out', style: { 'line-color': c.selection, 'target-arrow-color': c.selection } },
+    { selector: 'edge.hl-in', style: { 'line-color': c.incoming, 'target-arrow-color': c.incoming } },
     { selector: 'node:selected', style: { 'border-width': 3, 'border-color': c.selection, 'border-style': 'solid' } },
     { selector: 'node.match', style: { 'border-width': 3, 'border-color': c.selection, 'border-style': 'solid' } },
     { selector: 'node.hover', style: { 'border-width': 2, 'border-color': c.text, 'border-style': 'solid' } },
-    { selector: 'edge.hover', style: { opacity: 1, width: 2 } },
   ] as unknown as cytoscape.StylesheetJson;
 }
 
@@ -400,6 +442,27 @@ function render() {
   });
 
   cy.on('pan zoom', hideTooltip);
+
+  // Keep edges legible at any zoom; restyle only when the stepped scale changes.
+  let scaleQueued = false;
+
+  cy.on('zoom', () => {
+    if (scaleQueued) {
+      return;
+    }
+
+    scaleQueued = true;
+
+    requestAnimationFrame(() => {
+      scaleQueued = false;
+      const next = cy ? edgeScaleFor(cy.zoom()) : edgeScale;
+
+      if (cy && next !== edgeScale) {
+        edgeScale = next;
+        cy.style(style());
+      }
+    });
+  });
 
   $('empty').hidden = nodeCount > 0;
   renderChips();
@@ -540,7 +603,7 @@ function openFile(id: string) {
 }
 
 function clearSelection() {
-  cy?.elements().removeClass('faded highlighted');
+  cy?.elements().removeClass('faded highlighted hl-in hl-out');
   cy?.elements().unselect();
   $('details').hidden = true;
 }
@@ -605,10 +668,11 @@ function select(id: string) {
 
   if (element.nonempty()) {
     const neighbourhood = element.closedNeighborhood();
-    cy.elements().addClass('faded').removeClass('highlighted').unselect();
+    cy.elements().addClass('faded').removeClass('highlighted hl-in hl-out').unselect();
     neighbourhood.removeClass('faded');
     neighbourhood.ancestors().removeClass('faded');
-    element.connectedEdges().addClass('highlighted');
+    element.outgoers('edge').addClass('highlighted hl-out');
+    element.incomers('edge').addClass('highlighted hl-in');
     element.select();
     cy.animate({ center: { eles: element }, zoom: Math.min(Math.max(cy.zoom(), 0.9), 1.3), duration: 250 });
   }
@@ -636,9 +700,9 @@ function select(id: string) {
         ${node.kind === 'file' ? '<button class="btn primary" id="open-file">Open file</button>' : ''}
         <button class="btn secondary" id="focus-node" title="Zoom to this node and its connections">Focus</button>
       </div>
-      <h3>Imported by <span class="count">${importedBy.length}</span></h3>
+      <h3><span class="line in" title="Drawn in this color on the graph"></span>Imported by <span class="count">${importedBy.length}</span></h3>
       ${linkList(importedBy)}
-      ${node.kind === 'file' ? `<h3>Imports <span class="count">${imports.length}</span></h3>${linkList(imports)}` : ''}
+      ${node.kind === 'file' ? `<h3><span class="line out" title="Drawn in this color on the graph"></span>Imports <span class="count">${imports.length}</span></h3>${linkList(imports)}` : ''}
     </div>
   `;
 
@@ -719,6 +783,8 @@ function bindControls() {
     render();
     clearSelection();
   });
+
+  $('export-ai').addEventListener('click', () => vscode.postMessage({ type: 'export' }));
 
   $('refresh').addEventListener('click', () => {
     $('meta').textContent = 'Rebuilding…';

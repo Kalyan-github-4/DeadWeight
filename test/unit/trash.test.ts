@@ -39,6 +39,43 @@ describe('planRemoval', () => {
   });
 });
 
+describe('removal from a folder holding several projects', () => {
+  it('picks the package manager per project', () => {
+    const plan = planRemoval(
+      [
+        { id: 'a', kind: 'package', name: 'lodash', confidence: 'high', score: 0, reason: '', workspace: 'shop' },
+        { id: 'b', kind: 'package', name: 'chalk', confidence: 'high', score: 0, reason: '', workspace: 'cli' },
+      ],
+      'npm',
+      (manifest) => (manifest.startsWith('shop/') ? 'yarn' : 'npm'),
+    );
+
+    expect(plan.packages).toEqual([
+      { manifest: 'shop/package.json', names: ['lodash'], packageManager: 'yarn' },
+      { manifest: 'cli/package.json', names: ['chalk'] },
+    ]);
+  });
+
+  it('backs up the lockfile of the project that owns a nested package.json', async () => {
+    const root = makeTempProject({
+      'mono/package-lock.json': '{}',
+      'mono/packages/ui/package.json': '{}',
+    });
+
+    // An invalid name stops before the package manager runs; the backups still happen first.
+    const { record } = await executeRemoval(root, {
+      packageManager: 'npm',
+      packages: [{ manifest: 'mono/packages/ui/package.json', names: ['Not A Valid Name!'] }],
+      files: [],
+    });
+
+    expect(record.backups.map((backup) => backup.path).sort()).toEqual([
+      'mono/package-lock.json',
+      'mono/packages/ui/package.json',
+    ]);
+  });
+});
+
 describe('ensureTrashIgnored', () => {
   it('appends the trash dir once', async () => {
     const root = makeTempProject({ '.gitignore': 'node_modules' });
