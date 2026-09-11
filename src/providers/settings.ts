@@ -8,6 +8,9 @@ export interface DeadweightSettings {
   entryPoints: string[];
   minimumConfidence: Confidence;
   packageManager?: PackageManager;    // undefined means detect from the lockfile
+  verifyRemovals: boolean;            // run type check / build / tests around removals
+  verifyTimeoutMinutes: number;       // per check
+  checkVulnerabilities: boolean;      // look unused packages up in the npm advisory database
 }
 
 const CONFIDENCES: readonly Confidence[] = ['low', 'medium', 'high'];
@@ -27,5 +30,8 @@ export function readSettings(scope?: vscode.ConfigurationScope): DeadweightSetti
     entryPoints: stringList(config.get('entryPoints')),
     minimumConfidence: CONFIDENCES.find((level) => level === minimumConfidence) ?? 'low',
     packageManager: PACKAGE_MANAGERS.find((manager) => manager === packageManager),
+    verifyRemovals: config.get<boolean>('verifyRemovals') !== false,
+    verifyTimeoutMinutes: Math.max(1, Number(config.get('verifyTimeoutMinutes')) || 10),
+    checkVulnerabilities: config.get<boolean>('checkVulnerabilities') !== false,
   };
 }

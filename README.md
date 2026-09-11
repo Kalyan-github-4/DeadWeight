@@ -124,8 +124,9 @@ Every finding shows a band and a **safe-to-delete score from 0 to 99**:
    - the exact uninstall command (e.g. `npm uninstall chalk left-pad lodash`),
    - a **View package.json diff** button,
    - which files will move to `.deadweight-trash/<timestamp>/`,
+   - the **checks that will verify the removal** (your type check, `build` and `test` scripts),
    - a warning if you have uncommitted changes.
-4. Click **Remove** to go ahead, or **Cancel** to leave everything as it is.
+4. Click **Remove & verify** to go ahead, or **Cancel** to leave everything as it is.
 
 ![Review & Remove preview](images/review-remove.png)
 
@@ -134,6 +135,29 @@ What actually happens:
 - **Packages** are uninstalled in one command with your package manager (npm, yarn, pnpm or bun — detected automatically). `package.json` and your lockfile are backed up first.
 - **Files** are **moved**, never deleted, into `.deadweight-trash/<timestamp>/` with their folder structure preserved. The trash folder is added to your `.gitignore` automatically.
 - **Unused exports** are never touched — open them and delete the code by hand if you agree.
+
+#### 🛡️ Delete a vulnerability
+
+Every unused package shows what removing it really gains: the space it and the dependencies **nothing else needs** take up in `node_modules`, and the **known vulnerabilities** among them (from the npm advisory database, the one `npm audit` uses):
+
+```
+lodash     high · 98 · 1.3 MB · ⚠ 5 vulns
+minimist   high · 98 · 32 KB  · ⚠ 1 vuln
+```
+
+Hover a package for the list of advisories with links. The scan summary and the Review & Remove panel add it up: *"Frees 1.4 MB and removes 6 known vulnerabilities (1 critical, 2 high, 3 moderate)."* Unused code you never run can still be installed, audited against and exploited in your supply chain; removing it is the cheapest fix there is.
+
+The lookup sends the names and versions of the unused packages (and their exclusive dependencies) to `registry.npmjs.org`, like `npm audit` does. Turn it off with `deadweight.checkVulnerabilities`; sizes are measured locally either way.
+
+#### ✅ Verified removal
+
+Static analysis can only guess. Deadweight checks its work with **your project's own checks**:
+
+1. **Before removing**, it runs the ticked checks: your type check (`typecheck` / `check-types` script, or `tsc --noEmit`), `build` and `test`. Checks that already fail are left out, since they can't prove anything.
+2. **After removing**, it runs the passing ones again.
+3. If one that passed before now fails, the removal is **undone automatically**. Deadweight reads the error output, names the likely cause (e.g. *"Cannot find module 'lodash'"* → `lodash`) and marks it **in use**, so it stays at the bottom of the score in future scans.
+
+When everything still passes you get *"Verified: type check, build and tests still pass"*, plus the usual **Undo**. Untick any check in the panel to skip it (your choice is remembered), or turn verification off with `deadweight.verifyRemovals`.
 
 ### Step 7 — Undo (if you need to)
 
@@ -234,6 +258,9 @@ Open *Settings* (`Ctrl+,`) and search **Deadweight**.
 | `deadweight.entryPoints` | `[]` | A file is run in a way Deadweight can't see (a cron job, a custom loader). Globs like `scripts/*.js` — they and everything they import count as used |
 | `deadweight.minimumConfidence` | `low` | You only want to see `medium`+ or `high` results |
 | `deadweight.packageManager` | `auto` | You want to force `npm`, `yarn`, `pnpm` or `bun` |
+| `deadweight.verifyRemovals` | `true` | Turn off if your checks are too slow to run twice per removal |
+| `deadweight.verifyTimeoutMinutes` | `10` | A check needs longer than 10 minutes (it counts as failed after this) |
+| `deadweight.checkVulnerabilities` | `true` | Turn off to keep package names from being sent to the npm advisory database |
 
 Example `.vscode/settings.json`:
 

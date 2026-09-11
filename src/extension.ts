@@ -7,8 +7,10 @@ import {
   type RemovalContext,
 } from './actions/commands';
 import { exportProjectMap, refreshSavedProjectMaps } from './actions/projectMapCommand';
+import { applyProvenUsed, PROVEN_USED_KEY, type ProvenUsedStore } from './actions/provenUsed';
 import { posix } from 'node:path';
 import { CancelledError } from './engine/exec';
+import { describeAdvisories, formatBytes } from './engine/footprint';
 import { buildConnectionGraph } from './engine/graph';
 import { detectPackageManagerFor } from './engine/packageManager';
 import { findProjectRoots } from './engine/project';
@@ -127,11 +129,17 @@ export function activate(context: vscode.ExtensionContext) {
     }
   };
 
-  const removalContext = (folder: vscode.WorkspaceFolder): RemovalContext => ({
-    folder,
-    output,
-    previews,
-  });
+  const removalContext = (folder: vscode.WorkspaceFolder): RemovalContext => {
+    const settings = readSettings(folder.uri);
+
+    return {
+      folder,
+      output,
+      previews,
+      state: context.workspaceState,
+      verify: { enabled: settings.verifyRemovals, timeoutMs: settings.verifyTimeoutMinutes * 60_000 },
+    };
+  };
 
   const scan = exclusive(async () => {
     const folder = getFolder();
@@ -191,6 +199,8 @@ export function activate(context: vscode.ExtensionContext) {
               exclude: settings.exclude,
               entryPoints: settings.entryPoints,
               packageManager: settings.packageManager,
+              // undefined: the default lookup in the npm advisory database.
+              fetchAdvisories: settings.checkVulnerabilities ? undefined : false,
               projects: selected,
               onProject: (project, index, total) => progress.report({
                 message: total > 1 ? `${index + 1}/${total} · ${project || folder.name}` : project || folder.name,
@@ -204,7 +214,8 @@ export function activate(context: vscode.ExtensionContext) {
       );
 
       scannedFolder = folder;
-      treeProvider.setFindings(result.findings);
+      // Items a verified removal proved to be in use stay demoted, whatever the analysis says.
+      treeProvider.setFindings(applyProvenUsed(result.findings, context.workspaceState.get<ProvenUsedStore>(PROVEN_USED_KEY, {})));
       await vscode.commands.executeCommand(
         'setContext',
         'deadweight.hasScanned',
@@ -232,20 +243,33 @@ export function activate(context: vscode.ExtensionContext) {
         ? `${result.scannedFileCount} files in ${projectCount} projects`
         : `${result.scannedFileCount} files`;
 
+      const footprint = result.footprint;
+      const advisories = footprint?.advisories ?? [];
+      const gain = footprint && footprint.packages > 0
+        ? ` Removing the unused packages frees ${formatBytes(footprint.bytes)}${advisories.length > 0 ? ` and ${describeAdvisories(advisories)}` : ''}.`
+        : '';
+
       const summary = result.findings.length === 0
         ? `Deadweight: No deadweight found across ${scope}.`
-        : `Deadweight: Found ${packageCount} unused package(s), ${fileCount} unused file(s) and ${exportCount} unused export(s) across ${scope}.`;
+        : `Deadweight: Found ${packageCount} unused package(s), ${fileCount} unused file(s) and ${exportCount} unused export(s) across ${scope}.${gain}`;
 
-      if (result.warnings.length === 0) {
-        vscode.window.showInformationMessage(summary);
-        return;
-      }
-
+      const reviewRemove = 'Review & Remove';
       const showWarnings = 'Show Warnings';
+      const actions = [
+        ...(advisories.length > 0 ? [reviewRemove] : []),
+        ...(result.warnings.length > 0 ? [showWarnings] : []),
+      ];
 
-      vscode.window.showInformationMessage(summary, showWarnings).then((choice) => {
+      // Known vulnerabilities in dead packages deserve more than an info toast.
+      const notification = advisories.length > 0
+        ? vscode.window.showWarningMessage(summary, ...actions)
+        : vscode.window.showInformationMessage(summary, ...actions);
+
+      notification.then((choice) => {
         if (choice === showWarnings) {
           output.show();
+        } else if (choice === reviewRemove) {
+          vscode.commands.executeCommand('deadweight.reviewRemove');
         }
       });
     } catch (error) {
@@ -293,6 +317,7 @@ export function activate(context: vscode.ExtensionContext) {
         (manifest) => override ?? detectPackageManagerFor(folder.uri.fsPath, posix.dirname(manifest)),
         {
           onRemoved: (ids) => treeProvider.removeFindings(ids),
+          onProvenUsed: (store) => treeProvider.markProvenUsed(store),
           onUndo: (record) => exclusive(() => restoreRecord(removalContext(folder), record))(),
         },
       );

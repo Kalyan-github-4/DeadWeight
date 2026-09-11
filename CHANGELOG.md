@@ -2,6 +2,12 @@
 
 All notable changes to Deadweight are documented here.
 
+## [0.0.4] - 2026-09-12
+
+- **Delete a vulnerability**: every unused package now shows what removing it takes out of `node_modules` (the package plus dependencies nothing else needs, for npm, yarn and pnpm) and the known vulnerabilities in it, from the npm advisory database. The scan summary, the tree, the Review & Remove panel and the success message all show the gain, e.g. *"frees 84 MB and 3 known vulnerabilities (1 critical, 2 high)"*. Setting `deadweight.checkVulnerabilities` turns the lookup off; sizes are always measured locally.
+- **Verified removal**: Review & Remove runs the project's own type check, `build` and `test` scripts before and after removing. If a check that passed before fails after, the removal is undone automatically, the likely cause is read from the error output, and that item is marked as in use in every later scan. Choose checks per removal in the panel; settings `deadweight.verifyRemovals` and `deadweight.verifyTimeoutMinutes`.
+- **Move around the graph freely**: drag the background or folder boxes, scroll or swipe in any direction, Ctrl + scroll or pinch to zoom, Space + drag or middle-button drag over nodes, arrow keys and + / −.
+
 ## [0.0.3] - 2026-09-11
 
 - **Scan from any folder**: opening a parent folder (no `package.json` at the top) no longer fails. Deadweight finds every project inside it and scans them all, up to 8 without asking, and lets you pick when there are more. Removal, undo and the package manager work per project.

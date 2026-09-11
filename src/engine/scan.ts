@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join, posix } from 'node:path';
-import type { Finding, ScanResult } from '../types';
+import type { Finding, Footprint, ScanResult } from '../types';
+import { measureFootprints, type AdvisoryFetcher } from './footprint';
 import { scoreFindings, type PackageInfo } from './confidence';
 import { runDepcheck, type DepcheckResult } from './depcheck';
 import { CancelledError } from './exec';
@@ -54,6 +55,43 @@ async function readPackageInfo(
   return info;
 }
 
+// Attaches to each unused package what removing it takes out of node_modules, and
+// returns the total for removing all of them. Never fails the scan.
+async function addFootprints(
+  workspaceRoot: string,
+  manifestDirs: string[],
+  findings: Finding[],
+  { signal, fetchAdvisories, warnings }: { signal: AbortSignal; fetchAdvisories?: AdvisoryFetcher | false; warnings: string[] },
+): Promise<{ findings: Finding[]; footprint?: Footprint }> {
+  const removals = findings
+    .filter((finding) => finding.kind === 'package')
+    .map((finding) => ({ id: finding.id, manifestDir: finding.workspace ?? '', name: finding.name }));
+
+  if (removals.length === 0) {
+    return { findings };
+  }
+
+  try {
+    const result = await measureFootprints(workspaceRoot, manifestDirs, removals, { signal, fetchAdvisories });
+    warnings.push(...result.warnings);
+
+    return {
+      findings: findings.map((finding) => {
+        const footprint = result.perRemoval.get(finding.id);
+        return footprint ? { ...finding, footprint, sizeBytes: footprint.bytes } : finding;
+      }),
+      footprint: result.combined,
+    };
+  } catch (error) {
+    if (signal.aborted) {
+      throw error;
+    }
+
+    warnings.push(`Couldn't measure what the unused packages take up: ${(error as Error).message}`);
+    return { findings };
+  }
+}
+
 // The external analysers. Tests swap these for the locally installed binaries.
 export interface ScanEngines {
   runKnip: (workspaceRoot: string, options: KnipOptions) => Promise<KnipScanResult>;
@@ -65,6 +103,8 @@ const defaultEngines: ScanEngines = { runKnip, runDepcheck };
 export interface ScanOptions {
   signal?: AbortSignal;
   engines?: ScanEngines;
+  // Known-vulnerability lookup for unused packages; false measures sizes only.
+  fetchAdvisories?: AdvisoryFetcher | false;
   exclude?: string[];                   // globs for files/packages to leave out of results
   entryPoints?: string[];               // extra entry globs, passed to knip
   packageManager?: PackageManager;      // overrides lockfile detection
@@ -139,6 +179,7 @@ export async function scanFolder(folder: string, options: FolderScanOptions = {}
   const warnings: string[] = [];
   const packageManagers: Record<string, PackageManager> = {};
   let scannedFileCount = 0;
+  let footprint: Footprint | undefined;
 
   // One project at a time: parallel knip processes compete for memory.
   for (const [index, project] of projects.entries()) {
@@ -154,6 +195,14 @@ export async function scanFolder(folder: string, options: FolderScanOptions = {}
     warnings.push(...result.warnings.map((warning) => (project ? `[${project}] ${warning}` : warning)));
     packageManagers[project] = result.packageManager;
     scannedFileCount += result.scannedFileCount;
+
+    if (result.footprint) {
+      footprint = {
+        packages: (footprint?.packages ?? 0) + result.footprint.packages,
+        bytes: (footprint?.bytes ?? 0) + result.footprint.bytes,
+        advisories: [...(footprint?.advisories ?? []), ...result.footprint.advisories],
+      };
+    }
   }
 
   return {
@@ -163,6 +212,7 @@ export async function scanFolder(folder: string, options: FolderScanOptions = {}
     durationMs: Date.now() - startedAt,
     warnings,
     projects,
+    footprint,
   };
 }
 
@@ -174,6 +224,7 @@ export async function scanWorkspace(
     exclude = [],
     entryPoints = [],
     packageManager,
+    fetchAdvisories,
   }: ScanOptions = {},
 ): Promise<ScanResult> {
   if (!existsSync(join(workspaceRoot, 'package.json'))) {
@@ -245,18 +296,28 @@ export async function scanWorkspace(
     const findings = filterFindings(knip.findings, { exclude, entryPoints });
     const packageInfo = await readPackageInfo(workspaceRoot, findings);
 
+    const scored = scoreFindings(findings, {
+      context,
+      unresolvedFiles: knip.unresolvedFiles,
+      depcheckUnused,
+      packageInfo,
+      graph: graph instanceof Error ? undefined : new Map(graph.nodes.map((node) => [node.id, node])),
+    });
+
+    const { findings: measured, footprint } = await addFootprints(
+      workspaceRoot,
+      context.workspaceDirs,
+      scored,
+      { signal: controller.signal, fetchAdvisories, warnings },
+    );
+
     return {
-      findings: scoreFindings(findings, {
-        context,
-        unresolvedFiles: knip.unresolvedFiles,
-        depcheckUnused,
-        packageInfo,
-        graph: graph instanceof Error ? undefined : new Map(graph.nodes.map((node) => [node.id, node])),
-      }),
+      findings: measured,
       scannedFileCount: context.sourceFileCount,
       packageManager: packageManager ?? detectPackageManager(workspaceRoot),
       durationMs: Date.now() - startedAt,
       warnings,
+      footprint,
     };
   } catch (error) {
     // The walk throws the signal's own reason on abort; normalise it.

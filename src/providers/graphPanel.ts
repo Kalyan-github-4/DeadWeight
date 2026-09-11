@@ -95,7 +95,11 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: st
 
   /* Canvas and floating widgets */
   main { flex: 1; position: relative; min-height: 0; }
-  #cy { position: absolute; inset: 0; }
+  #cy { position: absolute; inset: 0; cursor: grab; }
+  #cy.over-node { cursor: pointer; }
+  #cy.space-pan, #cy.space-pan.over-node { cursor: grab; }
+  #cy.panning, #cy.panning.over-node { cursor: grabbing; }
+  .filters kbd { font-family: var(--vscode-editor-font-family); font-size: 0.85em; padding: 0 4px; border-radius: 3px; border: 1px solid var(--border); }
   .floating { position: absolute; background: var(--surface); border: 1px solid var(--vscode-editorWidget-border, var(--border)); border-radius: var(--radius); box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0,0,0,.25)); }
   .zoom { right: 16px; bottom: 16px; display: flex; flex-direction: column; overflow: hidden; }
   .zoom button { border: none; background: transparent; color: var(--muted); width: 32px; height: 30px; display: flex; align-items: center; justify-content: center; }

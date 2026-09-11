@@ -1,8 +1,8 @@
 {
   "name": "deadweight",
   "displayName": "Deadweight",
-  "description": "Find unused packages, dead files and unused exports, see how every file connects, and remove them safely with a safe-to-delete score and one-click undo.",
-  "version": "0.0.3",
+  "description": "Find unused packages, dead files and unused exports, then remove them safely: every removal is verified with your own build and tests and undone automatically if anything breaks, and you see the known vulnerabilities you delete.",
+  "version": "0.0.4",
   "publisher": "kalyanmanna",
   "author": {
     "name": "Kalyan Manna"
@@ -29,7 +29,11 @@
     "knip",
     "depcheck",
     "unused exports",
-    "dependency graph"
+    "dependency graph",
+    "vulnerabilities",
+    "security",
+    "npm audit",
+    "node_modules size"
   ],
   "engines": {
     "vscode": "^1.90.0"
@@ -170,6 +174,25 @@
           "default": "auto",
           "scope": "resource",
           "markdownDescription": "The package manager used to uninstall and reinstall packages."
+        },
+        "deadweight.verifyRemovals": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "markdownDescription": "Verify removals with the project's own checks: its type check, `build` and `test` scripts run before and after removing. If one that passed before fails after, the removal is undone automatically and the cause is marked as in use. You can still untick checks in the Review & Remove panel."
+        },
+        "deadweight.verifyTimeoutMinutes": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "scope": "resource",
+          "markdownDescription": "How long one verification check may run before it counts as failed."
+        },
+        "deadweight.checkVulnerabilities": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "markdownDescription": "Check what removing unused packages takes out of `node_modules` for known vulnerabilities, using the npm advisory database (the one `npm audit` uses). This sends the names and versions of those packages to `registry.npmjs.org`. Sizes are measured locally either way."
         }
       }
     },
@@ -244,6 +267,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
+    "@types/semver": "^7.8.0",
     "@types/vscode": "^1.90.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
@@ -264,6 +288,7 @@
     "cytoscape-fcose": "^2.2.0",
     "depcheck": "^1.4.7",
     "ignore": "^7.0.9",
-    "knip": "^6.35.1"
+    "knip": "^6.35.1",
+    "semver": "^7.8.5"
   }
 }

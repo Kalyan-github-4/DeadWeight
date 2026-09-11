@@ -305,6 +305,9 @@ function style(): cytoscape.StylesheetJson {
         'text-background-opacity': 0,
         padding: '16px',
         'min-zoomed-font-size': 6,
+        // Boxes cover most of the canvas; pointer events pass through so dragging
+        // on one moves the view instead of the box. Files inside stay interactive.
+        events: 'no',
       },
     },
     { selector: 'node.context', style: { opacity: 0.35 } },
@@ -397,9 +400,17 @@ function render() {
     elements: buildElements(),
     style: style(),
     wheelSensitivity: 0.25,
-    minZoom: 0.05,
-    maxZoom: 3,
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM,
   });
+
+  // Grab cursor while the background is being dragged.
+  cy.on('tapstart', (event) => {
+    if (event.target === cy) {
+      $('cy').classList.add('panning');
+    }
+  });
+  cy.on('tapend', () => $('cy').classList.remove('panning'));
 
   const nodeCount = cy.nodes().not('.folder').length;
   const layout = cy.layout(layoutOptions(nodeCount));
@@ -431,11 +442,13 @@ function render() {
 
     element.addClass('hover');
     element.connectedEdges().addClass('hover');
+    $('cy').classList.add('over-node');
     showTooltip(element);
   });
 
   cy.on('mouseout', 'node', (event) => {
     const element = event.target as cytoscape.NodeSingular;
+    $('cy').classList.remove('over-node');
     element.removeClass('hover');
     element.connectedEdges().removeClass('hover');
     hideTooltip();
@@ -491,7 +504,7 @@ function renderChips() {
       <button class="chip" data-filter="${key}" aria-pressed="${!state.hidden.has(key)}" title="${escapeHtml(title)} · click to ${state.hidden.has(key) ? 'show' : 'hide'}">
         <span class="shape ${key}"></span><span class="name">${name}</span><span class="n">${count(key)}</span>
       </button>`).join('')}
-    <span class="hint">Click a node for details · double-click to open · <kbd>F</kbd> to fit</span>
+    <span class="hint" title="Move: drag the background, scroll or swipe, arrow keys, or hold Space and drag. Zoom: Ctrl + scroll, pinch, or + and −. Fit: F.">Drag or scroll to move · <kbd>Ctrl</kbd>+scroll to zoom · double-click to open · <kbd>F</kbd> to fit</span>
   `;
 
   for (const chip of $('filters').querySelectorAll<HTMLButtonElement>('[data-filter]')) {
@@ -551,6 +564,126 @@ function zoomBy(factor: number) {
   if (cy) {
     cy.animate({ zoom: { level: cy.zoom() * factor, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }, duration: 150 });
   }
+}
+
+// --- Panning ------------------------------------------------------------------------------
+// Moving around like a design tool: drag the background (or a folder box), scroll
+// or swipe to move, Ctrl/Cmd + scroll or pinch to zoom, Space or middle-button drag
+// to move even when starting on a node, and arrow keys.
+
+const MIN_ZOOM = 0.05;
+const MAX_ZOOM = 3;
+const KEY_PAN_STEP = 60;
+const LINE_HEIGHT_PX = 16;
+
+let spaceHeld = false;
+let manualPan: { pointerId: number; x: number; y: number } | undefined;
+
+const inCanvas = (target: EventTarget | null) => target instanceof Node && $('cy').contains(target);
+
+function panBy(x: number, y: number) {
+  if (cy) {
+    cy.panBy({ x, y });
+    hideTooltip();
+  }
+}
+
+function bindPanning() {
+  const main = document.querySelector('main')!;
+
+  // Capture phase on an ancestor: runs before cytoscape's own wheel zoom.
+  main.addEventListener('wheel', (event) => {
+    if (!cy || !inCanvas(event.target)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const scale = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? LINE_HEIGHT_PX
+      : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? cy.height()
+        : 1;
+
+    // Pinch on a trackpad arrives as a wheel event with ctrlKey set.
+    if (event.ctrlKey || event.metaKey) {
+      const bounds = $('cy').getBoundingClientRect();
+      const level = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cy.zoom() * Math.exp(-event.deltaY * scale * 0.0025)));
+      cy.zoom({ level, renderedPosition: { x: event.clientX - bounds.left, y: event.clientY - bounds.top } });
+      return;
+    }
+
+    // A mouse wheel only scrolls vertically; Shift turns it sideways.
+    const dx = event.shiftKey && event.deltaX === 0 ? event.deltaY : event.deltaX;
+    const dy = event.shiftKey && event.deltaX === 0 ? 0 : event.deltaY;
+    panBy(-dx * scale, -dy * scale);
+  }, { capture: true, passive: false });
+
+  // Space + drag or middle-button drag moves the view even when starting on a node.
+  const startsManualPan = (event: MouseEvent) =>
+    inCanvas(event.target) && (event.button === 1 || (event.button === 0 && spaceHeld));
+
+  main.addEventListener('pointerdown', (event) => {
+    if (!startsManualPan(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    manualPan = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    main.setPointerCapture(event.pointerId);
+    $('cy').classList.add('panning');
+  }, { capture: true });
+
+  // Keep cytoscape from also starting a node drag or its own pan.
+  main.addEventListener('mousedown', (event) => {
+    if (startsManualPan(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, { capture: true });
+
+  main.addEventListener('pointermove', (event) => {
+    if (manualPan?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    event.stopPropagation();
+    panBy(event.clientX - manualPan.x, event.clientY - manualPan.y);
+    manualPan = { ...manualPan, x: event.clientX, y: event.clientY };
+  }, { capture: true });
+
+  const endManualPan = (event: PointerEvent) => {
+    if (manualPan?.pointerId === event.pointerId) {
+      manualPan = undefined;
+      $('cy').classList.remove('panning');
+    }
+  };
+
+  main.addEventListener('pointerup', endManualPan, { capture: true });
+  main.addEventListener('pointercancel', endManualPan, { capture: true });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space' && !(event.target instanceof HTMLInputElement) && !(event.target instanceof HTMLButtonElement)) {
+      event.preventDefault();
+
+      if (!spaceHeld) {
+        spaceHeld = true;
+        $('cy').classList.add('space-pan');
+      }
+    }
+  });
+
+  const releaseSpace = () => {
+    spaceHeld = false;
+    $('cy').classList.remove('space-pan');
+  };
+
+  document.addEventListener('keyup', (event) => {
+    if (event.code === 'Space') {
+      releaseSpace();
+    }
+  });
+  window.addEventListener('blur', releaseSpace);
 }
 
 let resizeTimer: number | undefined;
@@ -823,6 +956,22 @@ function bindControls() {
       clearSelection();
     } else if (event.key === 'f' || event.key === 'F') {
       fitAll();
+    } else if (event.key === '+' || event.key === '=') {
+      zoomBy(1.25);
+    } else if (event.key === '-' || event.key === '_') {
+      zoomBy(0.8);
+    } else if (event.key.startsWith('Arrow')) {
+      // Arrow keys move the view (the content slides the other way); Shift for bigger steps.
+      event.preventDefault();
+      const step = event.shiftKey ? KEY_PAN_STEP * 4 : KEY_PAN_STEP;
+      const moves: Record<string, [number, number]> = {
+        ArrowLeft: [step, 0],
+        ArrowRight: [-step, 0],
+        ArrowUp: [0, step],
+        ArrowDown: [0, -step],
+      };
+      const [x, y] = moves[event.key] ?? [0, 0];
+      panBy(x, y);
     }
   });
 }
@@ -856,5 +1005,6 @@ window.addEventListener('message', (event: MessageEvent<InboundMessage>) => {
 });
 
 bindControls();
+bindPanning();
 syncControls();
 vscode.postMessage({ type: 'ready' });

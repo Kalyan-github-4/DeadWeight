@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
-import type { Confidence, Finding } from '../types';
+import { applyProvenUsed, type ProvenUsedStore } from '../actions/provenUsed';
+import { describeAdvisories, formatBytes, totalFootprint } from '../engine/footprint';
+import type { Confidence, Finding, Footprint } from '../types';
 
 type FindingKind = Finding['kind'];
 
@@ -22,6 +24,41 @@ const CONFIDENCE_COLOR: Record<Confidence, string> = {
 const isRemovable = (finding: Finding) => finding.kind !== 'export';
 
 const RANK: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
+
+// "1.4 MB · ⚠ 2 vulns" for a package (or a group total).
+function footprintLabel(footprint: Footprint | undefined): string | undefined {
+  if (!footprint || footprint.packages === 0) {
+    return undefined;
+  }
+
+  const vulnerabilities = footprint.advisories.length;
+
+  return [
+    formatBytes(footprint.bytes),
+    ...(vulnerabilities > 0 ? [`⚠ ${vulnerabilities} ${vulnerabilities === 1 ? 'vuln' : 'vulns'}`] : []),
+  ].join(' · ');
+}
+
+function appendFootprint(tooltip: vscode.MarkdownString, footprint: Footprint) {
+  const others = footprint.packages - 1;
+
+  tooltip.appendMarkdown(
+    `\n\n**Removing it frees ${formatBytes(footprint.bytes)}**` +
+    (others > 0 ? ` (it and ${others} ${others === 1 ? 'dependency' : 'dependencies'} nothing else needs)` : ''),
+  );
+
+  if (footprint.advisories.length === 0) {
+    return;
+  }
+
+  tooltip.appendMarkdown(` **and ${describeAdvisories(footprint.advisories)}:**\n`);
+
+  for (const advisory of footprint.advisories) {
+    const title = advisory.title.replace(/[[\]]/g, '');
+    const link = /^https:\/\//.test(advisory.url) ? `[${title}](${advisory.url})` : title;
+    tooltip.appendMarkdown(`\n- **${advisory.severity}** · \`${advisory.package}@${advisory.version}\` · ${link}`);
+  }
+}
 
 export class DeadweightTreeProvider
   implements vscode.TreeDataProvider<DeadweightTreeItem>
@@ -63,6 +100,17 @@ export class DeadweightTreeProvider
         .filter((finding) => finding.confidence === 'high' && isRemovable(finding))
         .map((finding) => finding.id),
     );
+    this._onDidChangeTreeData.fire();
+  }
+
+  // Demotes findings a failed verification proved to be in use, and unchecks them.
+  markProvenUsed(store: ProvenUsedStore) {
+    this.findings = applyProvenUsed(this.findings, store);
+
+    for (const id of Object.keys(store)) {
+      this.checked.delete(id);
+    }
+
     this._onDidChangeTreeData.fire();
   }
 
@@ -124,8 +172,11 @@ export class DeadweightTreeProvider
           { groupKind: kind },
         );
 
+        const groupFootprint = kind === 'package' ? footprintLabel(totalFootprint(findings)) : undefined;
+
         const parts = [
           ...(findings.length > 0 && kind !== 'export' ? [`${selected} selected`] : []),
+          ...(groupFootprint ? [groupFootprint] : []),
           ...(findings.length > 0 && kind === 'export' ? ['review by hand'] : []),
           ...(hidden > 0 ? [`${hidden} hidden below ${this.minimumConfidence}`] : []),
         ];
@@ -188,10 +239,16 @@ export class DeadweightTreeItem extends vscode.TreeItem {
       ? `${finding.file}${finding.line ? `:${finding.line}` : ''}`
       : finding.workspace;
 
-    this.description = [`${finding.confidence} · ${finding.score}`, location].filter(Boolean).join(' · ');
+    this.description = [`${finding.confidence} · ${finding.score}`, footprintLabel(finding.footprint), location]
+      .filter(Boolean)
+      .join(' · ');
     this.tooltip = new vscode.MarkdownString()
       .appendMarkdown(`**Safe-to-delete score: ${finding.score}/100** (${finding.confidence} confidence)\n\n`)
       .appendText(finding.reason);
+
+    if (finding.footprint && finding.footprint.packages > 0) {
+      appendFootprint(this.tooltip, finding.footprint);
+    }
 
     if (finding.kind === 'export') {
       this.tooltip.appendMarkdown('\n\n_Deadweight never edits code: open it and delete by hand if you agree._');

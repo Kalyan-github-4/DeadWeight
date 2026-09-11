@@ -89,7 +89,7 @@ describe('scanFolder', () => {
   // The fixtures folder has no package.json of its own: exactly the "opened the
   // parent folder" case. Every fixture must still pass the release gate.
   it('scans every project under a parent folder with folder-relative paths', async () => {
-    const result = await scanFolder(fixturesDir, { engines: localEngines });
+    const result = await scanFolder(fixturesDir, { engines: localEngines, fetchAdvisories: false });
 
     expect(result.projects).toEqual(['dynamic-imports', 'next-app', 'node-cli', 'pnpm-mono']);
 

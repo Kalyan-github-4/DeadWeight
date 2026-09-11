@@ -26,7 +26,7 @@ describe.each(fixtures)('fixture %s', (name) => {
   const expected = JSON.parse(readFileSync(join(root, 'expected.json'), 'utf8')) as Expectations;
 
   it('has no false positives at high confidence and flags the known dead code', async () => {
-    const result = await scanWorkspace(root, { engines: localEngines });
+    const result = await scanWorkspace(root, { engines: localEngines, fetchAdvisories: false });
     const byKey = new Map(result.findings.map((finding) => [key(finding), finding]));
     const summary = result.findings.map((f) => `${key(f)} [${f.confidence}] ${f.reason}`).join('\n');
 
