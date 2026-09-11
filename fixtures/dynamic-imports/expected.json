@@ -1,0 +1,11 @@
+{
+  "description": "Plugins and locales are only reachable through computed import() paths.",
+  "unused": ["file:src/unused-helper.js"],
+  "expectHigh": ["file:src/unused-helper.js"],
+  "expectAtMost": {
+    "file:src/plugins/hello.js": "low",
+    "file:src/plugins/goodbye.js": "low",
+    "file:locales/fr.js": "low",
+    "file:locales/de.js": "low"
+  }
+}

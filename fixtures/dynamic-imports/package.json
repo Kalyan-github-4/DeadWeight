@@ -1,0 +1,10 @@
+{
+  "name": "fixture-dynamic-imports",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "dependencies": {
+    "dayjs": "^1.11.0"
+  }
+}

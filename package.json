@@ -1,0 +1,258 @@
+{
+  "name": "deadweight",
+  "displayName": "Deadweight",
+  "description": "Find unused packages, dead files and unused exports, see how every file connects, and remove them safely with a safe-to-delete score and one-click undo.",
+  "version": "0.0.1",
+  "publisher": "kalyanmanna",
+  "author": {
+    "name": "Kalyan Manna"
+  },
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kalyan-github-4/deadweight.git"
+  },
+  "homepage": "https://github.com/Kalyan-github-4/deadweight#readme",
+  "bugs": {
+    "url": "https://github.com/Kalyan-github-4/deadweight/issues"
+  },
+  "galleryBanner": {
+    "color": "#0f1117",
+    "theme": "dark"
+  },
+  "keywords": [
+    "unused",
+    "dead code",
+    "dependencies",
+    "cleanup",
+    "knip",
+    "depcheck",
+    "unused exports",
+    "dependency graph"
+  ],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Linters",
+    "Visualization",
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "deadweight",
+          "title": "Deadweight",
+          "icon": "$(trash)"
+        }
+      ]
+    },
+    "views": {
+      "deadweight": [
+        {
+          "id": "deadweight.findings",
+          "name": "Findings",
+          "icon": "$(search)"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "deadweight.findings",
+        "contents": "Find unused packages and dead files in this workspace.\n[Scan Workspace](command:deadweight.scan)\nOr see how every file connects, instantly and offline:\n[Show Connection Graph](command:deadweight.showGraph)",
+        "when": "!deadweight.hasScanned"
+      },
+      {
+        "view": "deadweight.findings",
+        "contents": "No deadweight found. Your dependencies and files are all in use.\n[Scan Again](command:deadweight.scan)",
+        "when": "deadweight.hasScanned"
+      }
+    ],
+    "commands": [
+      {
+        "command": "deadweight.scan",
+        "title": "Scan for unused code",
+        "category": "Deadweight",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "deadweight.reviewRemove",
+        "title": "Review & Remove",
+        "category": "Deadweight",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "deadweight.restore",
+        "title": "Restore from Trash",
+        "category": "Deadweight",
+        "icon": "$(history)"
+      },
+      {
+        "command": "deadweight.openFinding",
+        "title": "Open Finding",
+        "category": "Deadweight"
+      },
+      {
+        "command": "deadweight.showGraph",
+        "title": "Show Connection Graph",
+        "category": "Deadweight",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "deadweight.showInGraph",
+        "title": "Show in Connection Graph",
+        "category": "Deadweight",
+        "icon": "$(type-hierarchy)"
+      }
+    ],
+    "configuration": {
+      "title": "Deadweight",
+      "properties": {
+        "deadweight.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "markdownDescription": "Files and packages to leave out of the results, as `.gitignore`-style patterns matched against workspace-relative paths or package names, e.g. `legacy/`, `**/*.stories.tsx`, `@types/*`. Excluded files are still read when looking for references. Takes effect on the next scan."
+        },
+        "deadweight.entryPoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "markdownDescription": "Extra entry-point globs, relative to the workspace root, e.g. `scripts/*.js`. Matching files and everything they import count as used. Passed to knip only when the project has no knip config of its own; otherwise add them to its `entry` list. Takes effect on the next scan."
+        },
+        "deadweight.minimumConfidence": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "enumDescriptions": [
+            "Show every finding.",
+            "Hide low-confidence findings.",
+            "Show only high-confidence findings."
+          ],
+          "default": "low",
+          "markdownDescription": "The lowest confidence level to show in the Deadweight view. Hidden findings can't be selected for removal."
+        },
+        "deadweight.packageManager": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "npm",
+            "yarn",
+            "pnpm",
+            "bun"
+          ],
+          "enumDescriptions": [
+            "Detect from the packageManager field in package.json, then the lockfile.",
+            "Always use npm.",
+            "Always use yarn.",
+            "Always use pnpm.",
+            "Always use bun."
+          ],
+          "default": "auto",
+          "scope": "resource",
+          "markdownDescription": "The package manager used to uninstall and reinstall packages."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "deadweight.scan",
+          "when": "view == deadweight.findings",
+          "group": "navigation@1"
+        },
+        {
+          "command": "deadweight.reviewRemove",
+          "when": "view == deadweight.findings && deadweight.hasFindings",
+          "group": "navigation@2"
+        },
+        {
+          "command": "deadweight.restore",
+          "when": "view == deadweight.findings",
+          "group": "navigation@3"
+        },
+        {
+          "command": "deadweight.showGraph",
+          "when": "view == deadweight.findings",
+          "group": "navigation@0"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "deadweight.showInGraph",
+          "when": "view == deadweight.findings && viewItem == finding",
+          "group": "inline"
+        },
+        {
+          "command": "deadweight.showInGraph",
+          "when": "view == deadweight.findings && viewItem == finding",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "deadweight.openFinding",
+          "when": "false"
+        },
+        {
+          "command": "deadweight.showInGraph",
+          "when": "false"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit && tsc --noEmit -p test && tsc --noEmit -p src/webview",
+    "lint": "eslint src test",
+    "test": "vscode-test",
+    "test:unit": "vitest run",
+    "vsix": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.5.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^5.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  },
+  "dependencies": {
+    "cytoscape": "^3.34.3",
+    "cytoscape-fcose": "^2.2.0",
+    "depcheck": "^1.4.7",
+    "ignore": "^7.0.9",
+    "knip": "^6.35.1"
+  }
+}

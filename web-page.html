@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Deadweight — Clean Your Codebase</title>
+  <meta
+    name="description"
+    content="Deadweight is a VS Code extension that finds unused dependencies and dead files."
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <header class="navbar">
+    <a href="#" class="logo">
+      <span class="logo-mark">D</span>
+      Deadweight
+    </a>
+
+    <a
+      href="https://github.com/YOUR_USERNAME/deadweight"
+      target="_blank"
+      class="github"
+    >
+      GitHub ↗
+    </a>
+  </header>
+
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+
+      <div class="badge">
+        <span></span>
+        VS Code Extension
+      </div>
+
+      <h1>
+        Remove the code<br />
+        <span>you don't need.</span>
+      </h1>
+
+      <p class="hero-text">
+        Deadweight finds unused dependencies and dead files in your
+        project — and lets you clean them up safely.
+      </p>
+
+      <div class="actions">
+
+        <a
+          href="./deadweight-0.0.1.vsix"
+          download
+          class="download-btn"
+        >
+          <span>↓</span>
+          Download Extension
+        </a>
+
+        <a href="#features" class="secondary-btn">
+          Explore
+        </a>
+
+      </div>
+
+      <p class="version">
+        VS Code Extension · v0.0.1
+      </p>
+
+    </section>
+
+
+    <!-- TERMINAL -->
+    <section class="terminal-section">
+
+      <div class="terminal">
+
+        <div class="terminal-top">
+          <div class="dots">
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+
+          <span>deadweight</span>
+        </div>
+
+        <div class="terminal-body">
+
+          <div class="command">
+            <span class="prompt">$</span>
+            deadweight scan
+          </div>
+
+          <div class="scan">
+            <div>
+              <span class="file">lodash</span>
+              <span class="unused">unused dependency</span>
+            </div>
+
+            <div>
+              <span class="file">axios</span>
+              <span class="unused">unused dependency</span>
+            </div>
+
+            <div>
+              <span class="file">old-api.js</span>
+              <span class="unused">dead file</span>
+            </div>
+
+          </div>
+
+          <div class="success">
+            ✓ 3 dead items found
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- FEATURES -->
+    <section id="features" class="features">
+
+      <div class="section-heading">
+        <p class="eyebrow">WHY DEADWEIGHT</p>
+
+        <h2>
+          Clean your project<br />
+          without the guesswork.
+        </h2>
+      </div>
+
+
+      <div class="feature-grid">
+
+        <article class="feature-card">
+          <div class="icon">01</div>
+
+          <h3>Find unused dependencies</h3>
+
+          <p>
+            Identify packages sitting in your project that aren't
+            actually being used.
+          </p>
+        </article>
+
+
+        <article class="feature-card">
+          <div class="icon">02</div>
+
+          <h3>Detect dead files</h3>
+
+          <p>
+            Discover source files that are no longer referenced
+            by your application.
+          </p>
+        </article>
+
+
+        <article class="feature-card">
+          <div class="icon">03</div>
+
+          <h3>Remove safely</h3>
+
+          <p>
+            Clean up your project with a controlled removal workflow
+            instead of manually hunting through files.
+          </p>
+        </article>
+
+
+        <article class="feature-card highlight">
+          <div class="icon">04</div>
+
+          <h3>Undo when you need it</h3>
+
+          <p>
+            Made a mistake? Reverse the cleanup and get your
+            project back.
+          </p>
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- HOW IT WORKS -->
+    <section class="how">
+
+      <p class="eyebrow">SIMPLE WORKFLOW</p>
+
+      <h2>Scan. Clean. Undo.</h2>
+
+      <div class="steps">
+
+        <div class="step">
+          <strong>01</strong>
+          <h3>Scan</h3>
+          <p>Analyze your project.</p>
+        </div>
+
+        <div class="line"></div>
+
+        <div class="step">
+          <strong>02</strong>
+          <h3>Review</h3>
+          <p>See what looks unused.</p>
+        </div>
+
+        <div class="line"></div>
+
+        <div class="step">
+          <strong>03</strong>
+          <h3>Remove</h3>
+          <p>Clean the dead weight.</p>
+        </div>
+
+        <div class="line"></div>
+
+        <div class="step">
+          <strong>04</strong>
+          <h3>Undo</h3>
+          <p>Reverse it whenever needed.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- DOWNLOAD CTA -->
+    <section class="download-section">
+
+      <div class="download-card">
+
+        <p class="eyebrow">READY TO CLEAN UP?</p>
+
+        <h2>
+          Your codebase has<br />
+          enough dead weight.
+        </h2>
+
+        <p>
+          Install Deadweight and find out what's actually being used.
+        </p>
+
+        <a
+          href="./deadweight-0.0.1.vsix"
+          download
+          class="download-btn"
+        >
+          ↓ Download for VS Code
+        </a>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <footer>
+
+    <div class="footer-logo">
+      Deadweight
+    </div>
+
+    <p>
+      A VS Code extension for finding and removing dead code.
+    </p>
+
+    <span>
+      Built for Hackathon · 2026
+    </span>
+
+  </footer>
+
+
+  <script src="script.js"></script>
+
+</body>
+</html>

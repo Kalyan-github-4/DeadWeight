@@ -1,0 +1,10 @@
+{
+  "name": "@mono/app",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.js",
+  "dependencies": {
+    "@mono/utils": "workspace:*",
+    "lodash": "^4.17.21"
+  }
+}

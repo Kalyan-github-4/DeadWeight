@@ -1,0 +1,12 @@
+{
+  "description": "Next.js app. The shim is only referenced by path from next.config.js; plugins load by name.",
+  "unused": ["package:left-pad", "file:components/Legacy.jsx"],
+  "expectHigh": ["package:left-pad", "file:components/Legacy.jsx"],
+  "expectAtMost": {
+    "file:shims/legacy-shim.js": "low",
+    "package:@types/react": "low",
+    "package:eslint-config-next": "medium",
+    "package:autoprefixer": "medium",
+    "package:tailwindcss": "medium"
+  }
+}
