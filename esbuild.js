@@ -44,6 +44,35 @@ async function main() {
 				esbuildProblemMatcherPlugin,
 			],
 		}),
+		// The MCP server for AI agents: a standalone Node script launched by the agent.
+		esbuild.context({
+			entryPoints: ['src/mcp/server.ts'],
+			bundle: true,
+			format: 'cjs',
+			minify: production,
+			sourcemap: !production,
+			sourcesContent: false,
+			platform: 'node',
+			target: 'node18',
+			outfile: 'dist/mcp.js',
+			define: { DEADWEIGHT_VERSION: JSON.stringify(require('./package.json').version) },
+			logLevel: 'silent',
+			plugins: [esbuildProblemMatcherPlugin],
+		}),
+		// The PR guard GitHub Action (action.yml). Committed to the repo, since GitHub
+		// runs actions straight from it: rebuild before tagging a release.
+		esbuild.context({
+			entryPoints: ['src/action/main.ts'],
+			bundle: true,
+			format: 'cjs',
+			minify: production,
+			sourcemap: false,
+			platform: 'node',
+			target: 'node20',
+			outfile: 'dist/action/index.js',
+			logLevel: 'silent',
+			plugins: [esbuildProblemMatcherPlugin],
+		}),
 		// The Connection Graph webview script (runs in the browser, bundles cytoscape).
 		esbuild.context({
 			entryPoints: ['src/webview/graph.ts'],

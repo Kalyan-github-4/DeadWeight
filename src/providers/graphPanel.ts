@@ -11,6 +11,11 @@ type PanelMessage =
   | { type: 'export' }
   | { type: 'open'; path: string };
 
+interface GraphFocus {
+  id: string;
+  blast: boolean;
+}
+
 export interface GraphPanelHandlers {
   build: () => Promise<{ graph: ConnectionGraph; folder: vscode.WorkspaceFolder } | undefined>;
   exportMap: (graph: ConnectionGraph, folder: vscode.WorkspaceFolder) => void;
@@ -151,6 +156,8 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: st
   .d-body li .li-dir { color: var(--muted); font-size: 0.85em; margin-left: auto; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
   .d-body li .tag { font-size: 0.75em; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; }
   .d-body .none { color: var(--muted); padding: 2px 6px; }
+  .blast-summary { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; line-height: 1.45; }
+  .muted-note { color: var(--muted); font-size: 0.88em; }
 
   /* Overlays */
   .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center; color: var(--muted); text-align: center; padding: 24px; }
@@ -216,31 +223,34 @@ export class GraphPanel {
   private static current: GraphPanel | undefined;
 
   private ready = false;
-  private pendingFocus: string | undefined;
+  private pendingFocus: GraphFocus | undefined;
   private folder: vscode.WorkspaceFolder | undefined;
   private graph: ConnectionGraph | undefined;
   private readonly panel: vscode.WebviewPanel;
 
-  static show(extensionUri: vscode.Uri, handlers: GraphPanelHandlers, focusId?: string) {
+  // `blast` also highlights everything a change to the focused file can break.
+  static show(extensionUri: vscode.Uri, handlers: GraphPanelHandlers, focusId?: string, { blast = false } = {}) {
+    const focus = focusId ? { id: focusId, blast } : undefined;
+
     if (GraphPanel.current) {
       GraphPanel.current.panel.reveal(vscode.ViewColumn.Active);
 
-      if (focusId) {
-        GraphPanel.current.focus(focusId);
+      if (focus) {
+        GraphPanel.current.focus(focus);
       }
 
       return;
     }
 
-    GraphPanel.current = new GraphPanel(extensionUri, handlers, focusId);
+    GraphPanel.current = new GraphPanel(extensionUri, handlers, focus);
   }
 
   private constructor(
     extensionUri: vscode.Uri,
     private readonly handlers: GraphPanelHandlers,
-    focusId: string | undefined,
+    focus: GraphFocus | undefined,
   ) {
-    this.pendingFocus = focusId;
+    this.pendingFocus = focus;
     this.panel = vscode.window.createWebviewPanel(
       'deadweight.graph',
       'Deadweight: Connection Graph',
@@ -287,11 +297,11 @@ export class GraphPanel {
     });
   }
 
-  private focus(id: string) {
-    if (this.ready) {
-      void this.panel.webview.postMessage({ type: 'focus', id });
+  private focus(focus: GraphFocus) {
+    if (this.ready && this.graph) {
+      void this.panel.webview.postMessage({ type: 'focus', ...focus });
     } else {
-      this.pendingFocus = id;
+      this.pendingFocus = focus;
     }
   }
 
@@ -309,7 +319,7 @@ export class GraphPanel {
       await this.panel.webview.postMessage({ type: 'graph', graph: built.graph, folderName: built.folder.name });
 
       if (this.pendingFocus) {
-        await this.panel.webview.postMessage({ type: 'focus', id: this.pendingFocus });
+        await this.panel.webview.postMessage({ type: 'focus', ...this.pendingFocus });
         this.pendingFocus = undefined;
       }
     } catch (error) {

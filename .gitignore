@@ -1,5 +1,7 @@
 out
-dist
+# Build output, except the PR guard action, which GitHub runs from the repo itself.
+dist/*
+!dist/action/
 node_modules
 # Fixture repos commit stub package manifests in node_modules (peerDependencies, bin).
 !fixtures/*/node_modules/

@@ -2,7 +2,7 @@
   "name": "deadweight",
   "displayName": "Deadweight",
   "description": "Find unused packages, dead files and unused exports, then remove them safely: every removal is verified with your own build and tests and undone automatically if anything breaks, and you see the known vulnerabilities you delete.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "kalyanmanna",
   "author": {
     "name": "Kalyan Manna"
@@ -43,9 +43,17 @@
     "Visualization",
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onMcpServerDefinitionProvider:deadweight.mcp"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "deadweight.mcp",
+        "label": "Deadweight"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -117,6 +125,18 @@
         "title": "Export Project Map for AI Agents",
         "category": "Deadweight",
         "icon": "$(sparkle)"
+      },
+      {
+        "command": "deadweight.connectAgents",
+        "title": "Connect AI Agents (MCP)",
+        "category": "Deadweight",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "deadweight.showBlastRadius",
+        "title": "Show Blast Radius",
+        "category": "Deadweight",
+        "icon": "$(flame)"
       }
     ],
     "configuration": {
@@ -222,6 +242,32 @@
           "command": "deadweight.exportProjectMap",
           "when": "view == deadweight.findings",
           "group": "1_ai"
+        },
+        {
+          "command": "deadweight.connectAgents",
+          "when": "view == deadweight.findings",
+          "group": "1_ai"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "deadweight.showBlastRadius",
+          "when": "resourceScheme == file && resourceExtname =~ /^\\.(c|m)?(j|t)sx?$|^\\.(vue|svelte|astro)$/",
+          "group": "7_deadweight"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "deadweight.showBlastRadius",
+          "when": "resourceScheme == file && resourceExtname =~ /^\\.(c|m)?(j|t)sx?$|^\\.(vue|svelte|astro)$/",
+          "group": "7_deadweight"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "deadweight.showBlastRadius",
+          "when": "resourceScheme == file && resourceExtname =~ /^\\.(c|m)?(j|t)sx?$|^\\.(vue|svelte|astro)$/",
+          "group": "7_deadweight"
         }
       ],
       "view/item/context": [

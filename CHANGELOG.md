@@ -2,6 +2,12 @@
 
 All notable changes to Deadweight are documented here.
 
+## [0.0.5] - 2026-09-12
+
+- **PR guard (GitHub Action)**: `uses: Kalyan-github-4/DeadWeight@v1` scans each pull request and its base branch and comments with only the unused files, packages and exports the PR adds, with scores, reasons and known vulnerabilities. One comment, updated on every push; inline warnings on the diff; a job summary and outputs; optional `fail-on: new | new-high`.
+- **MCP server for AI agents**: Copilot, Claude Code, Cursor and other agents can query the project's connection graph through five tools (`project_map`, `file_info`, `blast_radius`, `import_path`, `find_unused`) instead of reading files. Copilot in VS Code 1.101+ finds it automatically; **Deadweight: Connect AI Agents (MCP)** sets up Claude Code and Cursor or copies a config for any other agent. Runs offline.
+- **Blast radius**: right-click a file → **Show Blast Radius** lists every file that depends on it, directly or through others, and the entry points affected. The graph's details panel shows it too, with **Highlight what it can break**.
+
 ## [0.0.4] - 2026-09-12
 
 - **Delete a vulnerability**: every unused package now shows what removing it takes out of `node_modules` (the package plus dependencies nothing else needs, for npm, yarn and pnpm) and the known vulnerabilities in it, from the npm advisory database. The scan summary, the tree, the Review & Remove panel and the success message all show the gain, e.g. *"frees 84 MB and 3 known vulnerabilities (1 critical, 2 high)"*. Setting `deadweight.checkVulnerabilities` turns the lookup off; sizes are always measured locally.

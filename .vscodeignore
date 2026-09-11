@@ -23,3 +23,6 @@ style.css
 **/.vscode-test.*
 *.vsix
 images/**
+# The PR guard GitHub Action isn't part of the VS Code extension.
+action.yml
+dist/action/**

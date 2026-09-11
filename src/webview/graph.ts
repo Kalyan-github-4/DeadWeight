@@ -18,7 +18,7 @@ declare function acquireVsCodeApi(): VsCodeApi;
 
 type InboundMessage =
   | { type: 'graph'; graph: ConnectionGraph; folderName: string }
-  | { type: 'focus'; id: string }
+  | { type: 'focus'; id: string; blast?: boolean }
   | { type: 'error'; message: string };
 
 // Each chip filters one group; 'package' covers every package node.
@@ -74,6 +74,7 @@ function persist() {
 let cy: cytoscape.Core | undefined;
 let graph: ConnectionGraph | undefined;
 let nodesById = new Map<string, GraphNode>();
+let importersById = new Map<string, string[]>();
 let searchMatches: string[] = [];
 let searchIndex = -1;
 
@@ -340,6 +341,9 @@ function style(): cytoscape.StylesheetJson {
     { selector: 'edge.highlighted', style: { width: w(2.8), opacity: 1, 'arrow-scale': 1.3, 'z-index': 10 } },
     { selector: 'edge.hl-out', style: { 'line-color': c.selection, 'target-arrow-color': c.selection } },
     { selector: 'edge.hl-in', style: { 'line-color': c.incoming, 'target-arrow-color': c.incoming } },
+    // Blast radius: everything a change to the selected file can break.
+    { selector: 'edge.blast', style: { 'line-color': c.incoming, 'target-arrow-color': c.incoming } },
+    { selector: 'node.blast', style: { 'border-width': 3, 'border-color': c.incoming, 'border-style': 'solid' } },
     { selector: 'node:selected', style: { 'border-width': 3, 'border-color': c.selection, 'border-style': 'solid' } },
     { selector: 'node.match', style: { 'border-width': 3, 'border-color': c.selection, 'border-style': 'solid' } },
     { selector: 'node.hover', style: { 'border-width': 2, 'border-color': c.text, 'border-style': 'solid' } },
@@ -736,7 +740,7 @@ function openFile(id: string) {
 }
 
 function clearSelection() {
-  cy?.elements().removeClass('faded highlighted hl-in hl-out');
+  cy?.elements().removeClass('faded highlighted hl-in hl-out blast');
   cy?.elements().unselect();
   $('details').hidden = true;
 }
@@ -757,6 +761,23 @@ function ensureVisible(id: string) {
 
   persist();
   render();
+}
+
+function blastSection(id: string): string {
+  const dependents = [...dependentsOf(id)];
+  const entries = dependents.filter((dependent) => nodesById.get(dependent)?.status === 'entry').length;
+
+  if (dependents.length === 0) {
+    return '<h3>Blast radius <span class="count">0</span></h3><div class="none">Nothing depends on it; changing it breaks no other file.</div>';
+  }
+
+  return `
+    <h3>Blast radius <span class="count">${dependents.length}</span></h3>
+    <div class="blast-summary">
+      ${dependents.length} ${dependents.length === 1 ? 'file depends' : 'files depend'} on it, directly or through other files, reaching ${entries} entry ${entries === 1 ? 'point' : 'points'}.
+      <button class="btn secondary" id="blast-button">Highlight what it can break</button>
+      <div class="muted-note" id="blast-note"></div>
+    </div>`;
 }
 
 function linkList(edges: { id: string; kind: EdgeKind }[]): string {
@@ -780,6 +801,58 @@ function linkList(edges: { id: string; kind: EdgeKind }[]): string {
       </button></li>`;
     })
     .join('')}</ul>`;
+}
+
+// Files that depend on `id`, directly or through other files (the id itself excluded).
+function dependentsOf(id: string): Set<string> {
+  const seen = new Set<string>([id]);
+  const queue = [id];
+
+  for (let next = 0; next < queue.length; next++) {
+    for (const from of importersById.get(queue[next]) ?? []) {
+      if (!seen.has(from) && from.startsWith('file:')) {
+        seen.add(from);
+        queue.push(from);
+      }
+    }
+  }
+
+  seen.delete(id);
+  return seen;
+}
+
+// Highlights everything a change to `id` can break, and fades the rest.
+function highlightBlast(id: string) {
+  if (!cy) {
+    return;
+  }
+
+  const dependents = dependentsOf(id);
+  const members = new Set([id, ...dependents]);
+  let drawn = cy.collection();
+
+  for (const member of members) {
+    drawn = drawn.union(cy.getElementById(member));
+  }
+
+  const edges = cy.edges().filter((edge) => members.has(edge.source().id()) && members.has(edge.target().id()));
+
+  cy.elements().addClass('faded').removeClass('highlighted hl-in hl-out blast');
+  drawn.removeClass('faded').addClass('blast');
+  drawn.ancestors().removeClass('faded');
+  edges.removeClass('faded').addClass('highlighted blast');
+  cy.getElementById(id).removeClass('blast').select();
+
+  if (drawn.nonempty()) {
+    cy.animate({ fit: { eles: drawn, padding: 60 }, duration: 300, complete: capZoom });
+  }
+
+  const hidden = members.size - drawn.length;
+  const note = document.getElementById('blast-note');
+
+  if (note) {
+    note.textContent = hidden > 0 ? `${hidden} of them are hidden by the filters above.` : '';
+  }
 }
 
 function select(id: string) {
@@ -833,6 +906,7 @@ function select(id: string) {
         ${node.kind === 'file' ? '<button class="btn primary" id="open-file">Open file</button>' : ''}
         <button class="btn secondary" id="focus-node" title="Zoom to this node and its connections">Focus</button>
       </div>
+      ${blastSection(id)}
       <h3><span class="line in" title="Drawn in this color on the graph"></span>Imported by <span class="count">${importedBy.length}</span></h3>
       ${linkList(importedBy)}
       ${node.kind === 'file' ? `<h3><span class="line out" title="Drawn in this color on the graph"></span>Imports <span class="count">${imports.length}</span></h3>${linkList(imports)}` : ''}
@@ -840,6 +914,7 @@ function select(id: string) {
   `;
 
   $('close-details').addEventListener('click', clearSelection);
+  document.getElementById('blast-button')?.addEventListener('click', () => highlightBlast(id));
   document.getElementById('open-file')?.addEventListener('click', () => openFile(id));
   $('focus-node').addEventListener('click', () => {
     const current = cy?.getElementById(id);
@@ -982,6 +1057,11 @@ window.addEventListener('message', (event: MessageEvent<InboundMessage>) => {
   if (message.type === 'graph') {
     graph = message.graph;
     nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
+    importersById = new Map();
+
+    for (const edge of graph.edges) {
+      importersById.set(edge.to, [...(importersById.get(edge.to) ?? []), edge.from]);
+    }
 
     // Big projects start on the problems (plus their context); everything is one click away.
     if (!state.hasSavedFilters && graph.nodes.length > 600) {
@@ -996,6 +1076,10 @@ window.addEventListener('message', (event: MessageEvent<InboundMessage>) => {
     search($<HTMLInputElement>('search').value);
   } else if (message.type === 'focus') {
     select(message.id);
+
+    if (message.blast) {
+      highlightBlast(message.id);
+    }
   } else if (message.type === 'error') {
     $('loading').hidden = true;
     $('error').hidden = false;

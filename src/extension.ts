@@ -6,6 +6,8 @@ import {
   reviewAndRemove,
   type RemovalContext,
 } from './actions/commands';
+import { connectAgents, installStableServer, registerMcpProvider } from './actions/agentsCommand';
+import { showBlastRadius } from './actions/blastRadiusCommand';
 import { exportProjectMap, refreshSavedProjectMaps } from './actions/projectMapCommand';
 import { applyProvenUsed, PROVEN_USED_KEY, type ProvenUsedStore } from './actions/provenUsed';
 import { posix } from 'node:path';
@@ -338,7 +340,7 @@ export function activate(context: vscode.ExtensionContext) {
     return graph;
   };
 
-  const showGraph = (focusId?: string) => GraphPanel.show(context.extensionUri, {
+  const showGraph = (focusId?: string, blast = false) => GraphPanel.show(context.extensionUri, {
     build: async () => {
       const folder = getFolder();
 
@@ -349,7 +351,48 @@ export function activate(context: vscode.ExtensionContext) {
       return { graph: await buildGraph(folder, vscode.ProgressLocation.Window), folder };
     },
     exportMap: (graph, folder) => void exportProjectMap(folder, graph),
-  }, focusId);
+  }, focusId, { blast });
+
+  // The MCP server for AI agents, copied to a path that survives extension updates.
+  const serverPath = installStableServer(context);
+  serverPath.catch((error: unknown) => output.appendLine(`Couldn't install the MCP server: ${(error as Error).message}`));
+
+  const mcpProvider = registerMcpProvider(context, serverPath, (folder) => readSettings(folder.uri).entryPoints);
+
+  if (mcpProvider) {
+    context.subscriptions.push(mcpProvider);
+  }
+
+  const connect = async () => {
+    const folder = getFolder();
+
+    if (folder) {
+      await connectAgents(folder, await serverPath, readSettings(folder.uri).entryPoints);
+    }
+  };
+
+  // From the explorer or editor title (a Uri), or for the active editor.
+  const blastRadiusOf = async (uri?: vscode.Uri) => {
+    const target = uri instanceof vscode.Uri ? uri : vscode.window.activeTextEditor?.document.uri;
+
+    if (!target || target.scheme !== 'file') {
+      vscode.window.showInformationMessage('Deadweight: Open or select a source file to see what depends on it.');
+      return;
+    }
+
+    const folder = vscode.workspace.getWorkspaceFolder(target) ?? getFolder();
+
+    if (!folder) {
+      return;
+    }
+
+    try {
+      const graph = await buildGraph(folder, vscode.ProgressLocation.Window);
+      await showBlastRadius(folder, graph, target, (nodeId) => showGraph(nodeId, true));
+    } catch (error) {
+      vscode.window.showErrorMessage(`Deadweight: Couldn't build the connection graph: ${(error as Error).message}`);
+    }
+  };
 
   const exportMap = async () => {
     const folder = getFolder();
@@ -389,6 +432,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('deadweight.restore', restore),
     vscode.commands.registerCommand('deadweight.showGraph', () => showGraph()),
     vscode.commands.registerCommand('deadweight.exportProjectMap', exportMap),
+    vscode.commands.registerCommand('deadweight.connectAgents', connect),
+    vscode.commands.registerCommand('deadweight.showBlastRadius', blastRadiusOf),
     vscode.commands.registerCommand('deadweight.showInGraph', (item?: DeadweightTreeItem) => {
       const finding = item?.finding;
       const nodeId = !finding

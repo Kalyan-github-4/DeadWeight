@@ -1,0 +1,50 @@
+name: 'Deadweight PR Guard'
+description: 'Comments on pull requests that add unused packages, files or exports, with a safe-to-delete score and the known vulnerabilities in unused packages.'
+author: 'Kalyan Manna'
+branding:
+  icon: 'trash-2'
+  color: 'red'
+
+inputs:
+  path:
+    description: 'Folder to scan, relative to the repository root. It may hold one project or several.'
+    required: false
+    default: '.'
+  fail-on:
+    description: 'When to fail the check: "none" (only comment), "new" (the PR adds any unused code) or "new-high" (the PR adds high-confidence unused code).'
+    required: false
+    default: 'none'
+  comment:
+    description: 'Post (and keep updating) one comment on the pull request. The report is always in the job summary.'
+    required: false
+    default: 'true'
+  check-vulnerabilities:
+    description: 'Look up known vulnerabilities in unused packages (npm advisory database). Needs dependencies installed first, e.g. npm ci.'
+    required: false
+    default: 'true'
+  exclude:
+    description: 'Files and packages to leave out, as .gitignore-style patterns, one per line or comma-separated.'
+    required: false
+    default: ''
+  entry-points:
+    description: 'Extra entry-point globs (files run in ways Deadweight cannot see), one per line or comma-separated.'
+    required: false
+    default: ''
+  github-token:
+    description: 'Token used to comment. The default works; the job needs "pull-requests: write" permission.'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  added:
+    description: 'Unused items this pull request adds.'
+  removed:
+    description: 'Unused items this pull request removes.'
+  existing:
+    description: 'Unused items already on the base branch.'
+  vulnerabilities:
+    description: 'Known vulnerabilities in the unused packages this pull request adds.'
+
+runs:
+  using: 'node20'
+  main: 'dist/action/index.js'

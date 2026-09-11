@@ -237,6 +237,88 @@ Your filters and layout are remembered. Very large projects open on the problems
 
 ---
 
+## 💥 Blast radius: what breaks if I change this?
+
+Right-click any JavaScript/TypeScript file (in the Explorer, its editor tab or the editor) → **Show Blast Radius**. You get every file that depends on it, directly or through other files, and the **entry points** it reaches (pages, commands, tests):
+
+```
+Blast radius of format.ts: 14 files (5 direct, 9 indirect) · 3 entry points
+```
+
+Pick a file to open it, or **Show in Connection Graph** to see the whole chain highlighted in orange. In the graph, every file's details panel shows its blast radius with a **Highlight what it can break** button.
+
+---
+
+## 🤖 AI agents (MCP)
+
+Deadweight ships an [MCP](https://modelcontextprotocol.io) server, so coding agents can ask how your project connects instead of opening file after file to find out. That's fewer tokens and fewer wrong guesses.
+
+| Tool | What the agent gets |
+|---|---|
+| `project_map` | The compact project map (every file, its imports, entry points, unused code), optionally for one folder |
+| `file_info` | What a file imports, what imports it, whether it's used, and its blast radius |
+| `blast_radius` | Everything a change to a file or package can break, and the entry points affected |
+| `import_path` | The import chain from one file to another file or package |
+| `find_unused` | Unused and maybe-unused files and packages, with reasons |
+
+**Connect an agent:** run **Deadweight: Connect AI Agents (MCP)** and pick yours.
+
+- **GitHub Copilot (VS Code 1.101+)**: nothing to do. Deadweight appears in Copilot Chat's Agent mode tools list.
+- **Claude Code**: registers it with `claude mcp add` in a terminal.
+- **Cursor**: adds it to the project's `.cursor/mcp.json`.
+- **Anything else** (Windsurf, Claude Desktop, Cline, Zed…): copies an `mcpServers` config to paste.
+
+The server runs offline on your machine and only reads source files. Agents other than Copilot need Node.js on your PATH.
+
+---
+
+## 🛡️ PR guard (GitHub Action)
+
+Stop dead code at the door. The Deadweight action scans every pull request **and its base branch**, and comments with only what the PR **adds**: new unused files, packages and exports, with their safe-to-delete score and any known vulnerabilities. Old dead code on the base branch never makes a PR noisy.
+
+Add `.github/workflows/deadweight.yml`:
+
+```yaml
+name: Deadweight
+on: pull_request
+
+permissions:
+  contents: read
+  pull-requests: write   # to comment
+
+jobs:
+  deadweight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci                       # optional: enables sizes and vulnerability checks
+      - uses: Kalyan-github-4/DeadWeight@v1
+        with:
+          fail-on: none                   # or "new" / "new-high" to fail the check
+```
+
+What you get on each pull request:
+
+- **One comment**, updated on every push (never a new one each time): *"This pull request adds 1 unused package and 2 unused files"*, a table with scores and reasons, a warning when the new unused packages carry vulnerabilities, and a 🎉 when the PR removes dead code.
+- **Inline warnings** on the changed lines of the diff.
+- A **job summary**, and outputs `added`, `removed`, `existing`, `vulnerabilities` for later steps.
+
+| Input | Default | |
+|---|---|---|
+| `path` | `.` | Folder to scan; may hold one project or several |
+| `fail-on` | `none` | `new`: fail when the PR adds unused code · `new-high`: only for high-confidence findings |
+| `comment` | `true` | Set `false` to only write the job summary |
+| `check-vulnerabilities` | `true` | Look up known vulnerabilities (run `npm ci` first) |
+| `exclude` | | `.gitignore`-style patterns, one per line |
+| `entry-points` | | Extra entry-point globs, one per line |
+
+Pull requests from forks get a read-only token, so they get the job summary and annotations but no comment.
+
+---
+
 ## ⚙️ Commands & settings
 
 ### Commands
@@ -247,6 +329,9 @@ Your filters and layout are remembered. Very large projects open on the problems
 | **Deadweight: Show Connection Graph** | Open the interactive file & package graph |
 | **Deadweight: Review & Remove** | Preview and remove the checked findings |
 | **Deadweight: Restore from Trash** | Undo any earlier removal |
+| **Deadweight: Show Blast Radius** | See every file a change to this file can break (also on right-click) |
+| **Deadweight: Connect AI Agents (MCP)** | Give Copilot, Claude Code, Cursor and others Deadweight's graph tools |
+| **Deadweight: Export Project Map for AI Agents** | Save or copy a compact map of the project for any AI chat |
 
 ### Settings
 
