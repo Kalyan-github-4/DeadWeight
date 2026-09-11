@@ -14,6 +14,15 @@ export interface GraphPanelHandlers {
   build: () => Promise<{ graph: ConnectionGraph; folder: vscode.WorkspaceFolder } | undefined>;
 }
 
+const ICON = {
+  search: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 9.5a5 5 0 1 0-1 1l3.8 3.8 1-1-3.8-3.8zM6.5 10a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>',
+  refresh: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9L10 6h4.5V1.5l-1.5 1.5A7 7 0 1 0 15 8h-1.5z"/></svg>',
+  plus: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.25 2h1.5v5.25H14v1.5H8.75V14h-1.5V8.75H2v-1.5h5.25z"/></svg>',
+  minus: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7.25h12v1.5H2z"/></svg>',
+  fit: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h4v1.5H3.5V6H2zm8 0h4v4h-1.5V3.5H10zM2 10h1.5v2.5H6V14H2zm10.5 0H14v4h-4v-1.5h2.5z"/></svg>',
+  folder: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3h4.8l1.5 1.5h6.7v8.5h-13zM3 6v5.5h10V6z"/></svg>',
+};
+
 function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: string): string {
   const script = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'graph.js'));
 
@@ -25,84 +34,164 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, nonce: st
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Connection Graph</title>
 <style>
-  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+  :root {
+    --entry: var(--vscode-charts-blue, #3794ff);
+    --used: var(--vscode-charts-green, #89d185);
+    --maybe: var(--vscode-charts-yellow, #cca700);
+    --unused: var(--vscode-charts-red, #f14c4c);
+    --package: var(--vscode-charts-purple, #b180d7);
+    --border: var(--vscode-panel-border, rgba(128,128,128,.35));
+    --muted: var(--vscode-descriptionForeground);
+    --surface: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; }
   [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
   body { font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); color: var(--vscode-foreground); background: var(--vscode-editor-background); display: flex; flex-direction: column; }
-  header { padding: 10px 14px 8px; border-bottom: 1px solid var(--vscode-panel-border); display: flex; flex-direction: column; gap: 8px; }
-  h1 { font-size: 1.15em; font-weight: 600; margin: 0; }
-  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--vscode-panel-border); }
-  .muted { color: var(--vscode-descriptionForeground); }
-  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; }
-  .dot.entry { background: var(--vscode-charts-blue); border-radius: 2px; }
-  .dot.used { background: var(--vscode-charts-green); }
-  .dot.maybe { background: var(--vscode-charts-yellow); }
-  .dot.unused { background: var(--vscode-charts-red); }
-  .diamond { display: inline-block; width: 8px; height: 8px; transform: rotate(45deg); background: var(--vscode-descriptionForeground); }
-  label { display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
-  input[type="search"] { font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); padding: 3px 6px; min-width: 220px; }
-  select { font: inherit; color: var(--vscode-dropdown-foreground); background: var(--vscode-dropdown-background); border: 1px solid var(--vscode-dropdown-border); padding: 2px 4px; }
-  button { font: inherit; padding: 3px 12px; border: none; border-radius: 2px; cursor: pointer; color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
-  button:hover { background: var(--vscode-button-secondaryHoverBackground); }
-  button#open-file { color: var(--vscode-button-foreground); background: var(--vscode-button-background); margin: 4px 0 8px; }
-  button.icon { background: transparent; padding: 0 4px; color: var(--vscode-descriptionForeground); }
+  svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 1px; }
+
+  /* Top bar */
+  .topbar { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .title-block { display: flex; flex-direction: column; min-width: 0; margin-right: auto; }
+  .title { font-size: 1.15em; font-weight: 600; white-space: nowrap; }
+  .title .project { color: var(--muted); font-weight: 400; }
+  .meta { color: var(--muted); font-size: 0.88em; margin-top: 2px; }
+  .search { display: flex; align-items: center; gap: 6px; padding: 0 8px; height: 28px; min-width: 260px; flex: 0 1 340px; border-radius: var(--radius); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, var(--border)); color: var(--muted); }
+  .search:focus-within { border-color: var(--vscode-focusBorder); }
+  .search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: var(--vscode-input-foreground); font: inherit; }
+  .search .count { font-size: 0.85em; white-space: nowrap; }
+  .search kbd { font-family: var(--vscode-editor-font-family); font-size: 0.8em; padding: 0 5px; border-radius: 3px; border: 1px solid var(--border); }
+  .controls { display: flex; align-items: center; gap: 8px; }
+  .segmented { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .segmented button { border: none; background: transparent; padding: 4px 12px; color: var(--muted); }
+  .segmented button + button { border-left: 1px solid var(--border); }
+  .segmented button.active { background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); }
+  .icon-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 28px; min-width: 28px; padding: 0 8px; border-radius: var(--radius); border: 1px solid var(--border); background: transparent; color: var(--muted); }
+  .icon-btn:hover { background: var(--vscode-toolbar-hoverBackground); color: var(--vscode-foreground); }
+  .icon-btn[aria-pressed="true"] { color: var(--vscode-foreground); background: var(--vscode-button-secondaryBackground); }
+  .icon-btn:disabled { opacity: .4; cursor: default; }
+
+  /* Status chips = legend + filter */
+  .filters { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .filters .label { color: var(--muted); font-size: 0.88em; margin-right: 2px; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 10px 3px 8px; border-radius: 999px; border: 1px solid var(--border); background: transparent; }
+  .chip:hover { background: var(--vscode-toolbar-hoverBackground); }
+  .chip .n { font-weight: 600; }
+  .chip[aria-pressed="false"] { opacity: .45; }
+  .chip[aria-pressed="false"] .name { text-decoration: line-through; }
+  .filters .hint { margin-left: auto; color: var(--muted); font-size: 0.85em; }
+  .shape { display: inline-block; width: 10px; height: 10px; flex: none; }
+  .shape.entry { background: var(--entry); border-radius: 2px; }
+  .shape.used { background: var(--used); border-radius: 50%; }
+  .shape.maybe { background: var(--maybe); border-radius: 50%; }
+  .shape.unused { background: var(--unused); border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--unused) 30%, transparent); }
+  .shape.package { background: var(--package); transform: rotate(45deg) scale(.85); }
+
+  /* Canvas and floating widgets */
   main { flex: 1; position: relative; min-height: 0; }
   #cy { position: absolute; inset: 0; }
-  #details { position: absolute; top: 12px; right: 12px; bottom: 12px; width: 330px; overflow: auto; padding: 12px 14px; background: var(--vscode-editorWidget-background); border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border)); box-shadow: 0 2px 8px var(--vscode-widget-shadow); }
-  #details h2 { font-size: 1em; font-family: var(--vscode-editor-font-family); word-break: break-all; margin: 8px 0 4px; }
-  #details h3 { font-size: 0.9em; font-weight: 600; margin: 14px 0 4px; color: var(--vscode-descriptionForeground); text-transform: uppercase; letter-spacing: 0.04em; }
-  #details ul { list-style: none; margin: 0; padding: 0; }
-  #details li { padding: 2px 0; font-family: var(--vscode-editor-font-family); font-size: 0.92em; word-break: break-all; }
-  #details li a { color: var(--vscode-textLink-foreground); text-decoration: none; display: inline-flex; gap: 6px; align-items: center; }
-  #details li a:hover { text-decoration: underline; }
-  .details-header { display: flex; justify-content: space-between; align-items: center; }
-  .reason { margin: 6px 0; line-height: 1.4; }
-  .badge { font-size: 0.85em; padding: 1px 8px; border-radius: 8px; border: 1px solid currentColor; }
-  .badge.entry { color: var(--vscode-charts-blue); }
-  .badge.used { color: var(--vscode-charts-green); }
-  .badge.maybe { color: var(--vscode-charts-yellow); }
-  .badge.unused { color: var(--vscode-charts-red); }
-  .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--vscode-descriptionForeground); }
-  #error { color: var(--vscode-errorForeground); padding: 24px; text-align: center; }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.9em; }
-  .line { display: inline-block; width: 22px; border-top: 2px solid var(--vscode-editorLineNumber-foreground); vertical-align: middle; }
-  .line.dashed { border-top-style: dashed; border-color: var(--vscode-charts-yellow); }
-  .line.dotted { border-top-style: dotted; }
+  .floating { position: absolute; background: var(--surface); border: 1px solid var(--vscode-editorWidget-border, var(--border)); border-radius: var(--radius); box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0,0,0,.25)); }
+  .zoom { right: 16px; bottom: 16px; display: flex; flex-direction: column; overflow: hidden; }
+  .zoom button { border: none; background: transparent; color: var(--muted); width: 32px; height: 30px; display: flex; align-items: center; justify-content: center; }
+  .zoom button + button { border-top: 1px solid var(--border); }
+  .zoom button:hover { background: var(--vscode-toolbar-hoverBackground); color: var(--vscode-foreground); }
+  .legend { left: 16px; bottom: 16px; padding: 8px 12px; font-size: 0.85em; color: var(--muted); display: grid; grid-template-columns: auto auto; gap: 4px 18px; }
+  .legend .row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .line { display: inline-block; width: 24px; border-top: 2px solid var(--muted); }
+  .line.type { border-top-style: dashed; }
+  .line.config { border-top-style: dotted; border-top-width: 3px; }
+  .line.maybe { border-top-style: dashed; border-color: var(--maybe); }
+  .tooltip { position: absolute; pointer-events: none; padding: 6px 10px; max-width: 320px; font-size: 0.88em; z-index: 5; }
+  .tooltip .t-name { font-weight: 600; }
+  .tooltip .t-path { color: var(--muted); font-family: var(--vscode-editor-font-family); word-break: break-all; }
+  .tooltip .t-reason { margin-top: 4px; }
+
+  /* Details panel */
+  .details { top: 16px; right: 16px; bottom: 16px; width: 340px; display: flex; flex-direction: column; overflow: hidden; }
+  .d-head { display: flex; align-items: flex-start; gap: 10px; padding: 14px 14px 10px; }
+  .d-head .shape { width: 14px; height: 14px; margin-top: 4px; }
+  .d-titles { flex: 1; min-width: 0; }
+  .d-name { font-weight: 600; font-size: 1.08em; word-break: break-all; }
+  .d-path { color: var(--muted); font-family: var(--vscode-editor-font-family); font-size: 0.88em; word-break: break-all; margin-top: 2px; }
+  .d-close { border: none; background: transparent; color: var(--muted); padding: 2px; border-radius: 4px; }
+  .d-close:hover { background: var(--vscode-toolbar-hoverBackground); color: var(--vscode-foreground); }
+  .d-body { overflow: auto; padding: 0 14px 14px; }
+  .pill { display: inline-block; font-size: 0.82em; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+  .pill.entry { color: var(--entry); } .pill.used { color: var(--used); } .pill.maybe { color: var(--maybe); } .pill.unused { color: var(--unused); }
+  .kind { color: var(--muted); font-size: 0.85em; margin-left: 6px; }
+  .callout { margin: 12px 0; padding: 8px 10px; border-radius: 4px; border-left: 3px solid var(--muted); background: var(--vscode-textBlockQuote-background, rgba(128,128,128,.1)); line-height: 1.45; }
+  .callout.entry { border-color: var(--entry); } .callout.used { border-color: var(--used); } .callout.maybe { border-color: var(--maybe); } .callout.unused { border-color: var(--unused); }
+  .callout .c-label { font-size: 0.78em; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .actions { display: flex; gap: 8px; margin-bottom: 6px; }
+  .btn { border: none; border-radius: 3px; padding: 5px 14px; }
+  .btn.primary { color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+  .btn.primary:hover { background: var(--vscode-button-hoverBackground); }
+  .btn.secondary { color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
+  .btn.secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
+  .d-body h3 { display: flex; align-items: center; gap: 6px; font-size: 0.78em; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; }
+  .d-body h3 .count { padding: 0 6px; border-radius: 999px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); }
+  .d-body ul { list-style: none; margin: 0; padding: 0; }
+  .d-body li button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: none; background: transparent; padding: 4px 6px; border-radius: 4px; }
+  .d-body li button:hover { background: var(--vscode-list-hoverBackground); }
+  .d-body li .li-name { font-family: var(--vscode-editor-font-family); font-size: 0.92em; }
+  .d-body li .li-dir { color: var(--muted); font-size: 0.85em; margin-left: auto; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+  .d-body li .tag { font-size: 0.75em; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; }
+  .d-body .none { color: var(--muted); padding: 2px 6px; }
+
+  /* Overlays */
+  .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center; color: var(--muted); text-align: center; padding: 24px; }
+  .overlay.error { color: var(--vscode-errorForeground); }
+  .spinner { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--vscode-progressBar-background, var(--entry)); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
-  <header>
-    <div class="row">
-      <h1 id="title">Connection Graph</h1>
-      <div class="row" id="stats"></div>
+  <header class="topbar">
+    <div class="title-block">
+      <div class="title">Connection Graph <span class="project" id="project"></span></div>
+      <div class="meta" id="meta">Building…</div>
     </div>
-    <div class="row">
-      <input type="search" id="search" placeholder="Find a file or package…">
-      <label><input type="checkbox" id="only-problems"> Only unused &amp; maybe</label>
-      <label><input type="checkbox" id="show-packages" checked> Packages</label>
-      <label><input type="checkbox" id="group-folders" checked> Group by folder</label>
-      <label>Layout <select id="layout"><option value="force">Clusters</option><option value="tree">Tree from entries</option></select></label>
-      <button id="fit">Fit</button>
-      <button id="refresh">Rebuild</button>
-    </div>
-    <div class="legend muted">
-      <span><span class="dot entry"></span> entry point</span>
-      <span><span class="dot used"></span> used</span>
-      <span><span class="dot maybe"></span> maybe (computed import / can't prove)</span>
-      <span><span class="dot unused"></span> unused</span>
-      <span><span class="diamond"></span> package</span>
-      <span><span class="line"></span> import</span>
-      <span><span class="line dotted"></span> referenced by config</span>
-      <span><span class="line dashed"></span> computed import</span>
-      <span>Click a node for details · double-click to open</span>
+    <label class="search" title="Search files and packages">
+      ${ICON.search}
+      <input type="search" id="search" placeholder="Search files and packages" aria-label="Search files and packages">
+      <span class="count" id="search-count"></span>
+      <kbd>/</kbd>
+    </label>
+    <div class="controls">
+      <div class="segmented" role="group" aria-label="Layout">
+        <button data-layout="force" class="active" title="Group files by folder">Clusters</button>
+        <button data-layout="tree" title="Flow from the entry points">Tree</button>
+      </div>
+      <button class="icon-btn" id="toggle-folders" aria-pressed="true" title="Group files in folder boxes">${ICON.folder} Folders</button>
+      <button class="icon-btn" id="refresh" title="Rebuild the graph">${ICON.refresh}</button>
     </div>
   </header>
+  <nav class="filters" id="filters" aria-label="Show or hide by status"></nav>
   <main>
-    <div id="cy"></div>
-    <div id="loading" class="overlay">Building the connection graph…</div>
-    <div id="empty" class="overlay" hidden>Nothing to show with the current filters.</div>
-    <div id="error" class="overlay" hidden></div>
-    <aside id="details" hidden></aside>
+    <div id="cy" aria-label="Connection graph"></div>
+    <div id="loading" class="overlay"><div class="spinner"></div>Building the connection graph…</div>
+    <div id="empty" class="overlay" hidden>Nothing to show with the current filters.<br>Click a status above to show it again.</div>
+    <div id="error" class="overlay error" hidden></div>
+    <div id="tooltip" class="floating tooltip" hidden></div>
+    <div class="floating legend" id="legend" aria-label="Legend">
+      <span class="row"><span class="shape entry"></span>entry point</span>
+      <span class="row"><span class="line"></span>import</span>
+      <span class="row"><span class="shape used"></span>file</span>
+      <span class="row"><span class="line type"></span>type-only import</span>
+      <span class="row"><span class="shape package"></span>package</span>
+      <span class="row"><span class="line config"></span>path in a config</span>
+      <span class="row"><span class="shape unused"></span>unused</span>
+      <span class="row"><span class="line maybe"></span>computed import</span>
+    </div>
+    <div class="floating zoom" role="group" aria-label="Zoom">
+      <button id="zoom-in" title="Zoom in">${ICON.plus}</button>
+      <button id="zoom-out" title="Zoom out">${ICON.minus}</button>
+      <button id="fit" title="Fit to screen (F)">${ICON.fit}</button>
+    </div>
+    <aside id="details" class="floating details" hidden aria-live="polite"></aside>
   </main>
   <script nonce="${nonce}" src="${script}"></script>
 </body>
@@ -115,6 +204,7 @@ export class GraphPanel {
   private ready = false;
   private pendingFocus: string | undefined;
   private folder: vscode.WorkspaceFolder | undefined;
+  private readonly panel: vscode.WebviewPanel;
 
   static show(extensionUri: vscode.Uri, handlers: GraphPanelHandlers, focusId?: string) {
     if (GraphPanel.current) {
@@ -134,7 +224,9 @@ export class GraphPanel {
     extensionUri: vscode.Uri,
     private readonly handlers: GraphPanelHandlers,
     focusId: string | undefined,
-    private readonly panel = vscode.window.createWebviewPanel(
+  ) {
+    this.pendingFocus = focusId;
+    this.panel = vscode.window.createWebviewPanel(
       'deadweight.graph',
       'Deadweight: Connection Graph',
       vscode.ViewColumn.Active,
@@ -143,9 +235,9 @@ export class GraphPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'dist', 'webview')],
       },
-    ),
-  ) {
-    this.pendingFocus = focusId;
+    );
+
+    const { panel } = this;
     panel.iconPath = vscode.Uri.joinPath(extensionUri, 'resources', 'icon.png');
     panel.webview.html = renderHtml(panel.webview, extensionUri, randomBytes(16).toString('hex'));
 

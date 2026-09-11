@@ -2,7 +2,7 @@
   "name": "deadweight",
   "displayName": "Deadweight",
   "description": "Find unused packages, dead files and unused exports, see how every file connects, and remove them safely with a safe-to-delete score and one-click undo.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "kalyanmanna",
   "author": {
     "name": "Kalyan Manna"
@@ -11,11 +11,11 @@
   "icon": "resources/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Kalyan-github-4/deadweight.git"
+    "url": "https://github.com/Kalyan-github-4/DeadWeight.git"
   },
-  "homepage": "https://github.com/Kalyan-github-4/deadweight#readme",
+  "homepage": "https://github.com/Kalyan-github-4/DeadWeight#readme",
   "bugs": {
-    "url": "https://github.com/Kalyan-github-4/deadweight/issues"
+    "url": "https://github.com/Kalyan-github-4/DeadWeight/issues"
   },
   "galleryBanner": {
     "color": "#0f1117",

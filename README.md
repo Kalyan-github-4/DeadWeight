@@ -2,9 +2,28 @@
 
 > **Your codebase has deadweight. Deadweight finds it.**
 
-Deadweight is a developer-focused VS Code extension designed to identify **unused dependencies, dead files, unused exports and unnecessary project bloat** so developers can keep their codebases clean, lightweight, and maintainable.
+[![Version](https://img.shields.io/visual-studio-marketplace/v/kalyanmanna.deadweight?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/kalyanmanna.deadweight)](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Built for developers who want to know **what their project actually needs — and what is just taking up space.**
+Deadweight is a VS Code extension that finds **unused dependencies, dead files and unused exports** in JavaScript and TypeScript projects — tells you **how safe each one is to delete** — and removes them **with a preview and one-click undo**.
+
+![Deadweight findings with safe-to-delete scores](images/findings.png)
+
+---
+
+## 📑 Contents
+
+- [The problem](#-the-problem)
+- [Quick start (1 minute)](#-quick-start-1-minute)
+- [The complete workflow](#-the-complete-workflow)
+- [Understanding the safe-to-delete score](#-understanding-the-safe-to-delete-score)
+- [The Connection Graph](#-the-connection-graph)
+- [Commands & settings](#%EF%B8%8F-commands--settings)
+- [Troubleshooting & FAQ](#-troubleshooting--faq)
+- [How it works](#-how-it-works)
+- [Safety philosophy](#-safety-philosophy)
+- [Development](#-development)
 
 ---
 
@@ -16,180 +35,278 @@ You install a package for a feature that gets removed.
 You create a utility file that stops being used.
 You leave behind dependencies from an old implementation.
 
-Over time, these become **deadweight**.
+Over time, these become **deadweight**: unnecessary dependencies, unused files, larger projects, harder navigation, more maintenance and more technical debt.
 
-This leads to:
+Tools that *detect* dead code already exist — but they print a list of 40 paths in a terminal and leave you to double-check every one before daring to delete anything. Most people never act on it.
 
-* 📦 Unnecessary dependencies
-* 🗂️ Unused files
-* 🐌 Larger projects
-* 🔍 Harder codebase navigation
-* 🧩 Dependency maintenance overhead
-* ⚠️ Increased technical debt
-
-The problem isn't creating code.
-
-**The problem is knowing what you no longer need.**
+**Deadweight closes that loop: detect → understand → remove safely → undo if needed.**
 
 ---
 
-## 💡 The Solution
+## ⚡ Quick start (1 minute)
 
-Deadweight analyzes your project and shows you, inside the editor, exactly what is dead — with a **safe-to-delete score** and the evidence behind it.
+1. **Install** — in VS Code open Extensions (`Ctrl+Shift+X` / `Cmd+Shift+X`), search **Deadweight**, click **Install**.
+2. **Open your project** — *File → Open Folder…* and pick the folder that contains your `package.json`.
+3. **Click the Deadweight icon** (🗑️) in the left activity bar → **Scan Workspace**.
+4. **Read the results** — every item has a score like `high · 98`. Hover it to see why.
+5. **Click the trash icon** at the top of the panel → check the preview → **Remove**.
+6. Changed your mind? Click **Undo**.
+
+That's it. The rest of this page explains each step in detail.
+
+---
+
+## 🧭 The complete workflow
 
 ```text
-Project
- ├── Used Dependency        ✅
- ├── Used File              ✅
- ├── Unused Dependency      💀  score 98 · "no import found; depcheck and the graph agree"
- ├── Unreferenced File      💀  score 98 · "nothing imports this file"
- ├── Unused Export          💀  score 98 · "exported, but no file imports it"
- └── Plugin loaded at runtime ⚠️  score 39 · "may be loaded by a computed import" (never pre-checked)
+ Install ─► Open project ─► Scan ─► Read scores ─► Investigate ─► Review & Remove ─► (Undo) ─► Scan again
+                              │                        ▲
+                              └──► Connection Graph ───┘   (optional: see how everything connects)
 ```
 
-The goal is simple:
+### Step 1 — Install
 
-> **Detect → Review → Remove → (Undo)**
+- **VS Code:** Extensions view → search **Deadweight** → **Install**, or press `Ctrl+P` and run `ext install kalyanmanna.deadweight`.
+- **From a file:** download the `.vsix` from the [GitHub releases](https://github.com/Kalyan-github-4/DeadWeight/releases), then Extensions view → **⋯ → Install from VSIX…**
+
+Installing does nothing on its own — Deadweight never runs in the background or on startup. It only works when you ask.
+
+### Step 2 — Open your project
+
+Open the folder that **directly contains `package.json`** (*File → Open Folder…*).
+
+> 💡 If your project lives in a subfolder — e.g. you opened `my-projects/` but the app is in `my-projects/my-app/` — open `my-app` itself. Otherwise Deadweight will tell you it can't find a `package.json`.
+
+**Tip:** commit your work to git before cleaning up. Then the cleanup shows up as its own, easy-to-review diff.
+
+### Step 3 — Scan
+
+Click the **Deadweight** icon in the activity bar, then **Scan Workspace** (or run **Deadweight: Scan for unused code** from the Command Palette).
+
+- A progress notification appears; you can keep working, or **Cancel** at any time.
+- The first scan downloads the analysis engines and can take 30–60 seconds; later scans take a few seconds.
+- When it finishes, the panel fills with three groups:
+
+| Group | What it lists | Can Deadweight remove it? |
+|---|---|---|
+| 📦 **Unused Packages** | Dependencies in `package.json` that nothing imports, runs or configures | ✅ Yes (uninstalls with your package manager) |
+| 🗂️ **Unused Files** | Files no entry point can reach | ✅ Yes (moves them to a trash folder) |
+| 🧩 **Unused Exports** | Exported functions, classes, constants and types that no file imports | ✋ No — you delete the code yourself |
+
+If nothing is found you'll see **"No deadweight found"** — that's a clean project. 🎉
+
+### Step 4 — Read the scores
+
+Every finding shows a band and a **safe-to-delete score from 0 to 99**:
+
+| Score | Band | Meaning | Pre-checked? |
+|---|---|---|---|
+| **80–99** | 🟢 high | Independent checks all agree it's unused | ✅ Yes |
+| **50–79** | 🟡 medium | Probably unused, but something is worth a look | No |
+| **< 50** | 🔴 low | Could be used in a way that can't be proven (dynamic imports, config, plugins…) | No |
+
+**Hover any finding** to read exactly why it got its score — for example *"No import found across 5 scanned files; depcheck agrees. Deadweight's graph agrees: nothing imports it."* See [Understanding the score](#-understanding-the-safe-to-delete-score) for all the rules.
+
+### Step 5 — Investigate
+
+- **Click a finding** to open it: a file opens directly, a package jumps to its line in `package.json`, an export jumps to the exact function.
+- **In the editor**, dead files and unused exports are marked with a ⊘ in the gutter and a note like *"Deadweight: unused export · high 98"* at the end of the line. Unused files are also dimmed in the Explorer.
+
+![Unused exports marked in the editor](images/unused-exports.png)
+
+- **Right-click a finding → Show in Connection Graph** to see what it is (or isn't) connected to.
+
+### Step 6 — Review & Remove
+
+1. Tick or untick the checkboxes. High-score packages and files start ticked; medium and low never do.
+2. Click the **trash icon** at the top of the Deadweight panel (**Review & Remove**).
+3. A preview opens — nothing has changed yet. It shows:
+   - the exact uninstall command (e.g. `npm uninstall chalk left-pad lodash`),
+   - a **View package.json diff** button,
+   - which files will move to `.deadweight-trash/<timestamp>/`,
+   - a warning if you have uncommitted changes.
+4. Click **Remove** to go ahead, or **Cancel** to leave everything as it is.
+
+![Review & Remove preview](images/review-remove.png)
+
+What actually happens:
+
+- **Packages** are uninstalled in one command with your package manager (npm, yarn, pnpm or bun — detected automatically). `package.json` and your lockfile are backed up first.
+- **Files** are **moved**, never deleted, into `.deadweight-trash/<timestamp>/` with their folder structure preserved. The trash folder is added to your `.gitignore` automatically.
+- **Unused exports** are never touched — open them and delete the code by hand if you agree.
+
+### Step 7 — Undo (if you need to)
+
+- **Right after removing:** click **Undo** in the notification. Files go back to where they were and packages are reinstalled at their **exact previous versions**.
+- **Any time later:** click the **clock icon** at the top of the panel (**Restore from Trash**) and pick the removal to restore. Every removal is kept until you delete it.
+
+When you're happy with a cleanup, you can delete the `.deadweight-trash` folder yourself.
+
+### Step 8 — Scan again
+
+Click the **refresh** icon at the top of the panel. The list should be shorter — or show **"No deadweight found"**.
 
 ---
 
-## ✨ Features
+## 🎯 Understanding the safe-to-delete score
 
-### 📦 Unused Dependency Detection
-Packages in `package.json` that nothing imports, runs or configures.
+Deadweight never guesses and never uses AI. Every score comes from evidence it can show you, and **your code never leaves your machine**.
 
-### 🗂️ Dead File Detection
-Files no entry point can reach — including files only imported by other dead files.
+**What raises the score** — independent engines agreeing:
 
-### 🧩 Unused Export Detection
-Exported functions, classes, constants and types that no file imports. Click one to jump straight to its line.
+- [knip](https://knip.dev) found no import of it,
+- [depcheck](https://github.com/depcheck/depcheck) agrees (packages),
+- Deadweight's own connection graph agrees nothing reachable uses it,
+- for exports: the name appears in no other file at all.
 
-### 🎯 Safe-to-Delete Score (0–100)
-Every finding gets a score built from evidence, not guesses:
+**What lowers the score** — anything that could mean it's still used:
 
-| Evidence | Effect on the score |
+| Situation | Effect |
 |---|---|
-| Independent engines agree it's unused (knip, depcheck, Deadweight's own graph) | ⬆️ raises it |
-| Loaded by a computed `import()` / `require(x)` | ⬇️ low |
-| Referenced by path or name in a config file, npm script or CI | ⬇️ lower |
-| Plugin / preset / `@types` package, barrel file, monorepo package | ⬇️ lower |
+| Loaded by a computed import like ``import(`./plugins/${name}.js`)`` or `require(x)` | → low |
+| Referenced by path or name in a config file (webpack, next.config, …) | → low / medium |
+| Run by an npm script or CI | → medium |
+| Type definitions (`@types/*`), a peer dependency of another package | → low |
+| Plugins and presets loaded by name (ESLint, Babel, PostCSS, …) | → medium |
+| Barrel files (`index.ts`), packages inside a monorepo workspace | → medium |
+| An entry file's exports (may be public API) | → medium |
 
-**80+ = high** (pre-checked for removal) · **50–79 = medium** · **below 50 = low**. Hover any finding to read exactly why it scored what it did. No AI, no API key, and your code never leaves your machine.
-
-### 🕸️ Connection Graph
-An interactive map of how every file and package connects — entry points, used, *maybe* and unused — built in milliseconds, fully offline. Search a file, click it to see **Imported by** and **Imports**, or switch to a tree view from the entry points.
-
-### 🛡️ Safe Cleanup with Undo
-**Review & Remove** previews the exact uninstall command and the `package.json` diff before anything happens. Packages are uninstalled with your package manager (npm, yarn, pnpm or bun); files move to `.deadweight-trash/` — **never deleted**. One click on **Undo** restores the files and reinstalls the packages at their exact previous versions.
-
-### ⚡ Stays Out of the Way
-Nothing runs until you ask. No startup scanning, no editor slowdown.
+Agreement can raise a score only *within* the band its risks allow — a risky item can never climb to high. The score never reaches 100, because nothing is ever *certain*.
 
 ---
 
-## 🚀 Using Deadweight
+## 🕸️ The Connection Graph
 
-1. Open a JavaScript or TypeScript project (a folder with a `package.json`).
-2. Click the **Deadweight** icon in the activity bar.
-3. Click **Scan Workspace**, or **Show Connection Graph** for the instant offline map.
-4. Review the findings — high-score items are pre-checked. Hover for the reasons.
-5. Click **Review & Remove**, check the preview, confirm.
-6. Changed your mind? Click **Undo**, or run **Deadweight: Restore from Trash** later.
+An interactive map of how every file and package in your project connects — built in milliseconds, **fully offline**, no scan needed.
+
+Open it with the **graph icon** at the top of the Deadweight panel, or **Deadweight: Show Connection Graph** from the Command Palette.
+
+![Connection Graph](images/connection-graph.png)
+
+**Reading it**
+
+| Shape / line | Meaning |
+|---|---|
+| 🟦 square | **Entry point** — where the app starts (`main`/`bin`, framework pages, configs, tests, npm scripts) |
+| 🟢 circle | **Used** file — reachable from an entry point |
+| 🟡 dashed circle | **Maybe** — only reachable through a computed import, can't be proven |
+| 🔴 glowing circle | **Unused** — nothing reachable uses it |
+| ◆ diamond | **Package** (purple = used, red = unused) |
+| solid line | import · **dashed**: type-only import · **dotted**: path in a config · **yellow dashed**: computed import |
+
+**Using it**
+
+| To… | Do this |
+|---|---|
+| See why a file is used or unused | **Click** it — the details panel shows the reason, **Imported by** and **Imports** |
+| Open a file | **Double-click** it, or **Open file** in the details panel |
+| Find a file | Type in the search box (press `/`), `Enter` jumps to each match in turn |
+| Show only the problems | Click the **Entry points** and **Used** chips to hide them (their neighbours stay faintly visible for context) |
+| Hide packages | Click the **Packages** chip |
+| See the flow from the entry points | Switch the layout to **Tree** |
+| Zoom | Mouse wheel, the **+ / −** buttons, or `F` to fit everything |
+| Update after editing code | Click **Rebuild** (⟳) |
+
+![Graph details panel](images/graph-details.png)
+
+Your filters and layout are remembered. Very large projects open on the problems only; click a chip to show everything.
+
+---
+
+## ⚙️ Commands & settings
 
 ### Commands
 
 | Command | What it does |
 |---|---|
-| `Deadweight: Scan for unused code` | Find unused packages, files and exports |
-| `Deadweight: Show Connection Graph` | Open the interactive file & package graph |
-| `Deadweight: Review & Remove` | Preview and remove the checked findings |
-| `Deadweight: Restore from Trash` | Undo any earlier removal |
+| **Deadweight: Scan for unused code** | Find unused packages, files and exports |
+| **Deadweight: Show Connection Graph** | Open the interactive file & package graph |
+| **Deadweight: Review & Remove** | Preview and remove the checked findings |
+| **Deadweight: Restore from Trash** | Undo any earlier removal |
 
 ### Settings
 
-| Setting | Default | Description |
+Open *Settings* (`Ctrl+,`) and search **Deadweight**.
+
+| Setting | Default | Use it when |
 |---|---|---|
-| `deadweight.exclude` | `[]` | `.gitignore`-style patterns for files or packages to leave out of results |
-| `deadweight.entryPoints` | `[]` | Extra entry-point globs, e.g. `scripts/*.js` |
-| `deadweight.minimumConfidence` | `low` | Hide findings below this confidence |
-| `deadweight.packageManager` | `auto` | Force npm, yarn, pnpm or bun |
+| `deadweight.exclude` | `[]` | You want to hide some files or packages from the results, as `.gitignore`-style patterns: `legacy/`, `**/*.stories.tsx`, `@types/*` |
+| `deadweight.entryPoints` | `[]` | A file is run in a way Deadweight can't see (a cron job, a custom loader). Globs like `scripts/*.js` — they and everything they import count as used |
+| `deadweight.minimumConfidence` | `low` | You only want to see `medium`+ or `high` results |
+| `deadweight.packageManager` | `auto` | You want to force `npm`, `yarn`, `pnpm` or `bun` |
+
+Example `.vscode/settings.json`:
+
+```json
+{
+  "deadweight.exclude": ["legacy/", "@types/*"],
+  "deadweight.entryPoints": ["scripts/*.js"],
+  "deadweight.minimumConfidence": "medium"
+}
+```
+
+---
+
+## 🩺 Troubleshooting & FAQ
+
+**"No package.json found in …"**
+You opened a folder above your project. Open the folder that directly contains `package.json` (*File → Open Folder…*).
+
+**The scan failed.**
+Click **Show Details** on the error (or *View → Output → Deadweight*). The scan needs Node.js and npm on your `PATH`, and an internet connection the first time, because it runs knip and depcheck through `npx`. The Connection Graph works without either.
+
+**The first scan is slow.**
+The first run downloads the analysis engines. Later scans take a few seconds.
+
+**Deadweight flagged something I actually use.**
+It's probably loaded in a way no static analysis can see. Add it to `deadweight.entryPoints` (for files) or `deadweight.exclude`, and please [open an issue](https://github.com/Kalyan-github-4/DeadWeight/issues) — false positives are the thing we care about most.
+
+**Does it upload my code anywhere?**
+No. Everything runs locally. No AI, no API key, no telemetry.
+
+**Does it delete my files?**
+No. Files are moved to `.deadweight-trash/`, and every removal can be undone.
+
+**Why can't it remove unused exports for me?**
+Deleting code *inside* a file is a change a human should make and review. Deadweight shows you exactly where each one is.
+
+**Does it work in Cursor / Windsurf / VSCodium?**
+Yes — it needs VS Code 1.90 or newer (or a compatible editor). Install it from the `.vsix` file if the editor can't reach the VS Code Marketplace.
+
+**Which projects are supported?**
+JavaScript and TypeScript projects with a `package.json` — React, Next.js, Vue/Nuxt, Svelte/SvelteKit, Remix, Astro, Gatsby, Angular, Expo/React Native, Node CLIs and servers. Monorepos work, with findings inside workspace packages capped at medium confidence for now.
 
 ### Requirements
 
-* VS Code 1.90 or newer (also works in Cursor, Windsurf and VSCodium via Open VSX)
-* Node.js and npm on your `PATH` — the scan runs [knip](https://knip.dev) and [depcheck](https://github.com/depcheck/depcheck) through `npx`, so the first scan needs an internet connection
-* The Connection Graph works fully offline
+- VS Code **1.90** or newer
+- **Node.js and npm** on your `PATH` (for the scan)
+- Internet access for the first scan
 
 ---
 
-## 🧠 How It Works
+## 🧠 How it works
 
 ```text
-              ┌─────────────┐
-              │   Project   │
-              └──────┬──────┘
-                     │
-      ┌──────────────┼──────────────┐
-      ▼              ▼              ▼
-    knip         depcheck     Deadweight graph
- (files, deps,  (second opinion (own import graph:
-   exports)      on packages)   entry points → reachability)
-      │              │              │
-      └──────────────┼──────────────┘
-                     ▼
-         Safe-to-delete score + reasons
-                     │
-          ┌──────────┴──────────┐
-          ▼                     ▼
-      ✅ Required          💀 Deadweight
-                                │
-                   Review → Remove → Undo
+                        ┌─────────────┐
+                        │   Project   │
+                        └──────┬──────┘
+          ┌────────────────────┼────────────────────┐
+          ▼                    ▼                    ▼
+        knip               depcheck          Deadweight graph
+  (files, packages,     (second opinion     (its own import graph:
+      exports)            on packages)       entry points → reachability)
+          └────────────────────┼────────────────────┘
+                               ▼
+                 Safe-to-delete score + reasons
+                               │
+                    ┌──────────┴──────────┐
+                    ▼                     ▼
+               ✅ Required          💀 Deadweight
+                                         │
+                            Review → Remove → Undo
 ```
 
-Deadweight's own graph finds entry points (`main`/`bin`/`exports`, framework conventions for Next.js, Nuxt, SvelteKit, Remix, Astro and more, npm scripts, CI, config files and tests), resolves every import (relative paths, `index` files, tsconfig/jsconfig aliases, monorepo packages) and walks from the entry points. When independent engines agree, the score goes up; anything they can't prove lowers it.
-
----
-
-## 🛠️ Tech Stack
-
-* **VS Code Extension API**
-* **TypeScript**
-* **Node.js**
-* **knip** and **depcheck** for detection, **Cytoscape.js** for the graph
-
----
-
-## 🧪 Development
-
-```bash
-git clone https://github.com/Kalyan-github-4/deadweight.git
-cd deadweight
-npm install
-npm run compile
-```
-
-Then press **F5** in VS Code to launch an **Extension Development Host** with Deadweight loaded.
-
-```bash
-npm run test:unit   # unit tests, including the zero-false-positive release gate
-npm run vsix        # build deadweight-<version>.vsix
-```
-
----
-
-## 🗺️ Roadmap
-
-* [x] Unused dependency detection
-* [x] Dead-file analysis
-* [x] Unused export detection
-* [x] Dependency graph visualization
-* [x] One-click cleanup with undo
-* [x] Configurable safety rules
-* [x] Framework-specific analysis
-* [ ] Full monorepo support (cross-workspace verification)
-* [ ] Dead code detection inside functions
-* [ ] CI/CD integration
-* [ ] Bundled engines for faster, fully offline scans
+Deadweight's own graph finds your **entry points** (`main`/`bin`/`exports` in `package.json`, framework conventions for Next.js, Nuxt, SvelteKit, Remix, Astro, Gatsby, Angular and Expo, npm scripts, CI workflows, config files and tests), **resolves every import** (relative paths, `index` files, `.js`→`.ts`, tsconfig/jsconfig path aliases, monorepo packages, file paths in configs and build scripts) and walks from the entry points to see what's reachable. When independent engines agree, confidence goes up; anything they can't prove lowers it.
 
 ---
 
@@ -206,7 +323,52 @@ A file or dependency can appear unused while still being required through:
 * Framework conventions
 * External consumers
 
-That's why Deadweight is an **analysis and decision tool**, not an auto-deleter: every finding explains itself, uncertain items are never pre-checked, nothing is removed without a preview, files go to a trash folder instead of being deleted, and every removal can be undone.
+That's why Deadweight is an **analysis and decision tool**, not an auto-deleter:
+
+- every finding explains itself,
+- uncertain items are never pre-checked,
+- nothing is removed without a preview,
+- files go to a trash folder instead of being deleted,
+- and every removal can be undone.
+
+---
+
+## 🧪 Development
+
+```bash
+git clone https://github.com/Kalyan-github-4/DeadWeight.git
+cd DeadWeight
+npm install
+npm run compile
+```
+
+Press **F5** in VS Code to launch an **Extension Development Host** with Deadweight loaded.
+
+| Script | What it does |
+|---|---|
+| `npm run compile` | Type-check, lint and build |
+| `npm run watch` | Rebuild on every change |
+| `npm run test:unit` | Unit tests, including the zero-false-positive release gate on the fixture projects |
+| `npm run vsix` | Build `deadweight-<version>.vsix` |
+
+**Tech stack:** VS Code Extension API · TypeScript · Node.js · knip & depcheck · Cytoscape.js
+
+---
+
+## 🗺️ Roadmap
+
+* [x] Unused dependency detection
+* [x] Dead-file analysis
+* [x] Unused export detection
+* [x] Safe-to-delete score with explanations
+* [x] Connection graph visualization
+* [x] One-click cleanup with undo
+* [x] Configurable safety rules
+* [x] Framework-specific analysis
+* [ ] Automatically find projects in subfolders
+* [ ] Full monorepo support (cross-workspace verification)
+* [ ] Bundled engines for faster, fully offline scans
+* [ ] CI/CD integration
 
 ---
 

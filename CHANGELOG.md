@@ -2,6 +2,12 @@
 
 All notable changes to Deadweight are documented here.
 
+## [0.0.2] - 2026-09-11
+
+- **Redesigned Connection Graph**: a clean top bar with search (`/`), a Clusters / Tree layout switch and folder grouping; status chips that double as filters (hidden neighbours of dead files stay visible as faint context); hover tooltips; floating zoom controls and legend; a details panel with a "Why" explanation, **Open file** / **Focus** buttons and clickable *Imported by* / *Imports* lists. Filters and layout are remembered.
+- Keyboard shortcuts in the graph: `/` search, `Enter` next match, `Esc` clear, `F` fit.
+- Complete README with a step-by-step user guide, score explanation, graph guide and FAQ.
+
 ## [0.0.1] - 2026-09-11
 
 First public release.
