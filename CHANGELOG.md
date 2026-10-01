@@ -2,6 +2,11 @@
 
 All notable changes to Deadweight are documented here.
 
+## [0.0.6] - 2026-10-01
+
+- **PR guard runs on Node 24**: GitHub has retired Node 20 for actions, so the action now runs on Node 24. Nothing to change in your workflow; `@v1` picks it up. The example workflow in the README now uses `actions/checkout@v5`, `actions/setup-node@v5` and Node 24.
+- README: the roadmap now shows scanning projects in subfolders and CI integration as done.
+
 ## [0.0.5] - 2026-09-12
 
 - **PR guard (GitHub Action)**: `uses: Kalyan-github-4/DeadWeight@v1` scans each pull request and its base branch and comments with only the unused files, packages and exports the PR adds, with scores, reasons and known vulnerabilities. One comment, updated on every push; inline warnings on the diff; a job summary and outputs; optional `fail-on: new | new-high`.

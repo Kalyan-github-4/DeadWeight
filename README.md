@@ -290,10 +290,10 @@ jobs:
   deadweight:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
       - run: npm ci                       # optional: enables sizes and vulnerability checks
       - uses: Kalyan-github-4/DeadWeight@v1
         with:
@@ -477,10 +477,10 @@ Press **F5** in VS Code to launch an **Extension Development Host** with Deadwei
 * [x] One-click cleanup with undo
 * [x] Configurable safety rules
 * [x] Framework-specific analysis
-* [ ] Automatically find projects in subfolders
+* [x] Automatically find projects in subfolders
 * [ ] Full monorepo support (cross-workspace verification)
 * [ ] Bundled engines for faster, fully offline scans
-* [ ] CI/CD integration
+* [x] CI/CD integration (PR guard GitHub Action)
 
 ---
 

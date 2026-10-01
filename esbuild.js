@@ -68,7 +68,7 @@ async function main() {
 			minify: production,
 			sourcemap: false,
 			platform: 'node',
-			target: 'node20',
+			target: 'node24',
 			outfile: 'dist/action/index.js',
 			logLevel: 'silent',
 			plugins: [esbuildProblemMatcherPlugin],

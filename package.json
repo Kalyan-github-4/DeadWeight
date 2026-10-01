@@ -2,7 +2,7 @@
   "name": "deadweight",
   "displayName": "Deadweight",
   "description": "Find unused packages, dead files and unused exports, then remove them safely: every removal is verified with your own build and tests and undone automatically if anything breaks, and you see the known vulnerabilities you delete.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "kalyanmanna",
   "author": {
     "name": "Kalyan Manna"
