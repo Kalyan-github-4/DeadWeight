@@ -22,6 +22,10 @@ inputs:
     description: 'Look up known vulnerabilities in unused packages (npm advisory database). Needs dependencies installed first, e.g. npm ci.'
     required: false
     default: 'true'
+  check-malware:
+    description: 'Check every installed package for known malware (npm advisory database and OSV.dev) and fail the check when any is found. Needs dependencies installed first, e.g. npm ci.'
+    required: false
+    default: 'true'
   exclude:
     description: 'Files and packages to leave out, as .gitignore-style patterns, one per line or comma-separated.'
     required: false
@@ -44,6 +48,8 @@ outputs:
     description: 'Unused items already on the base branch.'
   vulnerabilities:
     description: 'Known vulnerabilities in the unused packages this pull request adds.'
+  malware:
+    description: 'Installed packages that are known malware.'
 
 runs:
   using: 'node24'

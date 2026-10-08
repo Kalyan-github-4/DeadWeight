@@ -149,6 +149,22 @@ Hover a package for the list of advisories with links. The scan summary and the 
 
 The lookup sends the names and versions of the unused packages (and their exclusive dependencies) to `registry.npmjs.org`, like `npm audit` does. Turn it off with `deadweight.checkVulnerabilities`; sizes are measured locally either way.
 
+#### ☠️ Malicious packages
+
+Every scan also checks **everything installed in `node_modules`, used or not**, for known malware: hijacked releases of real packages (like `chalk@5.6.1`) and packages published only to steal tokens. The exact installed versions are matched against the npm advisory database and [OSV.dev](https://osv.dev) (the OpenSSF malicious-packages records), so a clean version of the same package is never flagged.
+
+```
+⚠ Malicious Packages (2)        known malware · remove by hand
+   chalk@5.6.1                  declared in package.json
+   flatmap-stream@0.1.1         installed by event-stream
+```
+
+Each one shows its version, whether you declared it or which of your dependencies installs it, and links to the reports on hover. You also get an error notification, with the details in the **Deadweight** output channel.
+
+Deadweight **doesn't remove malware for you**: remove or replace the package (or the dependency that installs it), delete `node_modules` and reinstall. Its code may already have run on install, so treat tokens, keys and `.env` secrets on that machine as leaked and rotate them.
+
+The check needs dependencies installed, and sends the names and versions of the installed packages to `registry.npmjs.org` and `api.osv.dev`. Turn it off with `deadweight.checkMalware`.
+
 #### ✅ Verified removal
 
 Static analysis can only guess. Deadweight checks its work with **your project's own checks**:
@@ -304,7 +320,8 @@ What you get on each pull request:
 
 - **One comment**, updated on every push (never a new one each time): *"This pull request adds 1 unused package and 2 unused files"*, a table with scores and reasons, a warning when the new unused packages carry vulnerabilities, and a 🎉 when the PR removes dead code.
 - **Inline warnings** on the changed lines of the diff.
-- A **job summary**, and outputs `added`, `removed`, `existing`, `vulnerabilities` for later steps.
+- A **caution block and a failed check** when a known-malicious package is installed, on any PR, with the version and the dependency that installs it.
+- A **job summary**, and outputs `added`, `removed`, `existing`, `vulnerabilities`, `malware` for later steps.
 
 | Input | Default | |
 |---|---|---|
@@ -312,6 +329,7 @@ What you get on each pull request:
 | `fail-on` | `none` | `new`: fail when the PR adds unused code · `new-high`: only for high-confidence findings |
 | `comment` | `true` | Set `false` to only write the job summary |
 | `check-vulnerabilities` | `true` | Look up known vulnerabilities (run `npm ci` first) |
+| `check-malware` | `true` | Check every installed package for known malware (run `npm ci` first). Malware **fails the check**, whatever `fail-on` says |
 | `exclude` | | `.gitignore`-style patterns, one per line |
 | `entry-points` | | Extra entry-point globs, one per line |
 
@@ -346,6 +364,7 @@ Open *Settings* (`Ctrl+,`) and search **Deadweight**.
 | `deadweight.verifyRemovals` | `true` | Turn off if your checks are too slow to run twice per removal |
 | `deadweight.verifyTimeoutMinutes` | `10` | A check needs longer than 10 minutes (it counts as failed after this) |
 | `deadweight.checkVulnerabilities` | `true` | Turn off to keep package names from being sent to the npm advisory database |
+| `deadweight.checkMalware` | `true` | Turn off to skip the malware check, which sends installed package names to the npm advisory database and OSV.dev |
 
 Example `.vscode/settings.json`:
 
@@ -481,6 +500,7 @@ Press **F5** in VS Code to launch an **Extension Development Host** with Deadwei
 * [ ] Full monorepo support (cross-workspace verification)
 * [ ] Bundled engines for faster, fully offline scans
 * [x] CI/CD integration (PR guard GitHub Action)
+* [x] Malicious package detection
 
 ---
 

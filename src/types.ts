@@ -18,6 +18,23 @@ export interface Footprint {
   advisories: Advisory[];
 }
 
+// One database's record that a package version is malware.
+export interface MalwareReport {
+  id: string;             // GHSA-… (GitHub advisory database) or MAL-… (OpenSSF, via OSV)
+  title: string;
+  url: string;
+}
+
+// An installed package version that is known malware, used or not.
+export interface MaliciousPackage {
+  name: string;
+  version: string;
+  direct: boolean;        // declared in a package.json, not only pulled in by another package
+  via: string[];          // the declared dependencies that install it
+  project?: string;       // folder-relative project dir, when several were scanned
+  reports: MalwareReport[];
+}
+
 export interface Finding {
   id: string;
   kind: 'package' | 'file' | 'export';
@@ -41,4 +58,5 @@ export interface ScanResult {
   warnings: string[];
   projects?: string[];    // folder-relative project dirs scanned ('' is the folder itself)
   footprint?: Footprint;  // what removing every unused package takes out of node_modules
+  malware?: MaliciousPackage[];   // known malware among the installed packages; undefined: not checked
 }

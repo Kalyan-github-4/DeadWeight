@@ -1,15 +1,5176 @@
-"use strict";var $i=Object.create;var He=Object.defineProperty;var yi=Object.getOwnPropertyDescriptor;var Ri=Object.getOwnPropertyNames;var Ii=Object.getPrototypeOf,xi=Object.prototype.hasOwnProperty;var R=(t,e)=>()=>{try{return e||t((e={exports:{}}).exports,e),e.exports}catch(n){throw e=0,n}},ki=(t,e)=>{for(var n in e)He(t,n,{get:e[n],enumerable:!0})},$n=(t,e,n,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let r of Ri(e))!xi.call(t,r)&&r!==n&&He(t,r,{get:()=>e[r],enumerable:!(s=yi(e,r))||s.enumerable});return t};var xt=(t,e,n)=>(n=t!=null?$i(Ii(t)):{},$n(e||!t||!t.__esModule?He(n,"default",{value:t,enumerable:!0}):n,t)),Si=t=>$n(He({},"__esModule",{value:!0}),t);var Re=R((xu,yn)=>{"use strict";var vi="2.0.0",Oi=Number.MAX_SAFE_INTEGER||9007199254740991,Pi=16,Ti=250,Ni=["major","premajor","minor","preminor","patch","prepatch","prerelease"];yn.exports={MAX_LENGTH:256,MAX_SAFE_COMPONENT_LENGTH:Pi,MAX_SAFE_BUILD_LENGTH:Ti,MAX_SAFE_INTEGER:Oi,RELEASE_TYPES:Ni,SEMVER_SPEC_VERSION:vi,FLAG_INCLUDE_PRERELEASE:1,FLAG_LOOSE:2}});var Le=R((ku,Rn)=>{"use strict";var Li=typeof process=="object"&&process.env&&process.env.NODE_DEBUG&&/\bsemver\b/i.test(process.env.NODE_DEBUG)?(...t)=>console.error("SEMVER",...t):()=>{};Rn.exports=Li});var Ie=R((z,In)=>{"use strict";var{MAX_SAFE_COMPONENT_LENGTH:kt,MAX_SAFE_BUILD_LENGTH:_i,MAX_LENGTH:Fi}=Re(),Ci=Le();z=In.exports={};var ji=z.re=[],Di=z.safeRe=[],m=z.src=[],qi=z.safeSrc=[],E=z.t={},Gi=0,St="[a-zA-Z0-9-]",Mi=[["\\s",1],["\\d",Fi],[St,_i]],Ui=t=>{for(let[e,n]of Mi)t=t.split(`${e}*`).join(`${e}{0,${n}}`).split(`${e}+`).join(`${e}{1,${n}}`);return t},x=(t,e,n)=>{let s=Ui(e),r=Gi++;Ci(t,r,e),E[t]=r,m[r]=e,qi[r]=s,ji[r]=new RegExp(e,n?"g":void 0),Di[r]=new RegExp(s,n?"g":void 0)};x("NUMERICIDENTIFIER","0|[1-9]\\d*");x("NUMERICIDENTIFIERLOOSE","\\d+");x("NONNUMERICIDENTIFIER",`\\d*[a-zA-Z-]${St}*`);x("MAINVERSION",`(${m[E.NUMERICIDENTIFIER]})\\.(${m[E.NUMERICIDENTIFIER]})\\.(${m[E.NUMERICIDENTIFIER]})`);x("MAINVERSIONLOOSE",`(${m[E.NUMERICIDENTIFIERLOOSE]})\\.(${m[E.NUMERICIDENTIFIERLOOSE]})\\.(${m[E.NUMERICIDENTIFIERLOOSE]})`);x("PRERELEASEIDENTIFIER",`(?:${m[E.NONNUMERICIDENTIFIER]}|${m[E.NUMERICIDENTIFIER]})`);x("PRERELEASEIDENTIFIERLOOSE",`(?:${m[E.NONNUMERICIDENTIFIER]}|${m[E.NUMERICIDENTIFIERLOOSE]})`);x("PRERELEASE",`(?:-(${m[E.PRERELEASEIDENTIFIER]}(?:\\.${m[E.PRERELEASEIDENTIFIER]})*))`);x("PRERELEASELOOSE",`(?:-?(${m[E.PRERELEASEIDENTIFIERLOOSE]}(?:\\.${m[E.PRERELEASEIDENTIFIERLOOSE]})*))`);x("BUILDIDENTIFIER",`${St}+`);x("BUILD",`(?:\\+(${m[E.BUILDIDENTIFIER]}(?:\\.${m[E.BUILDIDENTIFIER]})*))`);x("FULLPLAIN",`v?${m[E.MAINVERSION]}${m[E.PRERELEASE]}?${m[E.BUILD]}?`);x("FULL",`^${m[E.FULLPLAIN]}$`);x("LOOSEPLAIN",`[v=\\s]*${m[E.MAINVERSIONLOOSE]}${m[E.PRERELEASELOOSE]}?${m[E.BUILD]}?`);x("LOOSE",`^${m[E.LOOSEPLAIN]}$`);x("GTLT","((?:<|>)?=?)");x("XRANGEIDENTIFIERLOOSE",`${m[E.NUMERICIDENTIFIERLOOSE]}|x|X|\\*`);x("XRANGEIDENTIFIER",`${m[E.NUMERICIDENTIFIER]}|x|X|\\*`);x("XRANGEPLAIN",`[v=\\s]*(${m[E.XRANGEIDENTIFIER]})(?:\\.(${m[E.XRANGEIDENTIFIER]})(?:\\.(${m[E.XRANGEIDENTIFIER]})(?:${m[E.PRERELEASE]})?${m[E.BUILD]}?)?)?`);x("XRANGEPLAINLOOSE",`[v=\\s]*(${m[E.XRANGEIDENTIFIERLOOSE]})(?:\\.(${m[E.XRANGEIDENTIFIERLOOSE]})(?:\\.(${m[E.XRANGEIDENTIFIERLOOSE]})(?:${m[E.PRERELEASELOOSE]})?${m[E.BUILD]}?)?)?`);x("XRANGE",`^${m[E.GTLT]}\\s*${m[E.XRANGEPLAIN]}$`);x("XRANGELOOSE",`^${m[E.GTLT]}\\s*${m[E.XRANGEPLAINLOOSE]}$`);x("COERCEPLAIN",`(^|[^\\d])(\\d{1,${kt}})(?:\\.(\\d{1,${kt}}))?(?:\\.(\\d{1,${kt}}))?`);x("COERCE",`${m[E.COERCEPLAIN]}(?:$|[^\\d])`);x("COERCEFULL",m[E.COERCEPLAIN]+`(?:${m[E.PRERELEASE]})?(?:${m[E.BUILD]})?(?:$|[^\\d])`);x("COERCERTL",m[E.COERCE],!0);x("COERCERTLFULL",m[E.COERCEFULL],!0);x("LONETILDE","(?:~>?)");x("TILDETRIM",`(\\s*)${m[E.LONETILDE]}\\s+`,!0);z.tildeTrimReplace="$1~";x("TILDE",`^${m[E.LONETILDE]}${m[E.XRANGEPLAIN]}$`);x("TILDELOOSE",`^${m[E.LONETILDE]}${m[E.XRANGEPLAINLOOSE]}$`);x("LONECARET","(?:\\^)");x("CARETTRIM",`(\\s*)${m[E.LONECARET]}\\s+`,!0);z.caretTrimReplace="$1^";x("CARET",`^${m[E.LONECARET]}${m[E.XRANGEPLAIN]}$`);x("CARETLOOSE",`^${m[E.LONECARET]}${m[E.XRANGEPLAINLOOSE]}$`);x("COMPARATORLOOSE",`^${m[E.GTLT]}\\s*(${m[E.LOOSEPLAIN]})$|^$`);x("COMPARATOR",`^${m[E.GTLT]}\\s*(${m[E.FULLPLAIN]})$|^$`);x("COMPARATORTRIM",`(\\s*)${m[E.GTLT]}\\s*(${m[E.LOOSEPLAIN]}|${m[E.XRANGEPLAIN]})`,!0);z.comparatorTrimReplace="$1$2$3";x("HYPHENRANGE",`^\\s*(${m[E.XRANGEPLAIN]})\\s+-\\s+(${m[E.XRANGEPLAIN]})\\s*$`);x("HYPHENRANGELOOSE",`^\\s*(${m[E.XRANGEPLAINLOOSE]})\\s+-\\s+(${m[E.XRANGEPLAINLOOSE]})\\s*$`);x("STAR","(<|>)?=?\\s*\\*");x("GTE0","^\\s*>=\\s*0\\.0\\.0\\s*$");x("GTE0PRE","^\\s*>=\\s*0\\.0\\.0-0\\s*$")});var Ve=R((Su,xn)=>{"use strict";var Ki=Object.freeze({loose:!0}),Wi=Object.freeze({}),Bi=t=>t?typeof t!="object"?Ki:t:Wi;xn.exports=Bi});var bt=R((bu,bn)=>{"use strict";var kn=/^[0-9]+$/,Sn=(t,e)=>{if(typeof t=="number"&&typeof e=="number")return t===e?0:t<e?-1:1;let n=kn.test(t),s=kn.test(e);return n&&s&&(t=+t,e=+e),t===e?0:n&&!s?-1:s&&!n?1:t<e?-1:1},Hi=(t,e)=>Sn(e,t);bn.exports={compareIdentifiers:Sn,rcompareIdentifiers:Hi}});var D=R((Au,vn)=>{"use strict";var Je=Le(),{MAX_LENGTH:An,MAX_SAFE_INTEGER:Ye}=Re(),{safeRe:ze,t:Ze}=Ie(),Xi=Ve(),{compareIdentifiers:At}=bt(),Vi=(t,e)=>{let n=e.split(".");if(n.length>t.length)return!1;for(let s=0;s<n.length;s++)if(At(t[s],n[s])!==0)return!1;return!0},vt=class t{constructor(e,n){if(n=Xi(n),e instanceof t){if(e.loose===!!n.loose&&e.includePrerelease===!!n.includePrerelease)return e;e=e.version}else if(typeof e!="string")throw new TypeError(`Invalid version. Must be a string. Got type "${typeof e}".`);if(e.length>An)throw new TypeError(`version is longer than ${An} characters`);Je("SemVer",e,n),this.options=n,this.loose=!!n.loose,this.includePrerelease=!!n.includePrerelease;let s=e.trim().match(n.loose?ze[Ze.LOOSE]:ze[Ze.FULL]);if(!s)throw new TypeError(`Invalid Version: ${e}`);if(this.raw=e,this.major=+s[1],this.minor=+s[2],this.patch=+s[3],this.major>Ye||this.major<0)throw new TypeError("Invalid major version");if(this.minor>Ye||this.minor<0)throw new TypeError("Invalid minor version");if(this.patch>Ye||this.patch<0)throw new TypeError("Invalid patch version");s[4]?this.prerelease=s[4].split(".").map(r=>{if(/^[0-9]+$/.test(r)){let i=+r;if(i>=0&&i<Ye)return i}return r}):this.prerelease=[],this.build=s[5]?s[5].split("."):[],this.format()}format(){return this.version=`${this.major}.${this.minor}.${this.patch}`,this.prerelease.length&&(this.version+=`-${this.prerelease.join(".")}`),this.version}toString(){return this.version}compare(e){if(Je("SemVer.compare",this.version,this.options,e),!(e instanceof t)){if(typeof e=="string"&&e===this.version)return 0;e=new t(e,this.options)}return e.version===this.version?0:this.compareMain(e)||this.comparePre(e)}compareMain(e){return e instanceof t||(e=new t(e,this.options)),this.major<e.major?-1:this.major>e.major?1:this.minor<e.minor?-1:this.minor>e.minor?1:this.patch<e.patch?-1:this.patch>e.patch?1:0}comparePre(e){if(e instanceof t||(e=new t(e,this.options)),this.prerelease.length&&!e.prerelease.length)return-1;if(!this.prerelease.length&&e.prerelease.length)return 1;if(!this.prerelease.length&&!e.prerelease.length)return 0;let n=0;do{let s=this.prerelease[n],r=e.prerelease[n];if(Je("prerelease compare",n,s,r),s===void 0&&r===void 0)return 0;if(r===void 0)return 1;if(s===void 0)return-1;if(s===r)continue;return At(s,r)}while(++n)}compareBuild(e){e instanceof t||(e=new t(e,this.options));let n=0;do{let s=this.build[n],r=e.build[n];if(Je("build compare",n,s,r),s===void 0&&r===void 0)return 0;if(r===void 0)return 1;if(s===void 0)return-1;if(s===r)continue;return At(s,r)}while(++n)}inc(e,n,s){if(e.startsWith("pre")){if(!n&&s===!1)throw new Error("invalid increment argument: identifier is empty");if(n){let r=`-${n}`.match(this.options.loose?ze[Ze.PRERELEASELOOSE]:ze[Ze.PRERELEASE]);if(!r||r[1]!==n)throw new Error(`invalid identifier: ${n}`)}}switch(e){case"premajor":this.prerelease.length=0,this.patch=0,this.minor=0,this.major++,this.inc("pre",n,s);break;case"preminor":this.prerelease.length=0,this.patch=0,this.minor++,this.inc("pre",n,s);break;case"prepatch":this.prerelease.length=0,this.inc("patch",n,s),this.inc("pre",n,s);break;case"prerelease":this.prerelease.length===0&&this.inc("patch",n,s),this.inc("pre",n,s);break;case"release":if(this.prerelease.length===0)throw new Error(`version ${this.raw} is not a prerelease`);this.prerelease.length=0;break;case"major":(this.minor!==0||this.patch!==0||this.prerelease.length===0)&&this.major++,this.minor=0,this.patch=0,this.prerelease=[];break;case"minor":(this.patch!==0||this.prerelease.length===0)&&this.minor++,this.patch=0,this.prerelease=[];break;case"patch":this.prerelease.length===0&&this.patch++,this.prerelease=[];break;case"pre":{let r=Number(s)?1:0;if(this.prerelease.length===0)this.prerelease=[r];else{let i=this.prerelease.length;for(;--i>=0;)typeof this.prerelease[i]=="number"&&(this.prerelease[i]++,i=-2);if(i===-1){if(n===this.prerelease.join(".")&&s===!1)throw new Error("invalid increment argument: identifier already exists");this.prerelease.push(r)}}if(n){let i=[n,r];if(s===!1&&(i=[n]),Vi(this.prerelease,n)){let o=this.prerelease[n.split(".").length];isNaN(o)&&(this.prerelease=i)}else this.prerelease=i}break}default:throw new Error(`invalid increment argument: ${e}`)}return this.raw=this.format(),this.build.length&&(this.raw+=`+${this.build.join(".")}`),this}};vn.exports=vt});var oe=R((vu,Pn)=>{"use strict";var On=D(),Ji=(t,e,n=!1)=>{if(t instanceof On)return t;try{return new On(t,e)}catch(s){if(!n)return null;throw s}};Pn.exports=Ji});var Nn=R((Ou,Tn)=>{"use strict";var Yi=oe(),zi=(t,e)=>{let n=Yi(t,e);return n?n.version:null};Tn.exports=zi});var _n=R((Pu,Ln)=>{"use strict";var Zi=oe(),Qi=(t,e)=>{let n=Zi(t.trim().replace(/^[=v]+/,""),e);return n?n.version:null};Ln.exports=Qi});var jn=R((Tu,Cn)=>{"use strict";var Fn=D(),eo=(t,e,n,s,r)=>{typeof n=="string"&&(r=s,s=n,n=void 0);try{return new Fn(t instanceof Fn?t.version:t,n).inc(e,s,r).version}catch{return null}};Cn.exports=eo});var Gn=R((Nu,qn)=>{"use strict";var Dn=oe(),to=(t,e)=>{let n=Dn(t,null,!0),s=Dn(e,null,!0),r=n.compare(s);if(r===0)return null;let i=r>0,o=i?n:s,a=i?s:n,c=!!o.prerelease.length;if(!!a.prerelease.length&&!c){if(!a.patch&&!a.minor)return"major";if(a.compareMain(o)===0)return a.minor&&!a.patch?"minor":"patch"}let p=c?"pre":"";return n.major!==s.major?p+"major":n.minor!==s.minor?p+"minor":n.patch!==s.patch?p+"patch":"prerelease"};qn.exports=to});var Un=R((Lu,Mn)=>{"use strict";var no=D(),so=(t,e)=>new no(t,e).major;Mn.exports=so});var Wn=R((_u,Kn)=>{"use strict";var ro=D(),io=(t,e)=>new ro(t,e).minor;Kn.exports=io});var Hn=R((Fu,Bn)=>{"use strict";var oo=D(),ao=(t,e)=>new oo(t,e).patch;Bn.exports=ao});var Vn=R((Cu,Xn)=>{"use strict";var co=oe(),lo=(t,e)=>{let n=co(t,e);return n&&n.prerelease.length?n.prerelease:null};Xn.exports=lo});var W=R((ju,Yn)=>{"use strict";var Jn=D(),uo=(t,e,n)=>new Jn(t,n).compare(new Jn(e,n));Yn.exports=uo});var Zn=R((Du,zn)=>{"use strict";var po=W(),fo=(t,e,n)=>po(e,t,n);zn.exports=fo});var es=R((qu,Qn)=>{"use strict";var ho=W(),go=(t,e)=>ho(t,e,!0);Qn.exports=go});var Qe=R((Gu,ns)=>{"use strict";var ts=D(),mo=(t,e,n)=>{let s=new ts(t,n),r=new ts(e,n);return s.compare(r)||s.compareBuild(r)};ns.exports=mo});var rs=R((Mu,ss)=>{"use strict";var Eo=Qe(),wo=(t,e)=>t.sort((n,s)=>Eo(n,s,e));ss.exports=wo});var os=R((Uu,is)=>{"use strict";var $o=Qe(),yo=(t,e)=>t.sort((n,s)=>$o(s,n,e));is.exports=yo});var _e=R((Ku,as)=>{"use strict";var Ro=W(),Io=(t,e,n)=>Ro(t,e,n)>0;as.exports=Io});var et=R((Wu,cs)=>{"use strict";var xo=W(),ko=(t,e,n)=>xo(t,e,n)<0;cs.exports=ko});var Ot=R((Bu,ls)=>{"use strict";var So=W(),bo=(t,e,n)=>So(t,e,n)===0;ls.exports=bo});var Pt=R((Hu,us)=>{"use strict";var Ao=W(),vo=(t,e,n)=>Ao(t,e,n)!==0;us.exports=vo});var tt=R((Xu,ps)=>{"use strict";var Oo=W(),Po=(t,e,n)=>Oo(t,e,n)>=0;ps.exports=Po});var nt=R((Vu,fs)=>{"use strict";var To=W(),No=(t,e,n)=>To(t,e,n)<=0;fs.exports=No});var Tt=R((Ju,ds)=>{"use strict";var Lo=Ot(),_o=Pt(),Fo=_e(),Co=tt(),jo=et(),Do=nt(),qo=(t,e,n,s)=>{switch(e){case"===":return typeof t=="object"&&(t=t.version),typeof n=="object"&&(n=n.version),t===n;case"!==":return typeof t=="object"&&(t=t.version),typeof n=="object"&&(n=n.version),t!==n;case"":case"=":case"==":return Lo(t,n,s);case"!=":return _o(t,n,s);case">":return Fo(t,n,s);case">=":return Co(t,n,s);case"<":return jo(t,n,s);case"<=":return Do(t,n,s);default:throw new TypeError(`Invalid operator: ${e}`)}};ds.exports=qo});var gs=R((Yu,hs)=>{"use strict";var Go=D(),Mo=oe(),{safeRe:st,t:rt}=Ie(),Uo=(t,e)=>{if(t instanceof Go)return t;if(typeof t=="number"&&(t=String(t)),typeof t!="string")return null;e=e||{};let n=null;if(!e.rtl)n=t.match(e.includePrerelease?st[rt.COERCEFULL]:st[rt.COERCE]);else{let c=e.includePrerelease?st[rt.COERCERTLFULL]:st[rt.COERCERTL],u;for(;(u=c.exec(t))&&(!n||n.index+n[0].length!==t.length);)(!n||u.index+u[0].length!==n.index+n[0].length)&&(n=u),c.lastIndex=u.index+u[1].length+u[2].length;c.lastIndex=-1}if(n===null)return null;let s=n[2],r=n[3]||"0",i=n[4]||"0",o=e.includePrerelease&&n[5]?`-${n[5]}`:"",a=e.includePrerelease&&n[6]?`+${n[6]}`:"";return Mo(`${s}.${r}.${i}${o}${a}`,e)};hs.exports=Uo});var Es=R((zu,ms)=>{"use strict";var Ko=oe(),Wo=Re(),Bo=D(),Ho=(t,e,n)=>{if(!Wo.RELEASE_TYPES.includes(e))return null;let s=Xo(t,n);return s&&Vo(s,e)},Xo=(t,e)=>{let n=t instanceof Bo?t.version:t;return Ko(n,e)},Vo=(t,e)=>{if(Jo(e))return t.version;switch(t.prerelease=[],e){case"major":t.minor=0,t.patch=0;break;case"minor":t.patch=0;break}return t.format()},Jo=t=>t.startsWith("pre");ms.exports=Ho});var $s=R((Zu,ws)=>{"use strict";var Nt=class{constructor(){this.max=1e3,this.map=new Map}get(e){let n=this.map.get(e);if(n!==void 0)return this.map.delete(e),this.map.set(e,n),n}delete(e){return this.map.delete(e)}set(e,n){if(!this.delete(e)&&n!==void 0){if(this.map.size>=this.max){let r=this.map.keys().next().value;this.delete(r)}this.map.set(e,n)}return this}};ws.exports=Nt});var B=R((Qu,xs)=>{"use strict";var Yo=/\s+/g,Lt=class t{constructor(e,n){if(n=Zo(n),e instanceof t)return e.loose===!!n.loose&&e.includePrerelease===!!n.includePrerelease?e:new t(e.raw,n);if(e instanceof _t)return this.raw=e.value,this.set=[[e]],this.formatted=void 0,this;if(this.options=n,this.loose=!!n.loose,this.includePrerelease=!!n.includePrerelease,this.raw=e.trim().replace(Yo," "),this.set=this.raw.split("||").map(s=>this.parseRange(s.trim())).filter(s=>s.length),!this.set.length)throw new TypeError(`Invalid SemVer Range: ${this.raw}`);if(this.set.length>1){let s=this.set[0];if(this.set=this.set.filter(r=>!Rs(r[0])),this.set.length===0)this.set=[s];else if(this.set.length>1){for(let r of this.set)if(r.length===1&&aa(r[0])){this.set=[r];break}}}this.formatted=void 0}get range(){if(this.formatted===void 0){this.formatted="";for(let e=0;e<this.set.length;e++){e>0&&(this.formatted+="||");let n=this.set[e];for(let s=0;s<n.length;s++)s>0&&(this.formatted+=" "),this.formatted+=n[s].toString().trim()}}return this.formatted}format(){return this.range}toString(){return this.range}parseRange(e){e=e.replace(oa,"");let s=((this.options.includePrerelease&&ra)|(this.options.loose&&ia))+":"+e,r=ys.get(s);if(r)return r;let i=this.options.loose,o=i?U[q.HYPHENRANGELOOSE]:U[q.HYPHENRANGE];e=e.replace(o,wa(this.options.includePrerelease)),L("hyphen replace",e),e=e.replace(U[q.COMPARATORTRIM],ta),L("comparator trim",e),e=e.replace(U[q.TILDETRIM],na),L("tilde trim",e),e=e.replace(U[q.CARETTRIM],sa),L("caret trim",e);let a=e.split(" ").map(f=>ca(f,this.options)).join(" ").split(/\s+/).map(f=>Ea(f,this.options));i&&(a=a.filter(f=>(L("loose invalid filter",f,this.options),!!f.match(U[q.COMPARATORLOOSE])))),L("range list",a);let c=new Map,u=a.map(f=>new _t(f,this.options));for(let f of u){if(Rs(f))return[f];c.set(f.value,f)}c.size>1&&c.has("")&&c.delete("");let p=[...c.values()];return ys.set(s,p),p}intersects(e,n){if(!(e instanceof t))throw new TypeError("a Range is required");return this.set.some(s=>Is(s,n)&&e.set.some(r=>Is(r,n)&&s.every(i=>r.every(o=>i.intersects(o,n)))))}test(e){if(!e)return!1;if(typeof e=="string")try{e=new Qo(e,this.options)}catch{return!1}for(let n=0;n<this.set.length;n++)if($a(this.set[n],e,this.options))return!0;return!1}};xs.exports=Lt;var zo=$s(),ys=new zo,Zo=Ve(),_t=Fe(),L=Le(),Qo=D(),{safeRe:U,src:ea,t:q,comparatorTrimReplace:ta,tildeTrimReplace:na,caretTrimReplace:sa}=Ie(),{FLAG_INCLUDE_PRERELEASE:ra,FLAG_LOOSE:ia}=Re(),oa=new RegExp(ea[q.BUILD],"g"),Rs=t=>t.value==="<0.0.0-0",aa=t=>t.value==="",Is=(t,e)=>{let n=!0,s=t.slice(),r=s.pop();for(;n&&s.length;)n=s.every(i=>r.intersects(i,e)),r=s.pop();return n},ca=(t,e)=>(t=t.replace(U[q.BUILD],""),L("comp",t,e),t=fa(t,e),L("caret",t),t=ua(t,e),L("tildes",t),t=ha(t,e),L("xrange",t),t=ma(t,e),L("stars",t),t),C=t=>!t||t.toLowerCase()==="x"||t==="*",la=(t,e,n)=>C(t)&&!C(e)||C(e)&&n&&!C(n),ua=(t,e)=>t.trim().split(/\s+/).map(n=>pa(n,e)).join(" "),pa=(t,e)=>{let n=e.loose?U[q.TILDELOOSE]:U[q.TILDE],s=e.includePrerelease?"-0":"";return t.replace(n,(r,i,o,a,c)=>{L("tilde",t,r,i,o,a,c);let u;return C(i)?u="":C(o)?u=`>=${i}.0.0${s} <${+i+1}.0.0-0`:C(a)?u=`>=${i}.${o}.0${s} <${i}.${+o+1}.0-0`:c?(L("replaceTilde pr",c),u=`>=${i}.${o}.${a}-${c} <${i}.${+o+1}.0-0`):u=`>=${i}.${o}.${a} <${i}.${+o+1}.0-0`,L("tilde return",u),u})},fa=(t,e)=>t.trim().split(/\s+/).map(n=>da(n,e)).join(" "),da=(t,e)=>{L("caret",t,e);let n=e.loose?U[q.CARETLOOSE]:U[q.CARET],s=e.includePrerelease?"-0":"";return t.replace(n,(r,i,o,a,c)=>{L("caret",t,r,i,o,a,c);let u;return C(i)?u="":C(o)?u=`>=${i}.0.0${s} <${+i+1}.0.0-0`:C(a)?i==="0"?u=`>=${i}.${o}.0${s} <${i}.${+o+1}.0-0`:u=`>=${i}.${o}.0${s} <${+i+1}.0.0-0`:c?(L("replaceCaret pr",c),i==="0"?o==="0"?u=`>=${i}.${o}.${a}-${c} <${i}.${o}.${+a+1}-0`:u=`>=${i}.${o}.${a}-${c} <${i}.${+o+1}.0-0`:u=`>=${i}.${o}.${a}-${c} <${+i+1}.0.0-0`):(L("no pr"),i==="0"?o==="0"?u=`>=${i}.${o}.${a} <${i}.${o}.${+a+1}-0`:u=`>=${i}.${o}.${a} <${i}.${+o+1}.0-0`:u=`>=${i}.${o}.${a} <${+i+1}.0.0-0`),L("caret return",u),u})},ha=(t,e)=>(L("replaceXRanges",t,e),t.split(/\s+/).map(n=>ga(n,e)).join(" ")),ga=(t,e)=>{t=t.trim();let n=e.loose?U[q.XRANGELOOSE]:U[q.XRANGE];return t.replace(n,(s,r,i,o,a,c)=>{if(L("xRange",t,s,r,i,o,a,c),la(i,o,a))return t;let u=C(i),p=u||C(o),f=p||C(a),g=f;return r==="="&&g&&(r=""),c=e.includePrerelease?"-0":"",u?r===">"||r==="<"?s="<0.0.0-0":s="*":r&&g?(p&&(o=0),a=0,r===">"?(r=">=",p?(i=+i+1,o=0,a=0):(o=+o+1,a=0)):r==="<="&&(r="<",p?i=+i+1:o=+o+1),r==="<"&&(c="-0"),s=`${r+i}.${o}.${a}${c}`):p?s=`>=${i}.0.0${c} <${+i+1}.0.0-0`:f&&(s=`>=${i}.${o}.0${c} <${i}.${+o+1}.0-0`),L("xRange return",s),s})},ma=(t,e)=>(L("replaceStars",t,e),t.trim().replace(U[q.STAR],"")),Ea=(t,e)=>(L("replaceGTE0",t,e),t.trim().replace(U[e.includePrerelease?q.GTE0PRE:q.GTE0],"")),wa=t=>(e,n,s,r,i,o,a,c,u,p,f,g)=>(C(s)?n="":C(r)?n=`>=${s}.0.0${t?"-0":""}`:C(i)?n=`>=${s}.${r}.0${t?"-0":""}`:o?n=`>=${n}`:n=`>=${n}${t?"-0":""}`,C(u)?c="":C(p)?c=`<${+u+1}.0.0-0`:C(f)?c=`<${u}.${+p+1}.0-0`:g?c=`<=${u}.${p}.${f}-${g}`:t?c=`<${u}.${p}.${+f+1}-0`:c=`<=${c}`,`${n} ${c}`.trim()),$a=(t,e,n)=>{for(let s=0;s<t.length;s++)if(!t[s].test(e))return!1;if(e.prerelease.length&&!n.includePrerelease){for(let s=0;s<t.length;s++)if(L(t[s].semver),t[s].semver!==_t.ANY&&t[s].semver.prerelease.length>0){let r=t[s].semver;if(r.major===e.major&&r.minor===e.minor&&r.patch===e.patch)return!0}return!1}return!0}});var Fe=R((ep,Os)=>{"use strict";var Ce=Symbol("SemVer ANY"),jt=class t{static get ANY(){return Ce}constructor(e,n){if(n=ks(n),e instanceof t){if(e.loose===!!n.loose)return e;e=e.value}e=e.trim().split(/\s+/).join(" "),Ct("comparator",e,n),this.options=n,this.loose=!!n.loose,this.parse(e),this.semver===Ce?this.value="":this.value=this.operator+this.semver.version,Ct("comp",this)}parse(e){let n=this.options.loose?Ss[bs.COMPARATORLOOSE]:Ss[bs.COMPARATOR],s=e.match(n);if(!s)throw new TypeError(`Invalid comparator: ${e}`);this.operator=s[1]!==void 0?s[1]:"",this.operator==="="&&(this.operator=""),s[2]?this.semver=new As(s[2],this.options.loose):this.semver=Ce}toString(){return this.value}test(e){if(Ct("Comparator.test",e,this.options.loose),this.semver===Ce||e===Ce)return!0;if(typeof e=="string")try{e=new As(e,this.options)}catch{return!1}return Ft(e,this.operator,this.semver,this.options)}intersects(e,n){if(!(e instanceof t))throw new TypeError("a Comparator is required");return this.operator===""?this.value===""?!0:new vs(e.value,n).test(this.value):e.operator===""?e.value===""?!0:new vs(this.value,n).test(e.semver):(n=ks(n),n.includePrerelease&&(this.value==="<0.0.0-0"||e.value==="<0.0.0-0")||!n.includePrerelease&&(this.value.startsWith("<0.0.0")||e.value.startsWith("<0.0.0"))?!1:!!(this.operator.startsWith(">")&&e.operator.startsWith(">")||this.operator.startsWith("<")&&e.operator.startsWith("<")||this.semver.version===e.semver.version&&this.operator.includes("=")&&e.operator.includes("=")||Ft(this.semver,"<",e.semver,n)&&this.operator.startsWith(">")&&e.operator.startsWith("<")||Ft(this.semver,">",e.semver,n)&&this.operator.startsWith("<")&&e.operator.startsWith(">")))}};Os.exports=jt;var ks=Ve(),{safeRe:Ss,t:bs}=Ie(),Ft=Tt(),Ct=Le(),As=D(),vs=B()});var je=R((tp,Ps)=>{"use strict";var ya=B(),Ra=(t,e,n)=>{try{e=new ya(e,n)}catch{return!1}return e.test(t)};Ps.exports=Ra});var Ns=R((np,Ts)=>{"use strict";var Ia=B(),xa=(t,e)=>new Ia(t,e).set.map(n=>n.map(s=>s.value).join(" ").trim().split(" "));Ts.exports=xa});var _s=R((sp,Ls)=>{"use strict";var ka=D(),Sa=B(),ba=(t,e,n)=>{let s=null,r=null,i=null;try{i=new Sa(e,n)}catch{return null}return t.forEach(o=>{i.test(o)&&(!s||r.compare(o)===-1)&&(s=o,r=new ka(s,n))}),s};Ls.exports=ba});var Cs=R((rp,Fs)=>{"use strict";var Aa=D(),va=B(),Oa=(t,e,n)=>{let s=null,r=null,i=null;try{i=new va(e,n)}catch{return null}return t.forEach(o=>{i.test(o)&&(!s||r.compare(o)===1)&&(s=o,r=new Aa(s,n))}),s};Fs.exports=Oa});var qs=R((ip,Ds)=>{"use strict";var Dt=D(),Pa=B(),js=_e(),Ta=(t,e)=>{t=new Pa(t,e);let n=new Dt("0.0.0");if(t.test(n)||(n=new Dt("0.0.0-0"),t.test(n)))return n;n=null;for(let s=0;s<t.set.length;++s){let r=t.set[s],i=null;r.forEach(o=>{let a=new Dt(o.semver.version);switch(o.operator){case">":a.prerelease.length===0?a.patch++:a.prerelease.push(0),a.raw=a.format();case"":case">=":(!i||js(a,i))&&(i=a);break;case"<":case"<=":break;default:throw new Error(`Unexpected operation: ${o.operator}`)}}),i&&(!n||js(n,i))&&(n=i)}return n&&t.test(n)?n:null};Ds.exports=Ta});var Ms=R((op,Gs)=>{"use strict";var Na=B(),La=(t,e)=>{try{return new Na(t,e).range||"*"}catch{return null}};Gs.exports=La});var it=R((ap,Bs)=>{"use strict";var _a=D(),Ws=Fe(),{ANY:Fa}=Ws,Ca=B(),ja=je(),Us=_e(),Ks=et(),Da=nt(),qa=tt(),Ga=(t,e,n,s)=>{t=new _a(t,s),e=new Ca(e,s);let r,i,o,a,c;switch(n){case">":r=Us,i=Da,o=Ks,a=">",c=">=";break;case"<":r=Ks,i=qa,o=Us,a="<",c="<=";break;default:throw new TypeError('Must provide a hilo val of "<" or ">"')}if(ja(t,e,s))return!1;for(let u=0;u<e.set.length;++u){let p=e.set[u],f=null,g=null;if(p.forEach(d=>{d.semver===Fa&&(d=new Ws(">=0.0.0")),f=f||d,g=g||d,r(d.semver,f.semver,s)?f=d:o(d.semver,g.semver,s)&&(g=d)}),f.operator===a||f.operator===c||(!g.operator||g.operator===a)&&i(t,g.semver))return!1;if(g.operator===c&&o(t,g.semver))return!1}return!0};Bs.exports=Ga});var Xs=R((cp,Hs)=>{"use strict";var Ma=it(),Ua=(t,e,n)=>Ma(t,e,">",n);Hs.exports=Ua});var Js=R((lp,Vs)=>{"use strict";var Ka=it(),Wa=(t,e,n)=>Ka(t,e,"<",n);Vs.exports=Wa});var Zs=R((up,zs)=>{"use strict";var Ys=B(),Ba=(t,e,n)=>(t=new Ys(t,n),e=new Ys(e,n),t.intersects(e,n));zs.exports=Ba});var er=R((pp,Qs)=>{"use strict";var Ha=je(),Xa=W();Qs.exports=(t,e,n)=>{let s=[],r=null,i=null,o=t.sort((p,f)=>Xa(p,f,n));for(let p of o)Ha(p,e,n)?(i=p,r||(r=p)):(i&&s.push([r,i]),i=null,r=null);r&&s.push([r,null]);let a=[];for(let[p,f]of s)p===f?a.push(p):!f&&p===o[0]?a.push("*"):f?p===o[0]?a.push(`<=${f}`):a.push(`${p} - ${f}`):a.push(`>=${p}`);let c=a.join(" || "),u=typeof e.raw=="string"?e.raw:String(e);return c.length<u.length?c:e}});var or=R((fp,ir)=>{"use strict";var tr=B(),Mt=Fe(),{ANY:qt}=Mt,Gt=je(),Ut=W(),Va=(t,e,n={})=>{if(t===e)return!0;t=new tr(t,n),e=new tr(e,n);let s=!1;e:for(let r of t.set){for(let i of e.set){let o=Ya(r,i,n);if(s=s||o!==null,o)continue e}if(s)return!1}return!0},Ja=[new Mt(">=0.0.0-0")],nr=[new Mt(">=0.0.0")],Ya=(t,e,n)=>{if(t===e)return!0;if(t.length===1&&t[0].semver===qt){if(e.length===1&&e[0].semver===qt)return!0;n.includePrerelease?t=Ja:t=nr}if(e.length===1&&e[0].semver===qt){if(n.includePrerelease)return!0;e=nr}let s=new Set,r,i;for(let d of t)d.operator===">"||d.operator===">="?r=sr(r,d,n):d.operator==="<"||d.operator==="<="?i=rr(i,d,n):s.add(d.semver);if(s.size>1)return null;let o;if(r&&i){if(o=Ut(r.semver,i.semver,n),o>0)return null;if(o===0&&(r.operator!==">="||i.operator!=="<="))return null}for(let d of s){if(r&&!Gt(d,String(r),n)||i&&!Gt(d,String(i),n))return null;for(let $ of e)if(!Gt(d,String($),n))return!1;return!0}let a,c,u,p,f=i&&!n.includePrerelease&&i.semver.prerelease.length?i.semver:!1,g=r&&!n.includePrerelease&&r.semver.prerelease.length?r.semver:!1;f&&f.prerelease.length===1&&i.operator==="<"&&f.prerelease[0]===0&&(f=!1);for(let d of e){if(p=p||d.operator===">"||d.operator===">=",u=u||d.operator==="<"||d.operator==="<=",r){if(g&&d.semver.prerelease&&d.semver.prerelease.length&&d.semver.major===g.major&&d.semver.minor===g.minor&&d.semver.patch===g.patch&&(g=!1),d.operator===">"||d.operator===">="){if(a=sr(r,d,n),a===d&&a!==r)return!1}else if(r.operator===">="&&!d.test(r.semver))return!1}if(i){if(f&&d.semver.prerelease&&d.semver.prerelease.length&&d.semver.major===f.major&&d.semver.minor===f.minor&&d.semver.patch===f.patch&&(f=!1),d.operator==="<"||d.operator==="<="){if(c=rr(i,d,n),c===d&&c!==i)return!1}else if(i.operator==="<="&&!d.test(i.semver))return!1}if(!d.operator&&(i||r)&&o!==0)return!1}return!(r&&u&&!i&&o!==0||i&&p&&!r&&o!==0||g||f)},sr=(t,e,n)=>{if(!t)return e;let s=Ut(t.semver,e.semver,n);return s>0?t:s<0||e.operator===">"&&t.operator===">="?e:t},rr=(t,e,n)=>{if(!t)return e;let s=Ut(t.semver,e.semver,n);return s<0?t:s>0||e.operator==="<"&&t.operator==="<="?e:t};ir.exports=Va});var ur=R((dp,lr)=>{"use strict";var Kt=Ie(),ar=Re(),za=D(),cr=bt(),Za=oe(),Qa=Nn(),ec=_n(),tc=jn(),nc=Gn(),sc=Un(),rc=Wn(),ic=Hn(),oc=Vn(),ac=W(),cc=Zn(),lc=es(),uc=Qe(),pc=rs(),fc=os(),dc=_e(),hc=et(),gc=Ot(),mc=Pt(),Ec=tt(),wc=nt(),$c=Tt(),yc=gs(),Rc=Es(),Ic=Fe(),xc=B(),kc=je(),Sc=Ns(),bc=_s(),Ac=Cs(),vc=qs(),Oc=Ms(),Pc=it(),Tc=Xs(),Nc=Js(),Lc=Zs(),_c=er(),Fc=or();lr.exports={parse:Za,valid:Qa,clean:ec,inc:tc,diff:nc,major:sc,minor:rc,patch:ic,prerelease:oc,compare:ac,rcompare:cc,compareLoose:lc,compareBuild:uc,sort:pc,rsort:fc,gt:dc,lt:hc,eq:gc,neq:mc,gte:Ec,lte:wc,cmp:$c,coerce:yc,truncate:Rc,Comparator:Ic,Range:xc,satisfies:kc,toComparators:Sc,maxSatisfying:bc,minSatisfying:Ac,minVersion:vc,validRange:Oc,outside:Pc,gtr:Tc,ltr:Nc,intersects:Lc,simplifyRange:_c,subset:Fc,SemVer:za,re:Kt.re,src:Kt.src,tokens:Kt.t,SEMVER_SPEC_VERSION:ar.SEMVER_SPEC_VERSION,RELEASE_TYPES:ar.RELEASE_TYPES,compareIdentifiers:cr.compareIdentifiers,rcompareIdentifiers:cr.rcompareIdentifiers}});var en=R((gp,pt)=>{function Rr(t){return Array.isArray(t)?t:[t]}var ke=void 0,H="",Vt=" ",K="\\",Wc=/[.*+?()[\]{}^$|\\/]/,Bc=/^\uFEFF? *$/,Hc=/(?:[^\\]|^)\\$/,Xc=/^\\!/,Vc=/^\\#/,Jc=/\r?\n/g,Yc="//",Se=47,Er=46,Z="/",Ir="node-ignore";typeof Symbol<"u"&&(Ir=Symbol.for("node-ignore"));var xr=Ir,he=(t,e,n)=>(Object.defineProperty(t,e,{value:n}),n),kr=()=>!1,zc=t=>{let{length:e}=t;return t.slice(0,e-e%2)},Zc={alnum:"0-9A-Za-z",alpha:"A-Za-z",blank:" \\t",cntrl:"\\x00-\\x1f\\x7f",digit:"0-9",graph:"!-.0-~",lower:"a-z",print:" -.0-~",punct:"!-.:-@\\[-`{-~",space:" \\t\\n\\r",upper:"A-Z",xdigit:"0-9A-Fa-f"},Qc="\\]^-[",ot=t=>Qc.indexOf(t)<0?t:K+t,el="(?!\\/)",tl=(t,e)=>{if(t)return`[^\\/${e}]`;let n=`[${e}]`;return new RegExp(n).test("/")?el+n:n},nl=(t,e)=>{let{length:n}=t,s=e+1,r=H,i=t[s];(i==="!"||i==="^")&&(r="^",s++);let o=H,a=H;for(;;){let c=t[s];if(c===ke)return null;if(c===K){let u=t[s+1];if(u===ke)return null;o+=ot(u),a=u,s++}else if(c==="-"&&a&&s+1<n&&t[s+1]!=="]"){s++;let u=t[s];u===K&&(u=t[s+=1]),a<=u&&(o+=`-${ot(u)}`),a=H}else if(c==="["&&t[s+1]===":"){let u=s+2,p=u;for(;p<n&&t[p]!=="]";)p++;if(p===n)return null;if(p>u&&t[p-1]===":"){let f=Zc[t.slice(u,p-1)];if(f===ke)return null;o+=f,a=H,s=p}else o+=ot("["),a="[",s=u-2}else o+=ot(c),a=c;if(s++,t[s]==="]")return{end:s,source:tl(r,o)}}},sl="[]",xe="\0",rl=new RegExp(`${xe}(\\d+)${xe}`,"g"),wr="\uE000",il=t=>{let e=[],n=o=>`${xe}${e.push(o)-1}${xe}`,{length:s}=t,r=H,i=0;for(;i<s;){let o=t[i];if(o===K){let a=t[i+1];a==="*"||a==="["||a===Vt||a===K?r+=t.slice(i,i+2):r+=n(Wc.test(a)?K+a:a),i+=2}else if(o===xe)r+=n(`[${xe}]`),i++;else if(o==="["){let a=nl(t,i);a===null?(r+=n(sl),i=s):(r+=n(a.source),i=a.end+1)}else r+=o,i++}return{source:r,sources:e}},Jt=null,ol=/\/(?!$)/,al=[[/^\uFEFF/,()=>H,"\uFEFF"],[/[\r\n]+$/,()=>H],[/((?:\\\\)*?)(\\? +)$/,(t,e,n)=>e+(n.indexOf("\\")===0?Vt:H)],[/(\\+?) /g,(t,e)=>{let{length:n}=e;return e.slice(0,n-n%2)+Vt}],[/[\\$.|*+(){^]/g,t=>`\\${t}`],[/(?!\\)\?/g,()=>"[^/]","?"],[/^\//,()=>"^",Z],[/\//g,()=>"\\/",Z],[/^\^*(?:\\\*\\\*\\\/)+/,()=>"^(?:.*\\/)?","*"],[Jt,(t,e)=>!t||t[0]==="^"?t:(ol.test(e)?"^":"(?:^|\\/)")+t],[/\\\/\\\*\\\*(?=\\\/|$)/g,(t,e,n)=>e+6<n.length?n.slice(e+6)==="\\/"?"(?:\\/[^\\/]+)+":"(?:\\/[^\\/]+)*":"\\/.+","*"],[/(^|[^\\]+)(\\\*)+(?=.+)/g,(t,e,n)=>{let s=n.replace(/\\\*/g,"[^\\/]*");return e+s},"*"],[/(^|[^\\])((?:\\\\)*)\\\*$/,(t,e,n)=>n.length/2%2===0?e+n+wr:t,"*"],[/\\\\\\(?=[$.|*+(){^])/g,()=>K,K+K],[/\\\\/g,()=>K,K+K],[/\\\[([^\]/]*?)(\\*)($|\])/g,(t,e,n,s)=>`\\[${e}${zc(n)}${s}`,"["],[Jt,t=>{let e=t[t.length-1];return!e||e===wr?t:e===Z?`${t}$`:`${t}(?=$|\\/$)`}]],cl=/(^|\\\/)?\uE000$/,ct="regex",lt="checkRegex",$r="_",ll={[ct](t,e){return`${e?`${e}[^/]+`:"[^/]*"}(?=$|\\/$)`},[lt](t,e){return`${e?`${e}[^/]*`:"[^/]*"}(?=$|\\/$)`}},at="[^\\/]*",ul=t=>{if(t.indexOf(at)<0)return t;let e=[],{length:n}=t,s=0;for(;s<n;){let a=t[s];if(t.startsWith(at,s))e.push({wildcard:!0}),s+=at.length;else if(a==="["){let c=s+1;for(t[c]==="^"&&c++,t[c]==="]"&&c++;c<n&&t[c]!=="]";)c+=t[c]===K?2:1;c++,e.push({single:t.slice(s,c)}),s=c}else if(a===K)e.push({single:t.slice(s,s+2)}),s+=2;else if(a==="("){let c=0,u=s;do t[u]===K?u++:t[u]==="("?c++:t[u]===")"&&c--,u++;while(u<n&&c>0);"*+?".indexOf(t[u])>=0&&u++,e.push({boundary:t.slice(s,u)}),s=u}else a==="^"||a==="$"?(e.push({boundary:a}),s++):(e.push({single:a}),s++)}let r=H,i=[],o=()=>{let a;i.forEach((c,u)=>{c.wildcard&&(a=u)}),i.forEach((c,u)=>{if(!c.wildcard){r+=c.single;return}r+=u===a?at:`(?:(?!${i[u+1].single})[^\\/])*`}),i=[]};return e.forEach(a=>{if(a.boundary===void 0){i.push(a);return}o(),r+=a.boundary}),o(),r},pl=t=>{let{source:e,sources:n}=il(t),s=al.reduce((r,[i,o,a])=>i===Jt?o(r,t):a!==ke&&r.indexOf(a)<0?r:i.test(r)?r.replace(i,o.bind(t)):r,e);return n.length?s.replace(rl,(r,i)=>n[i]):s},Sr=t=>{let e=t.indexOf(Z);return e<0||e===t.length-1},fl=t=>{let e=t.length-1,n=t.lastIndexOf(Z,t[e]===Z?e-1:e);return n<0?t:t.slice(n+1)},yr=t=>{if(t.charCodeAt(0)===Se||t.indexOf(Yc)>=0){let s=t.split(Z).filter(Boolean);return s.pop(),s.length?s.join(Z)+Z:H}let e=t.length-1,n=t.lastIndexOf(Z,t.charCodeAt(e)===Se?e-1:e);return n<0?H:t.slice(0,n+1)},ut=t=>typeof t=="string",dl=t=>t&&ut(t)&&!Bc.test(t)&&!Hc.test(t)&&t.indexOf("#")!==0,hl=t=>t.split(Jc).filter(Boolean),Yt=class{constructor(e,n,s,r,i,o){this.pattern=e,this.mark=n,this.negative=i,he(this,"body",s),he(this,"ignoreCase",r),he(this,"regexPrefix",o)}get _basenameOnly(){return he(this,"_basenameOnly",Sr(this.body))}get regex(){let e=$r+ct;return this[e]?this[e]:this._make(ct,e)}get checkRegex(){let e=$r+lt;return this[e]?this[e]:this._make(lt,e)}_make(e,n){let s=ul(this.regexPrefix.replace(cl,ll[e])),r=this.ignoreCase?new RegExp(s,"i"):new RegExp(s);return he(this,n,r)}},gl=({pattern:t,mark:e},n)=>{let s=!1,r=t;r.indexOf("!")===0&&(s=!0,r=r.substr(1)),r=r.replace(Xc,"!").replace(Vc,"#");let i=pl(r);return new Yt(t,e,r,n,s,i)},zt=class{constructor(e){this._ignoreCase=e,this._rules=[],this._basenameCount=0}_add(e){if(e&&e[xr]){this._rules=this._rules.concat(e._rules._rules),this._basenameCount+=e._rules._basenameCount,this._added=!0;return}if(ut(e)&&(e={pattern:e}),dl(e.pattern)){let n=gl(e,this._ignoreCase);this._added=!0,this._rules.push(n),Sr(n.body)&&this._basenameCount++}}add(e){return this._added=!1,Rr(ut(e)?hl(e):e).forEach(this._add,this),this._added}test(e,n,s){let r=!1,i=!1,o,a=this._rules,{length:c}=a,u=this._basenameCount*2>=c,p=u?fl(e):e;for(let g=0;g<c;g++){let d=a[g],{negative:$}=d;!(i===$&&r!==i||$&&!r&&!i&&!n)&&d[s].test(u&&d._basenameOnly?p:e)&&(r=!$,i=$,o=$?ke:d)}let f={ignored:r,unignored:i};return o&&(f.rule=o),f}},ml=(t,e)=>{throw new e(t)},se=(t,e,n)=>ut(t)?t?se.isNotRelative(t)?n(`path should be a \`path.relative()\`d string, but got "${e}"`,RangeError):!0:n("path must not be empty",TypeError):n(`path must be a string, but got \`${e}\``,TypeError),br=t=>{let e=t.charCodeAt(0);if(e===Se)return!0;if(e!==Er)return!1;if(t.length===1)return!0;let n=t.charCodeAt(1);return n===Se?!0:n!==Er?!1:t.length===2||t.charCodeAt(2)===Se};se.isNotRelative=br;se.convert=t=>t;var Zt=class{constructor({ignorecase:e=!0,ignoreCase:n=e,allowRelativePaths:s=!1}={}){he(this,xr,!0),this._rules=new zt(n),this._strictPathCheck=!s,this._initCache()}_initCache(){this._ignoreCache=Object.create(null),this._testCache=Object.create(null)}add(e){return this._rules.add(e)&&this._initCache(),this}addPattern(e){return this.add(e)}_test(e,n,s){let r=e&&se.convert(e);return se(r,e,this._strictPathCheck?ml:kr),this._t(r,n,s)}checkIgnore(e){if(e.charCodeAt(e.length-1)!==Se)return this.test(e);let n=yr(e);if(n){let s=this._t(n,this._testCache,!0);if(s.ignored)return s}return this._rules.test(e,!1,lt)}_t(e,n,s){if(e in n)return n[e];let r=yr(e),i=r?this._t(r,n,s):ke;return n[e]=i&&i.ignored?i:this._rules.test(e,s,ct)}ignores(e){return this._test(e,this._ignoreCache,!1).ignored}createFilter(){return e=>!this.ignores(e)}filter(e){return Rr(e).filter(this.createFilter())}test(e){return this._test(e,this._testCache,!0)}},Qt=t=>new Zt(t),El=t=>se(t&&se.convert(t),t,kr),Ar=()=>{let t=n=>/^\\\\\?\\/.test(n)||/["<>|\u0000-\u001F]+/u.test(n)?n:n.replace(/\\/g,"/");se.convert=t;let e=/^[a-z]:\//i;se.isNotRelative=n=>e.test(n)||br(n)};typeof process<"u"&&process.platform==="win32"&&Ar();pt.exports=Qt;Qt.default=Qt;pt.exports.isPathValid=El;he(pt.exports,Symbol.for("setupWindows"),Ar)});var yu={};ki(yu,{checkoutBaseWithGit:()=>fi,run:()=>di});module.exports=Si(yu);var le=require("node:fs"),pi=require("node:os"),J=require("node:path");var Xe=require("node:child_process"),ne=class extends Error{constructor(e="Cancelled."){super(e),this.name="CancelledError"}},bi=/^[A-Za-z0-9@._/=~:-]+$/;function Ai(t){if(process.platform==="win32"&&t.pid!==void 0){(0,Xe.spawn)("taskkill",["/pid",String(t.pid),"/T","/F"],{windowsHide:!0});return}t.kill()}function ye(t,e,n){return new Promise((s,r)=>{let{cwd:i,signal:o}=n,a=n.env?{...process.env,...n.env}:void 0;if(o?.aborted){r(new ne);return}let c;if(process.platform==="win32"){let $=[t,...e].find(P=>!bi.test(P));if($!==void 0){r(new Error(`Refusing to pass unsafe argument to the shell: ${$}`));return}c=(0,Xe.spawn)([t,...e].join(" "),{cwd:i,env:a,shell:!0,windowsHide:!0})}else c=(0,Xe.spawn)(t,e,{cwd:i,env:a});let u="",p="",f=!1,g=$=>{f||(f=!0,o?.removeEventListener("abort",d),$())},d=()=>{Ai(c),g(()=>r(new ne))};o?.addEventListener("abort",d,{once:!0}),c.stdout?.setEncoding("utf8"),c.stderr?.setEncoding("utf8"),c.stdout?.on("data",$=>{u+=$}),c.stderr?.on("data",$=>{p+=$}),c.on("error",$=>{g(()=>r($))}),c.on("close",$=>{g(()=>s({code:$,stdout:u,stderr:p}))})})}var ri=require("node:fs"),we=require("node:path");var ae=require("node:fs/promises"),G=require("node:path"),pr=xt(ur()),fr=["critical","high","moderate","low"],Cc="https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",jc=15e3,Dc=async(t,e)=>{let n=AbortSignal.timeout(jc),s=await fetch(Cc,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(t),signal:e?AbortSignal.any([e,n]):n});if(!s.ok)throw new Error(`the npm registry answered ${s.status}`);return await s.json()},Wt=new Map;async function Bt(t){try{return JSON.parse(await(0,ae.readFile)(t,"utf8"))}catch{return}}function dr(t,e){return e.flatMap(n=>{let s=t[n];return s&&typeof s=="object"?Object.keys(s):[]})}var qc=`${G.sep}node_modules${G.sep}`,Ht=class{nodes=new Map;resolved=new Map;async resolve(e,n){let s=`${e}\0${n}`;if(this.resolved.has(s))return this.resolved.get(s);let r=e,i;for(;;){if((0,G.basename)(r)!=="node_modules")try{let a=await(0,ae.realpath)((0,G.join)(r,"node_modules",n));if(await Bt((0,G.join)(a,"package.json"))){i=a;break}}catch{}let o=(0,G.dirname)(r);if(o===r)break;r=o}return this.resolved.set(s,i),i}async load(e,n){let s=[e];for(;s.length>0;){n?.throwIfAborted();let r=s.pop();if(this.nodes.has(r))continue;let i=await Bt((0,G.join)(r,"package.json"))??{},o={name:typeof i.name=="string"?i.name:(0,G.basename)(r),version:typeof i.version=="string"?i.version:"0.0.0",dir:r,local:!`${r}${G.sep}`.includes(qc),deps:[]};if(this.nodes.set(r,o),!o.local)for(let a of dr(i,["dependencies","optionalDependencies","peerDependencies"])){let c=await this.resolve(r,a);c&&(o.deps.push(c),s.push(c))}}}reachable(e){let n=new Set,s=[...e];for(;s.length>0;){let r=s.pop();n.has(r)||(n.add(r),s.push(...this.nodes.get(r)?.deps??[]))}return n}};async function hr(t,e){let n=0,s;try{s=await(0,ae.readdir)(t,{withFileTypes:!0})}catch{return 0}for(let r of s){e?.throwIfAborted();let i=(0,G.join)(t,r.name);if(r.isDirectory())r.name!=="node_modules"&&(n+=await hr(i,e));else if(r.isFile())try{n+=(await(0,ae.lstat)(i)).size}catch{}}return n}function Gc(t,e,n){return n.filter(s=>{try{return!!s.vulnerable_versions&&pr.default.satisfies(e,s.vulnerable_versions,{includePrerelease:!0})}catch{return!1}}).map(s=>({package:t,version:e,severity:fr.find(r=>r===s.severity)??"low",title:s.title??"Known vulnerability",url:s.url??""}))}async function Mc(t,e,n){let s={};for(let{name:i,version:o}of t)Wt.has(`${i}@${o}`)||(s[i]=[...new Set([...s[i]??[],o])]);if(Object.keys(s).length===0)return;let r=await e(s,n);for(let[i,o]of Object.entries(s))for(let a of o)Wt.set(`${i}@${a}`,Gc(i,a,r[i]??[]))}var Uc={packages:0,bytes:0,advisories:[]};async function gr(t,e,n,{signal:s,fetchAdvisories:r=Dc}={}){let i=[],o=new Ht,a=[];for(let w of new Set(["",...e])){let T=await Bt((0,G.join)(t,w,"package.json"));if(T)for(let _ of dr(T,["dependencies","devDependencies","optionalDependencies"])){let k=await o.resolve((0,G.join)(t,w),_);k&&(a.push({manifestDir:w,name:_,dir:k}),await o.load(k,s))}}if(a.length===0)return{perRemoval:new Map,combined:Uc,warnings:i};let c=o.reachable(a.map(w=>w.dir)),u=w=>{let T=k=>w.some(M=>M.manifestDir===k.manifestDir&&M.name===k.name),_=o.reachable(a.filter(k=>!T(k)).map(k=>k.dir));return new Set([...c].filter(k=>!_.has(k)&&!o.nodes.get(k)?.local))},p=u(n),f=new Map(n.map(w=>[w.id,u([w])])),g=new Map;for(let w of p)g.set(w,await hr(w,s));let d=[...p].map(w=>o.nodes.get(w)),$=!1;if(r&&d.length>0)try{await Mc(d,r,s),$=!0}catch(w){if(s?.aborted)throw w;i.push(`Couldn't check unused packages for known vulnerabilities (${w.message}). Sizes are still shown.`)}let P=w=>({packages:w.size,bytes:[...w].reduce((T,_)=>T+(g.get(_)??0),0),advisories:$?[...w].flatMap(T=>{let{name:_,version:k}=o.nodes.get(T);return Wt.get(`${_}@${k}`)??[]}):[]});return{perRemoval:new Map([...f].map(([w,T])=>[w,P(T)])),combined:P(p),warnings:i}}function Kc(t){let e={critical:0,high:0,moderate:0,low:0};for(let n of t)e[n.severity]++;return e}function mr(t){if(t<1024)return`${t} B`;let e=["KB","MB","GB"],n=t/1024,s=0;for(;n>=1024&&s<e.length-1;)n/=1024,s++;return`${n>=10?Math.round(n):n.toFixed(1)} ${e[s]}`}function Xt(t){if(t.length===0)return"no known vulnerabilities";let e=Kc(t),n=fr.filter(s=>e[s]>0).map(s=>`${e[s]} ${s}`);return`${t.length} known ${t.length===1?"vulnerability":"vulnerabilities"} (${n.join(", ")})`}var Ge=require("node:path");var Q=require("node:fs/promises"),X=require("node:path"),Or=xt(en());var wl=/\b(?:import|require)\s*\(/g;function vr(t,e){let n=e;for(;n<t.length;)if(/\s/.test(t[n]))n++;else if(t.startsWith("/*",n)){let s=t.indexOf("*/",n+2);n=s===-1?t.length:s+2}else if(t.startsWith("//",n)){let s=t.indexOf(`
-`,n+2);n=s===-1?t.length:s+1}else break;return n}function $l(t,e){let n=t[e],s="",r=e+1;for(;r<t.length;){let i=t[r];if(i==="\\")s+=t[r+1]??"",r+=2;else{if(i===n)return{text:s,end:r+1,interpolated:!1};if(n==="`"&&t.startsWith("${",r))return{text:s,end:r,interpolated:!0};if(i===`
-`&&n!=="`")return;s+=i,r++}}}function ft(t){let e=[];for(let n of t.matchAll(wl)){if(t[n.index-1]===".")continue;let s=vr(t,n.index+n[0].length),r=t[s];if(r===")"||r===void 0)continue;if(r!=='"'&&r!=="'"&&r!=="`"){e.push("");continue}let i=$l(t,s);if(!i){e.push("");continue}if(i.interpolated){e.push(i.text);continue}let o=t[vr(t,i.end)];o!==")"&&o!==","&&e.push(i.text)}return e}var De=".deadweight-trash",Pr=new Set(["node_modules",".git",De,".next",".nuxt",".svelte-kit",".turbo",".cache","coverage",".deadweight"]),be=/\.(?:[cm]?[jt]sx?|vue|svelte|astro)$/,ge=/\.config\.(?:[cm]?[jt]s|json|ya?ml)$|^\.[\w.-]*rc(?:\.(?:[cm]?[jt]s|json|ya?ml))?$|^(?:tsconfig|jsconfig)(?:\.[\w-]+)?\.json$/,nn=/^(?:\.github\/workflows\/.+\.ya?ml|\.gitlab-ci\.ya?ml|\.circleci\/config\.ya?ml|azure-pipelines\.ya?ml|bitbucket-pipelines\.ya?ml|\.travis\.ya?ml|Jenkinsfile|Dockerfile|Makefile)$/,yl=1024*1024;function tn(t,e,n){return n.some(({base:s,rules:r})=>{let i=s?t.slice(s.length+1):t;return r.ignores(e?`${i}/`:i)})}async function Tr(t,e){try{let n=await(0,Q.readFile)((0,X.join)(t,e,".gitignore"),"utf8");return{base:e,rules:(0,Or.default)().add(n)}}catch{return}}async function sn(t,e){let n=[],s=async(r,i)=>{e?.throwIfAborted();let o=await Tr(t,r),a=o?[...i,o]:i,c;try{c=await(0,Q.readdir)((0,X.join)(t,r),{withFileTypes:!0})}catch{return}for(let u of c){let p=r?`${r}/${u.name}`:u.name;u.isDirectory()?!Pr.has(u.name)&&!tn(p,!0,a)&&await s(p,a):u.isFile()&&!tn(p,!1,a)&&n.push(p)}};return await s("",[]),n}var Rl=6;async function Nr(t,e){let n=[],s=async(r,i,o)=>{e?.throwIfAborted();let a;try{a=await(0,Q.readdir)((0,X.join)(t,r),{withFileTypes:!0})}catch{return}if(a.some(p=>p.isFile()&&p.name==="package.json")){n.push(r);return}if(o>=Rl)return;let c=await Tr(t,r),u=c?[...i,c]:i;for(let p of a){let f=r?`${r}/${p.name}`:p.name;p.isDirectory()&&!p.name.startsWith(".")&&!Pr.has(p.name)&&!tn(f,!0,u)&&await s(f,u,o+1)}};return await s("",[],0),n.sort()}async function rn(t){try{return(await(0,Q.stat)(t)).size>yl?void 0:await(0,Q.readFile)(t,"utf8")}catch{return}}async function Lr(t,e){let n=await sn(t,e),s=new Map,r={sourceFileCount:0,identifierFileCounts:s,workspaceDirs:[],dynamicImports:[],scripts:[],ci:[],configs:[]};for(let i of n){e?.throwIfAborted();let o=X.posix.basename(i),a=be.test(i),c=ge.test(o),u=nn.test(i),p=o==="package.json";if(!a&&!c&&!u&&!p)continue;let f=await rn((0,X.join)(t,i));if(f!==void 0){if(a){r.sourceFileCount++;for(let g of new Set(f.match(/[A-Za-z_$][\w$]*/g)??[]))s.set(g,(s.get(g)??0)+1);for(let g of ft(f))r.dynamicImports.push({file:i,prefix:g})}if(c&&r.configs.push({source:i,text:f}),u&&r.ci.push({source:i,text:f}),p){let g=X.posix.dirname(i);r.workspaceDirs.push(g==="."?"":g);try{let{scripts:d,dependencies:$,devDependencies:P,peerDependencies:w,optionalDependencies:T,..._}=JSON.parse(f);d&&typeof d=="object"&&r.scripts.push({source:i,text:Object.values(d).filter(k=>typeof k=="string").join(`
-`)}),r.configs.push({source:i,text:JSON.stringify(_,null,1)})}catch{}}}}return r}async function qe(t,e,n){for(let s of new Set([(0,X.join)(t,e),t]))try{let r=JSON.parse(await(0,Q.readFile)((0,X.join)(s,"node_modules",n,"package.json"),"utf8")),i=typeof r.bin=="string"?[X.posix.basename(n)]:r.bin&&typeof r.bin=="object"?Object.keys(r.bin):[],o=r.peerDependencies&&typeof r.peerDependencies=="object"?Object.keys(r.peerDependencies):[];return{bins:i,peers:o}}catch{}}async function _r(t,e){try{let n=JSON.parse(await(0,Q.readFile)((0,X.join)(t,e),"utf8"));return["dependencies","devDependencies","optionalDependencies","peerDependencies"].flatMap(s=>{let r=n[s];return r&&typeof r=="object"?Object.keys(r):[]})}catch{return[]}}var on=[["eslint",/^(?:\.eslintrc(?:\.\w+)?|eslint\.config\.[cm]?[jt]s)$/],["prettier",/^(?:\.prettierrc(?:\.\w+)?|prettier\.config\.[cm]?[jt]s)$/],["typescript",/^tsconfig(?:\.[\w-]+)?\.json$/],["@babel/core",/^(?:\.babelrc(?:\.\w+)?|babel\.config\.\w+)$/],["jest",/^jest\.config\.\w+$/],["vitest",/^vitest\.config\.\w+$/],["vite",/^vite\.config\.\w+$/],["postcss",/^(?:postcss\.config\.\w+|\.postcssrc(?:\.\w+)?)$/],["tailwindcss",/^tailwind\.config\.\w+$/],["stylelint",/^(?:\.stylelintrc(?:\.\w+)?|stylelint\.config\.\w+)$/],["webpack",/^webpack\.config\.\w+$/],["rollup",/^rollup\.config\.\w+$/],["next",/^next\.config\.\w+$/],["@commitlint/cli",/^(?:\.commitlintrc(?:\.\w+)?|commitlint\.config\.\w+)$/],["lint-staged",/^(?:\.lintstagedrc(?:\.\w+)?|lint-staged\.config\.\w+)$/]],an=[/(?:^|\/)eslint-(?:plugin|config)(?:-|$)/,/(?:^|\/)babel-(?:plugin|preset)-/,/^@babel\/(?:plugin|preset)-/,/(?:^|\/)prettier-plugin-/,/(?:^|\/)stylelint-(?:plugin|config)(?:-|$)/,/(?:^|\/)postcss-/,/(?:^|\/)(?:remark|rehype)-/,/^@commitlint\//,/(?:^|\/)(?:vite|rollup)-plugin-/,/^@(?:vitejs|rollup)\/plugin-/,/-loader$/],Il=/^index\.[cm]?[jt]sx?$/,xl=/^(?:\/|@\/|~\/|#|\$)/,kl={high:90,medium:70,low:40},Fr={high:99,medium:79,low:49},Sl=8,bl=5;function Al(t){return t>=80?"high":t>=50?"medium":"low"}var ce=class{notes=[];score;ceiling;constructor(e,n){this.score=kl[e],this.ceiling=Fr[e],this.notes.push(n)}confirm(e){this.score=Math.min(this.score+Sl,this.ceiling),this.notes.push(e)}cap(e,n){this.ceiling=Math.min(this.ceiling,Fr[e]),this.score=Math.max(1,Math.min(this.score,this.ceiling)-bl),this.notes.push(n)}get level(){return Al(this.score)}get value(){return this.score}get reason(){return`${this.notes.join(". ")}.`}},Ae=t=>t.charAt(0).toLowerCase()+t.slice(1);function vl(t){return t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function ht(t,e){return new RegExp(`(?:^|[\\s"'\`(/=,:;&|])${vl(e)}(?:$|[\\s"'\`)/@,;:&|?#])`,"m").test(t)}function dt(t,e){return t.find(({text:n})=>e.some(s=>ht(n,s)))}function Cr(t,e){return e.filter(n=>n!==""&&t.startsWith(`${n}/`)).sort((n,s)=>s.length-n.length)[0]??""}function Ol({file:t,prefix:e}){return e===""||xl.test(e)?{scope:"unknown"}:e.startsWith(".")?{scope:"relative",path:Ge.posix.join(Ge.posix.dirname(t),e).replace(/^\.\/?/,"")}:{scope:"bare",prefix:e}}function jr({file:t,prefix:e}){return e?`${t} has a computed import starting with "${e}"`:`${t} has a fully computed import/require`}function Dr(t){return`${t} scanned ${t===1?"file":"files"}`}function Pl(t,e,n,s){let{context:r,depcheckUnused:i}=e,{name:o}=t,a=t.workspace??"",c=`No import found across ${Dr(r.sourceFileCount)}`,u;a?u=new ce("medium",`${c}. In monorepo workspace ${a}; cross-workspace usage isn't verified yet`):i?i.has(o)?u=new ce("high",`${c}; depcheck agrees`):u=new ce("low",`${c}, but depcheck found it in use`):u=new ce("medium",`${c}. depcheck didn't run, so there is no second opinion`);let p=e.graph?.get(`package:${o}`);p?.status==="unused"?u.confirm(`Deadweight's graph agrees: ${Ae(p.reason)}`):p?.status==="maybe"?u.cap("medium",`Deadweight's graph can't rule out use: ${Ae(p.reason)}`):p&&u.cap("low",`Deadweight's graph found it in use: ${Ae(p.reason)}`),o.startsWith("@types/")&&u.cap("low","Type-only package; TypeScript can use it without any import"),an.some(k=>k.test(o))&&u.cap("medium","Looks like a plugin or preset, which tools load by name from config");let f=e.packageInfo.get(t.id);f?.peerOf&&u.cap("low",`Peer dependency of ${f.peerOf}, which loads it without an import in your code`);let g=on.filter(([k])=>k===o).flatMap(([,k])=>r.configs.filter(({source:M})=>k.test(Ge.posix.basename(M))))[0];g&&u.cap("medium",`${g.source} exists, so ${o} is probably run by a tool or editor`);let d=dt(r.configs,[o]);d&&u.cap("medium",`Referenced by name in ${d.source}`);let $=[o,...f?.bins??[]],P=dt(r.scripts,$);P&&u.cap("medium",`Used in the scripts of ${P.source}`);let w=dt(r.ci,$);w&&u.cap("medium",`Referenced in CI config ${w.source}`);let T=s.get(a);T&&u.cap("low",`Knip couldn't resolve some imports in this workspace (e.g. ${T})`);let _=n.find(({resolved:k})=>k.scope==="unknown"||k.scope==="bare"&&(o.startsWith(k.prefix)||k.prefix.startsWith(`${o}/`)));return _&&u.cap("low",`May be loaded dynamically: ${jr(_.source)}`),u}function Tl(t,e,n,s){let r=t.name,i=new ce("high",`No import found across ${Dr(e.context.sourceFileCount)}`),o=e.graph?.get(`file:${r}`);return o?.status==="unused"?i.confirm(`Deadweight's graph agrees: ${Ae(o.reason)}`):o?.status==="maybe"?i.cap("low",`Deadweight's graph can't rule out use: ${Ae(o.reason)}`):o&&i.cap("low",`Deadweight's graph found it in use: ${Ae(o.reason)}`),qr(i,r,e,n,s),i}function Nl(t,e,n,s){let{name:r}=t,i=t.file??"",o=r==="default"?"The default export":`"${r}"`,a=new ce("high",`${o} is exported from ${i}, but no file imports it`),c=e.context.identifierFileCounts;if(c&&r!=="default"){let p=Math.max(0,(c.get(r)??1)-1);p===0?a.confirm(`The name "${r}" appears in no other file`):a.cap("medium",`The name "${r}" also appears in ${p} other file${p===1?"":"s"}, so it may be used indirectly`)}let u=e.graph?.get(`file:${i}`);return u?.status==="maybe"?a.cap("low",`${i} may be loaded by a computed import, which can reach any export`):u?.status==="entry"&&a.cap("medium",`${i} is an entry point, so its exports may be public API`),qr(a,i,e,n,s),a}function qr(t,e,n,s,r){let{context:i}=n,o=Cr(e,i.workspaceDirs);o&&t.cap("medium",`In monorepo workspace ${o}; cross-workspace usage isn't verified yet`),Il.test(Ge.posix.basename(e))&&t.cap("medium","Barrel file; chained re-exports can look unused");let a=e.replace(/\.[^./]+$/,""),c=[e,a];o&&c.push(e.slice(o.length+1),a.slice(o.length+1));let u=dt([...i.configs,...i.scripts,...i.ci],c);u&&t.cap("low",`Referenced from ${u.source}`);let p=r.get(o);p&&t.cap("low",`Knip couldn't resolve some imports in this workspace (e.g. ${p})`);let f=s.find(({resolved:g})=>g.scope==="unknown"||g.scope==="relative"&&e.startsWith(g.path));f&&t.cap("low",`May be loaded dynamically: ${jr(f.source)}`)}function Gr(t,e){let{context:n}=e,s=n.dynamicImports.map(a=>({source:a,resolved:Ol(a)})),r=new Map;for(let a of e.unresolvedFiles){let c=Cr(a,n.workspaceDirs);r.has(c)||r.set(c,a)}let i=new Set(t.filter(a=>a.kind==="file").map(a=>a.name)),o=a=>a?.startsWith(`${De}/`)??!1;return t.filter(a=>a.kind==="file"?!o(a.name):a.kind==="export"?!o(a.file)&&!i.has(a.file??""):!0).map(a=>{let c=a.kind==="package"?Pl(a,e,s,r):a.kind==="export"?Nl(a,e,s,r):Tl(a,e,s,r);return{...a,confidence:c.level,score:c.value,reason:c.reason}}).sort((a,c)=>c.score-a.score||a.name.localeCompare(c.name))}var Ll=["--yes","depcheck@1","--json","--skip-missing","--ignore-patterns=.deadweight-trash"];function _l(t){let e;try{e=JSON.parse(t)}catch{throw new Error("depcheck returned invalid JSON output.")}let{dependencies:n,devDependencies:s}=e??{};if(!Array.isArray(n)||!Array.isArray(s))throw new Error("depcheck returned an unexpected JSON format.");return new Set([...n,...s].map(String))}async function Mr(t,e){let{code:n,stdout:s,stderr:r}=await ye("npx",Ll,{cwd:t,signal:e});if(!s.trim())throw new Error(r.trim()||`depcheck exited with code ${n??"unknown"}.`);return{unused:_l(s),warnings:r.trim()?[r.trim()]:[]}}var Ur=xt(en());function gt(t){let e=t.map(s=>s.trim().replace(/\\/g,"/").replace(/^\.\//,"")).filter(Boolean);if(e.length===0)return()=>!1;let n=(0,Ur.default)().add(e);return s=>{try{return n.ignores(s)}catch{return!1}}}function Kr(t,{exclude:e=[],entryPoints:n=[]}){let s=gt(e),r=gt(n);return t.filter(i=>{let o=i.kind==="export"?i.file??"":i.name;return!s(o)&&!(i.kind==="file"&&r(o))})}var v=require("node:path");function Fl(t){let e=[],n=t.length,s=0;for(;s<n;){let r=t[s],i=t[s+1];if(r==="/"&&i==="/"){let o=t.indexOf(`
-`,s),a=o===-1?n:o;e.push(" ".repeat(a-s)),s=a}else if(r==="/"&&i==="*"){let o=t.indexOf("*/",s+2),a=o===-1?n:o+2;e.push(t.slice(s,a).replace(/[^\n]/g," ")),s=a}else if(r==='"'||r==="'"||r==="`"){let o=s+1;for(;o<n&&t[o]!==r;){if(t[o]==="\\")o++;else if(r!=="`"&&t[o]===`
-`)break;o++}e.push(t.slice(s,o+1)),s=o+1}else e.push(r),s++}return e.join("")}var Cl=/(?:^|[^\w$.])import\s+(type\s+)?(?:[\w$*{}\s,]+?\s+from\s*)?(['"])([^'"\n]+)\2/g,jl=/(?:^|[^\w$.])export\s+(type\s+)?(?:\*(?:\s*as\s+[\w$]+)?|\{[^}]*\})\s*from\s*(['"])([^'"\n]+)\2/g,Dl=/(?:^|[^\w$.])(require|import)\s*\(\s*(?:(['"])([^'"\n]+)\2|`([^`$\\]*)`)\s*[,)]/g,ql=/(?:^|[^\w$.])require\.resolve\s*\(\s*(['"])([^'"\n]+)\1/g;function Wr(t){let e=Fl(t),n=[];for(let s of e.matchAll(Cl))n.push({specifier:s[3],kind:s[1]?"type":"static"});for(let s of e.matchAll(jl))n.push({specifier:s[3],kind:s[1]?"type":"static"});for(let s of e.matchAll(Dl))n.push({specifier:s[3]??s[4],kind:s[1]==="require"?"require":"dynamic"});for(let s of e.matchAll(ql))n.push({specifier:s[2],kind:"require"});return{imports:n.filter(({specifier:s})=>s.trim()!==""),dynamicPrefixes:ft(e)}}var Xr=require("node:module"),j=require("node:path"),cn=[".ts",".tsx",".mts",".cts",".js",".jsx",".mjs",".cjs",".vue",".svelte",".astro",".json"],Gl={".js":[".ts",".tsx"],".jsx":[".tsx"],".mjs":[".mts"],".cjs":[".cts"]},Br=new Set(Xr.builtinModules),Ml=/^(?:@\/|~|#|\$)/;function Hr(t){let e=t.split("/");return t.startsWith("@")?e.slice(0,2).join("/"):e[0]}function ln(t){let e=[],n=s=>{typeof s=="string"?e.push(s):Array.isArray(s)?s.forEach(n):s&&typeof s=="object"&&Object.values(s).forEach(n)};for(let s of["source","main","module","browser","exports","bin"])n(t[s]);return e.filter(s=>!s.includes("*"))}var mt=class{constructor(e,n,s){this.files=e;this.aliases=n;this.workspacePackages=s}files;aliases;workspacePackages;resolve(e,n){let s=n.split(/[?#]/)[0];if(!s)return{kind:"unresolved"};if(s.startsWith("node:")||Br.has(s)||Br.has(Hr(s)))return{kind:"builtin"};if(s==="."||s===".."||s.startsWith("./")||s.startsWith("../"))return this.resolvePath(j.posix.join(j.posix.dirname(e),s))??{kind:"unresolved"};if(s.startsWith("/"))return this.resolvePath(s.slice(1))??{kind:"unresolved"};let r=this.nearestAliases(j.posix.dirname(e));if(r){for(let{pattern:a,targets:c}of r.paths){let u=Ul(a,s);if(u!==void 0)for(let p of c){let f=this.resolvePath(p.replace("*",u));if(f)return f}}if(r.baseUrl!==void 0){let a=this.resolvePath(j.posix.join(r.baseUrl,s));if(a)return a}}let i=Hr(s),o=this.workspacePackages.get(i);if(o){let a=s.slice(i.length+1);return(a?this.resolvePath(j.posix.join(o.dir,a)):this.resolvePackageEntry(o))??{kind:"package",name:i}}return Ml.test(s)?{kind:"unresolved"}:{kind:"package",name:i}}resolvePath(e){let n=j.posix.normalize(e).replace(/^\.\//,"").replace(/\/$/,"");if(n.startsWith(".."))return;if(this.files.has(n))return cn.includes(j.posix.extname(n))||/\.[cm]?[jt]sx?$/.test(n)?{kind:"file",path:n}:{kind:"asset"};let s=j.posix.extname(n);for(let i of Gl[s]??[]){let o=n.slice(0,-s.length)+i;if(this.files.has(o))return{kind:"file",path:o}}for(let i of cn)if(this.files.has(n+i))return{kind:"file",path:n+i};let r=n==="."?"":n;for(let i of cn){let o=j.posix.join(r,`index${i}`);if(this.files.has(o))return{kind:"file",path:o}}}resolvePackageEntry(e){for(let n of ln(e.manifest)){let s=this.resolvePath(j.posix.join(e.dir,n));if(s?.kind==="file")return s}return this.resolvePath(j.posix.join(e.dir,"src/index"))??this.resolvePath(j.posix.join(e.dir,"index"))}nearestAliases(e){let n=e==="."?"":e;for(;;){let s=this.aliases.get(n);if(s)return s;if(n==="")return;let r=j.posix.dirname(n);n=r==="."?"":r}}};function Ul(t,e){let n=t.indexOf("*");if(n===-1)return t===e?"":void 0;let s=t.slice(0,n),r=t.slice(n+1);if(e.length>=s.length+r.length&&e.startsWith(s)&&e.endsWith(r))return e.slice(s.length,e.length-r.length)}function Kl(t){let e="",n=0;for(;n<t.length;){let s=t[n];if(s==='"'){let r=n+1;for(;r<t.length&&t[r]!=='"';)r+=t[r]==="\\"?2:1;e+=t.slice(n,r+1),n=r+1}else if(s==="/"&&t[n+1]==="/"){let r=t.indexOf(`
-`,n);n=r===-1?t.length:r}else if(s==="/"&&t[n+1]==="*"){let r=t.indexOf("*/",n+2);n=r===-1?t.length:r+2}else e+=s,n++}return JSON.parse(e.replace(/,(\s*[}\]])/g,"$1"))}function un(t,e,n=0){let s=e(t);if(s===void 0||n>5)return;let r;try{r=Kl(s)}catch{return}let i=j.posix.dirname(t)==="."?"":j.posix.dirname(t),o=typeof r.extends=="string"&&r.extends.startsWith(".")?un(j.posix.join(i,r.extends.endsWith(".json")?r.extends:`${r.extends}.json`),e,n+1):void 0,a=r.compilerOptions??{},c=typeof a.baseUrl=="string"?j.posix.join(i,a.baseUrl):o?.baseUrl;if(!a.paths||typeof a.paths!="object")return o||c!==void 0?{baseUrl:c,paths:o?.paths??[]}:void 0;let u=c??i,p=Object.entries(a.paths).map(([f,g])=>({pattern:f,targets:(Array.isArray(g)?g:[]).filter(d=>typeof d=="string").map(d=>j.posix.join(u,d))}));return{baseUrl:c,paths:p}}var Vr=/(?:^|\/)(?:__tests__|__mocks__)\/|\.(?:test|spec|stories|story)\.[cm]?[jt]sx?$/,Wl=/\.d\.[cm]?ts$/,Bl=/^(?:dist|out|build|lib|es|esm|cjs)\/(.+)$/,Hl=/^(?:src\/)?(?:index|main|cli|server|app)\.(?:[cm]?[jt]sx?)$/,Xl=[[/^next$/,/^(?:src\/)?(?:pages|app)\/|^(?:src\/)?(?:middleware|instrumentation)\.[cm]?[jt]sx?$/,"Next.js"],[/^nuxt$/,/^(?:pages|layouts|components|composables|plugins|middleware|server|utils)\/|^app\.vue$/,"Nuxt"],[/^@sveltejs\/kit$/,/^src\/(?:routes\/|hooks\.|app\.html)/,"SvelteKit"],[/^@remix-run\//,/^app\/(?:root|entry\.(?:client|server))\.|^app\/routes\//,"Remix"],[/^astro$/,/^src\/(?:pages|layouts|content)\//,"Astro"],[/^gatsby$/,/^src\/(?:pages|templates)\/|^gatsby-(?:browser|node|ssr)\./,"Gatsby"],[/^(?:expo|react-native)$/,/^(?:App|index)\.[cm]?[jt]sx?$|^app\//,"Expo / React Native"],[/^@angular\/core$/,/^src\/(?:main|polyfills)\.ts$/,"Angular"]],Vl=new Set(["vscode","electron"]),Jl=["react","react-dom","preact","solid-js"],Yl=/['"`]((?:\.{1,2}\/)?[\w@.-]+(?:\/[\w@.-]+)*\.[a-z]{1,5})['"`]/g,Jr=/(?:^|[\s"'=])((?:\.\/)?[\w@.-]+(?:\/[\w@.-]+)*\.[cm]?[jt]sx?)(?=$|[\s"';&|)])/g,zl=/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi;function ee(t,e){return e.find(n=>n!==""&&t.startsWith(`${n}/`))??""}function Yr(t,e){return t?e.slice(t.length+1):e}function zr(t,e){return e.flatMap(n=>{let s=t[n];return s&&typeof s=="object"?Object.keys(s):[]})}function re(t,e=3){return t.length>e?`${t.slice(0,e).join(", ")} and ${t.length-e} more`:t.join(", ")}async function Zr(t,e={}){let n=Date.now(),{signal:s}=e,r=(await sn(t,s)).filter(l=>!l.startsWith(`${De}/`)),i=new Set(r),o=async l=>rn((0,v.join)(t,l)),a=new Map;for(let l of r.filter(h=>v.posix.basename(h)==="package.json"))try{let h=v.posix.dirname(l)==="."?"":v.posix.dirname(l);a.set(h,JSON.parse(await o(l)??""))}catch{}let c=[...a.keys()].sort((l,h)=>h.length-l.length),u=new Map;for(let[l,h]of a)typeof h.name=="string"&&u.set(h.name,{dir:l,manifest:h});let p=new Map;for(let l of r.filter(h=>/^(?:tsconfig|jsconfig)(?:\.[\w-]+)?\.json$/.test(v.posix.basename(h)))){let h=await o(l);h!==void 0&&p.set(l,h)}let f=new Map;for(let l of p.keys()){let h=v.posix.basename(l);if(h!=="tsconfig.json"&&h!=="jsconfig.json")continue;let y=un(l,S=>p.get(S)),b=v.posix.dirname(l)==="."?"":v.posix.dirname(l);y&&!f.has(b)&&f.set(b,y)}let g=new mt(i,f,u),d=r.filter(l=>be.test(l)),$=[],P=new Set,w=[],T=[],_=new Map,k=(l,h,y)=>{let b=`${l}>${h}`;l!==h&&!P.has(b)&&(P.add(b),$.push({from:l,to:h,kind:y}))},M=[];for(let l of d){s?.throwIfAborted();let h=await o(l);if(h===void 0)continue;ge.test(v.posix.basename(l))&&M.push({source:l,text:h});let{imports:y,dynamicPrefixes:b}=Wr(h);for(let{specifier:S,kind:A}of y){let I=g.resolve(l,S);if(I.kind==="file")k(`file:${l}`,`file:${I.path}`,A);else if(I.kind==="package"){k(`file:${l}`,`package:${I.name}`,A);let F=_.get(I.name)??new Set;F.add(l),_.set(I.name,F)}else I.kind==="unresolved"&&w.push({file:l,specifier:S})}for(let S of b){if(S===""){T.push(l);continue}if(!S.startsWith("."))continue;let A=v.posix.normalize(v.posix.join(v.posix.dirname(l),S)).replace(/^\.\//,"");for(let I of d)I.startsWith(A)&&I!==l&&k(`file:${l}`,`file:${I}`,"maybe")}}for(let l of r.filter(h=>ge.test(v.posix.basename(h))&&!be.test(h))){let h=await o(l);h!==void 0&&M.push({source:l,text:h})}let ue=(l,h)=>{let y=v.posix.dirname(l)==="."?"":v.posix.dirname(l),b=ee(l,c);for(let S of h.matchAll(Yl)){let A=g.resolvePath(v.posix.join(y,S[1]))??g.resolvePath(v.posix.join(b,S[1]));A?.kind==="file"&&be.test(A.path)&&k(`file:${l}`,`file:${A.path}`,"config")}};for(let{source:l,text:h}of M)ue(l,h);let O=new Map,N=(l,h)=>{i.has(l)&&!O.has(l)&&O.set(l,h)},V=[],Pe=new Map;for(let[l,h]of a){let y=v.posix.join(l,"package.json");for(let A of ln(h)){let I=g.resolvePath(v.posix.join(l,A));if(I?.kind==="file"){N(I.path,`Entry point in ${y}`);continue}let F=v.posix.normalize(A).match(Bl);if(F){let de=g.resolvePath(v.posix.join(l,"src",F[1].replace(/\.[cm]?js$/,"")));de?.kind==="file"&&N(de.path,`Source of ${A}, the entry point in ${y}`)}}let b=h.scripts&&typeof h.scripts=="object"?Object.values(h.scripts).filter(A=>typeof A=="string").join(`
-`):"";if(b){V.push({source:y,text:b});for(let A of b.matchAll(Jr)){let I=g.resolvePath(v.posix.join(l,A[1]));I?.kind==="file"&&N(I.path,`Run by a script in ${y}`)}}let S=zr(h,["dependencies","devDependencies","peerDependencies"]);for(let[A,I,F]of Xl){let de=S.find(Y=>A.test(Y));if(de){Pe.set(de,F);for(let Y of d)ee(Y,c)===l&&I.test(Yr(l,Y))&&N(Y,`${F} loads this file by convention`)}}}let Ue=[];for(let l of r.filter(h=>nn.test(h))){let h=await o(l);if(h!==void 0){Ue.push({source:l,text:h});for(let y of h.matchAll(Jr)){let b=g.resolvePath(y[1]);b?.kind==="file"&&N(b.path,`Run from ${l}`)}}}for(let l of r.filter(h=>h.endsWith(".html"))){let h=await o(l),y=v.posix.dirname(l)==="."?"":v.posix.dirname(l);for(let b of h?.matchAll(zl)??[]){let S=b[1],A=g.resolvePath(S.startsWith("/")?v.posix.join(ee(l,c),S):v.posix.join(y,S));A?.kind==="file"&&N(A.path,`Loaded by <script> in ${l}`)}}let $t=gt(e.entryPoints??[]);for(let l of d){let h=ee(l,c),y=v.posix.basename(l);$t(l)?N(l,"Listed in the deadweight.entryPoints setting"):ge.test(y)||y.startsWith(".")?N(l,"Config file, loaded by its tool"):Wl.test(l)?N(l,"Type declarations, used by TypeScript without an import"):Vr.test(l)?N(l,"Test or story file, loaded by its runner"):Hl.test(Yr(h,l))&&N(l,"Default entry file")}for(let[l,h]of O)if(h.startsWith("Run ")&&be.test(l)&&!ge.test(v.posix.basename(l))){let y=await o(l);y!==void 0&&ue(l,y)}let Ke=new Map,Te=new Map;for(let l of $)Ke.has(l.from)||Ke.set(l.from,[]),Te.has(l.to)||Te.set(l.to,[]),Ke.get(l.from).push(l),Te.get(l.to).push(l);let dn=(l,h,y)=>{let b=[...l];b.forEach(S=>y.add(S));for(let S=0;S<b.length;S++){let A=b[S];for(let I of Ke.get(A)??[])(h||I.kind!=="maybe")&&I.to.startsWith("file:")&&!y.has(I.to)&&(y.add(I.to),b.push(I.to))}},pe=new Set;dn([...O.keys()].map(l=>`file:${l}`),!1,pe);let yt=new Set(pe);dn([...pe],!0,yt);for(let l of pe)yt.delete(l);let hn=l=>pe.has(`file:${l}`)&&!Vr.test(l)&&!ge.test(v.posix.basename(l)),gn=[...new Set(T.filter(hn))],Rt=w.filter(({file:l})=>hn(l)),fe=[],hi=new Set([...d.map(l=>`file:${l}`),...$.flatMap(l=>[l.from,l.to]).filter(l=>l.startsWith("file:"))]),mn=(l,h)=>(Te.get(l)??[]).map(y=>y.from).filter(y=>y.startsWith("file:")&&(!h||h.has(y))).map(y=>y.slice(5));for(let l of hi){let h=l.slice(5),y=ee(h,c),b,S;if(O.has(h))b="entry",S=O.get(h);else if(pe.has(l))b="used",S=`Imported by ${re(mn(l,pe))}`;else if(yt.has(l)){b="maybe";let A=(Te.get(l)??[]).filter(I=>I.kind==="maybe").map(I=>I.from.slice(5));S=A.length>0?`May be loaded by a computed import in ${re(A)}`:"Only reachable through files that are loaded by a computed import"}else if(gn.length>0)b="maybe",S=`Nothing imports this file, but ${re(gn)} loads a computed path that could be anything`;else if(Rt.length>0&&Rt.some(A=>ee(A.file,c)===y)){let A=Rt.find(I=>ee(I.file,c)===y);b="maybe",S=`Nothing imports this file, but some imports couldn't be resolved (e.g. "${A.specifier}" in ${A.file})`}else{b="unused";let A=mn(l);S=A.length>0?`Only imported by unused files: ${re(A)}`:"Nothing imports this file"}fe.push({id:l,kind:"file",label:v.posix.basename(h),path:h,workspace:y,status:b,reason:S})}let We=new Map;for(let[l,h]of a)for(let y of zr(h,["dependencies","devDependencies","optionalDependencies"]))u.has(y)||We.set(y,[...We.get(y)??[],v.posix.join(l,"package.json")]);let En=new Map(fe.map(l=>[l.id,l.status])),It=l=>["entry","used"].includes(En.get(`file:${l}`)??""),gi=d.some(l=>/\.[jt]sx$/.test(l)&&It(l)),mi=new Set(M.map(({source:l})=>v.posix.basename(l))),Be=new Map;for(let[l,h]of _){if(![...h].some(It))continue;let y=ee([...h][0],c),b=await qe(t,y,l);for(let S of b?.peers??[])Be.has(S)||Be.set(S,l)}for(let l of new Set([...We.keys(),..._.keys()])){let h=[..._.get(l)??[]],y=h.filter(It),b=h.filter(te=>En.get(`file:${te}`)==="maybe"),S=We.get(l)??[],A=S.length>0?ee(S[0],c):ee(h[0]??"",c),I,F,de=on.find(([te,Ei])=>te===l&&[...mi].some(wi=>Ei.test(wi))),Y=[...V,...Ue].find(({text:te})=>ht(te,l)),wn=M.find(({text:te})=>ht(te,l));y.length>0?(I="used",F=S.length>0||Vl.has(l)?`Imported by ${re(y)}`:`Imported by ${re(y)}, but not declared in any package.json`):Y?(I="used",F=Y.source.endsWith("package.json")?`Run by a script in ${Y.source}`:`Run from ${Y.source}`):Pe.has(l)?(I="used",F=`The ${Pe.get(l)} framework; it runs the app and loads its files`):Be.has(l)?(I="used",F=`Peer dependency of ${Be.get(l)}, which loads it`):gi&&Jl.includes(l)?(I="used",F="JSX runtime, used by .jsx/.tsx files without an import"):b.length>0?(I="maybe",F=`Only imported by files that may be unused: ${re(b)}`):de?(I="maybe",F=`A ${l} config file exists, so a tool or editor probably runs it`):wn?(I="maybe",F=`Not imported, but referenced by name in ${wn.source}`):l.startsWith("@types/")?(I="maybe",F="Type definitions; TypeScript uses them without an import"):an.some(te=>te.test(l))?(I="maybe",F="Looks like a plugin or preset, which tools load by name"):h.length>0?(I="unused",F=`Only imported by unused files: ${re(h)}`):(I="unused",F=`Declared in ${re(S)}, but nothing imports it`),fe.push({id:`package:${l}`,kind:"package",label:l,workspace:A,status:I,reason:F})}let Ne=(l,h)=>fe.filter(y=>y.kind===l&&y.status===h).length;return{nodes:fe,edges:$,unresolved:w,stats:{files:fe.filter(l=>l.kind==="file").length,entries:Ne("file","entry"),used:Ne("file","used"),maybe:Ne("file","maybe"),unused:Ne("file","unused"),packages:fe.filter(l=>l.kind==="package").length,unusedPackages:Ne("package","unused")},durationMs:Date.now()-n}}var Me=require("node:fs"),ve=require("node:fs/promises"),ie=require("node:path");var Zl=["--yes","knip@6","--reporter","json"],Ql={KNIP_DISABLE_RAW_TRANSFER:"1"},eu=["knip.json","knip.jsonc",".knip.json",".knip.jsonc","knip.ts","knip.js","knip.config.ts","knip.config.js"],Qr="js,mjs,cjs,jsx,ts,tsx,mts,cts",tu=[`{index,cli,main}.{${Qr}}!`,`src/{index,cli,main}.{${Qr}}!`],ei="node_modules/.cache/deadweight/knip.json";function nu(t){let e=eu.find(n=>(0,Me.existsSync)((0,ie.join)(t,n)));if(e)return e;try{return JSON.parse((0,Me.readFileSync)((0,ie.join)(t,"package.json"),"utf8")).knip?"package.json#knip":void 0}catch{return}}function su(t,e){let n=e.split("/"),s=n.slice(0,-1),r=s.findIndex(i=>/[*?{}[\]!]/.test(i));r!==-1&&(s.length=r);for(let i=s.length;i>0;i--){let o=s.slice(0,i).join("/");if((0,Me.existsSync)((0,ie.join)(t,o,"package.json")))return{workspace:o,pattern:n.slice(i).join("/")}}return{workspace:".",pattern:e}}function ru(t,e=[]){let n=e.map(i=>i.trim().replace(/\\/g,"/").replace(/^\.\//,"")).filter(Boolean);if(n.length===0)return{args:[],warnings:[]};let s=nu(t);if(s)return{args:[],warnings:[`The deadweight.entryPoints setting was not passed to knip because this project has its own knip config (${s}). Add the entry points to its "entry" list instead.`]};let r={};for(let i of n){let{workspace:o,pattern:a}=su(t,i);r[o]??={entry:[...tu]},r[o].entry.push(a)}return{args:["--config",ei,"--no-config-hints"],config:{workspaces:r},warnings:[]}}async function iu(t,e,n){let s=ru(t,e);if(!s.config)return{result:await n(s.args),warnings:s.warnings};let r=(0,ie.join)(t,ei);await(0,ve.mkdir)((0,ie.dirname)(r),{recursive:!0}),await(0,ve.writeFile)(r,JSON.stringify(s.config,null,2));try{return{result:await n(s.args),warnings:s.warnings}}finally{await(0,ve.rm)(r,{force:!0})}}function ou(t){let e;try{e=JSON.parse(t)}catch{throw new Error("Knip returned invalid JSON output.")}let n=e?.issues;if(!Array.isArray(n))throw new Error("Knip returned an unexpected JSON format. The knip version in use may be unsupported.");let s=[],r=[];for(let i of n){i.unresolved?.length&&r.push(i.file),i.files?.length&&s.push({id:`file:${i.file}`,kind:"file",name:i.file,confidence:"medium",score:0,reason:"Knip reported this file as unused."});let o=[...(i.exports??[]).map(p=>({item:p,type:!1})),...(i.types??[]).map(p=>({item:p,type:!0}))];for(let{item:p,type:f}of o)s.push({id:`export:${i.file}:${p.name}`,kind:"export",name:p.name,confidence:"medium",score:0,reason:f?"Knip reported this exported type as unused.":"Knip reported this export as unused.",file:i.file,line:p.line,column:p.col});let a=ie.posix.dirname(i.file),c=a==="."?void 0:a,u=[...(i.dependencies??[]).map(p=>({item:p,dev:!1})),...(i.devDependencies??[]).map(p=>({item:p,dev:!0}))];for(let{item:p,dev:f}of u)s.push({id:`package:${i.file}:${p.name}`,kind:"package",name:p.name,confidence:"medium",score:0,reason:f?"Knip reported this development dependency as unused.":"Knip reported this package as unused.",workspace:c})}return{findings:s,unresolvedFiles:r}}async function ti(t,{signal:e,entryPoints:n}={}){let{result:s,warnings:r}=await iu(t,n,c=>ye("npx",[...Zl,...c],{cwd:t,signal:e,env:Ql})),{code:i,stdout:o,stderr:a}=s;if(i!==0&&i!==1||!o.trim())throw new Error(a.trim()||`Knip exited with code ${i??"unknown"}.`);return{...ou(o),warnings:[...r,...a.trim()?[a.trim()]:[]]}}var me=require("node:fs"),Ee=require("node:path"),au=["npm","yarn","pnpm","bun"];function cu(t){try{let e=JSON.parse((0,me.readFileSync)((0,Ee.join)(t,"package.json"),"utf8"));if(typeof e.packageManager!="string")return;let n=e.packageManager.split("@")[0];return au.find(s=>s===n)}catch{return}}function ni(t){let e=cu(t);return e||((0,me.existsSync)((0,Ee.join)(t,"pnpm-lock.yaml"))?"pnpm":(0,me.existsSync)((0,Ee.join)(t,"yarn.lock"))?"yarn":(0,me.existsSync)((0,Ee.join)(t,"bun.lock"))||(0,me.existsSync)((0,Ee.join)(t,"bun.lockb"))?"bun":"npm")}async function lu(t,e){let n=new Map,s=new Map;for(let r of e){if(r.kind!=="package")continue;let i=r.workspace??"";if(!s.has(i)){let a=new Map,c=await _r(t,(0,we.join)(i,"package.json"));for(let u of c){let p=await qe(t,i,u);for(let f of p?.peers??[])a.has(f)||a.set(f,u)}s.set(i,a)}let o=await qe(t,i,r.name);n.set(r.id,{bins:o?.bins??[],peerOf:s.get(i)?.get(r.name)})}return n}async function uu(t,e,n,{signal:s,fetchAdvisories:r,warnings:i}){let o=n.filter(a=>a.kind==="package").map(a=>({id:a.id,manifestDir:a.workspace??"",name:a.name}));if(o.length===0)return{findings:n};try{let a=await gr(t,e,o,{signal:s,fetchAdvisories:r});return i.push(...a.warnings),{findings:n.map(c=>{let u=a.perRemoval.get(c.id);return u?{...c,footprint:u,sizeBytes:u.bytes}:c}),footprint:a.combined}}catch(a){if(s.aborted)throw a;return i.push(`Couldn't measure what the unused packages take up: ${a.message}`),{findings:n}}}var pu={runKnip:ti,runDepcheck:Mr};function si(t,e){return e?t.flatMap(n=>{let s=n.trim().replace(/\\/g,"/").replace(/^\.\//,"");if(s.startsWith(`${e}/`))return[s.slice(e.length+1)];let r=s.replace(/^!/,"");return r.startsWith("**/")||!r.replace(/\/$/,"").includes("/")||r.startsWith("@")?[s]:[]}):t}function fu(t,e){if(!e)return t;let n=s=>we.posix.join(e,s);switch(t.kind){case"file":return{...t,id:`file:${n(t.name)}`,name:n(t.name)};case"export":{let s=n(t.file??"");return{...t,id:`export:${s}:${t.name}`,file:s}}case"package":{let s=n(t.workspace??"");return{...t,id:`package:${we.posix.join(s,"package.json")}:${t.name}`,workspace:s}}}}async function ii(t,e={}){let{signal:n,onProject:s,exclude:r=[],entryPoints:i=[]}=e,o=Date.now(),a=e.projects??await Nr(t,n);if(a.length===0)throw new Error(`No package.json found in ${t} or its subfolders. Deadweight scans JavaScript/TypeScript projects.`);let c=[],u=[],p={},f=0,g;for(let[d,$]of a.entries()){s?.($,d,a.length);let P=await du((0,we.join)(t,$),{...e,exclude:si(r,$),entryPoints:si(i,$)});c.push(...P.findings.map(w=>fu(w,$))),u.push(...P.warnings.map(w=>$?`[${$}] ${w}`:w)),p[$]=P.packageManager,f+=P.scannedFileCount,P.footprint&&(g={packages:(g?.packages??0)+P.footprint.packages,bytes:(g?.bytes??0)+P.footprint.bytes,advisories:[...g?.advisories??[],...P.footprint.advisories]})}return{findings:c,scannedFileCount:f,packageManager:p[a[0]],durationMs:Date.now()-o,warnings:u,projects:a,footprint:g}}async function du(t,{signal:e,engines:n=pu,exclude:s=[],entryPoints:r=[],packageManager:i,fetchAdvisories:o}={}){if(!(0,ri.existsSync)((0,we.join)(t,"package.json")))throw new Error(`No package.json found in ${t}. Deadweight scans JavaScript/TypeScript projects. Open the folder that contains package.json.`);let a=Date.now(),c=new AbortController,u=()=>c.abort();e?.addEventListener("abort",u,{once:!0});let p=d=>d.catch($=>{throw c.abort(),$}),f=n.runDepcheck(t,c.signal).catch(d=>{if(d instanceof ne)throw d;return d instanceof Error?d:new Error(String(d))}),g=Zr(t,{signal:c.signal,entryPoints:r}).catch(d=>{if(d instanceof ne||c.signal.aborted)throw new ne("Scan cancelled.");return d instanceof Error?d:new Error(String(d))});try{let[d,$,P,w]=await Promise.all([p(n.runKnip(t,{signal:c.signal,entryPoints:r})),p(f),p(Lr(t,c.signal)),p(g)]),T=[...d.warnings],_;$ instanceof Error?T.push(`depcheck couldn't run, so package confidence is capped at medium: ${$.message}`):(_=$.unused,T.push(...$.warnings)),w instanceof Error&&T.push(`Deadweight's connection graph couldn't be built, so scores rely on knip alone: ${w.message}`);let k=Kr(d.findings,{exclude:s,entryPoints:r}),M=await lu(t,k),ue=Gr(k,{context:P,unresolvedFiles:d.unresolvedFiles,depcheckUnused:_,packageInfo:M,graph:w instanceof Error?void 0:new Map(w.nodes.map(V=>[V.id,V]))}),{findings:O,footprint:N}=await uu(t,P.workspaceDirs,ue,{signal:c.signal,fetchAdvisories:o,warnings:T});return{findings:O,scannedFileCount:P.sourceFileCount,packageManager:i??ni(t),durationMs:Date.now()-a,warnings:T,footprint:N}}catch(d){throw e?.aborted?new ne("Scan cancelled."):d}finally{e?.removeEventListener("abort",u)}}var Et="<!-- deadweight-pr-guard -->";function ai(t,e){let n=new Set(t.map(r=>r.id)),s=new Set(e.map(r=>r.id));return{added:e.filter(r=>!n.has(r.id)),removed:t.filter(r=>!s.has(r.id)),existing:e.filter(r=>n.has(r.id))}}function ci(t,e){return e==="new"?t.added.length>0:e==="new-high"?t.added.some(n=>n.confidence==="high"):!1}var pn={file:{icon:"\u{1F4C4}",one:"unused file",many:"unused files"},package:{icon:"\u{1F4E6}",one:"unused package",many:"unused packages"},export:{icon:"\u{1F523}",one:"unused export",many:"unused exports"}},fn=["package","file","export"];function hu(t,e){let n=t.filter(s=>s.kind===e).length;return`${n} ${n===1?pn[e].one:pn[e].many}`}function $e(t){let e=fn.filter(n=>t.some(s=>s.kind===n)).map(n=>hu(t,n));return e.length<=1?e.join(""):`${e.slice(0,-1).join(", ")} and ${e.at(-1)}`}function gu(t,e=160){let n=t.replace(/\s+/g," ").replace(/\|/g,"\\|").trim();return n.length>e?`${n.slice(0,e-1)}\u2026`:n}function mu(t){return t.kind==="export"?`\`${t.name}\` in \`${t.file}${t.line?`:${t.line}`:""}\``:t.kind==="package"&&t.workspace?`\`${t.name}\` (${t.workspace})`:`\`${t.name}\``}function Eu(t){let e=t.footprint;if(!e||e.packages===0)return"";let n=e.advisories.length>0?` \xB7 \u26A0\uFE0F ${Xt(e.advisories)}`:"";return` \xB7 ${mr(e.bytes)}${n}`}function oi(t){return["| | Unused | Score | Why |","|---|---|---|---|",...[...t].sort((n,s)=>fn.indexOf(n.kind)-fn.indexOf(s.kind)||s.score-n.score).map(n=>`| ${pn[n.kind].icon} | ${mu(n)} | ${n.score} ${n.confidence} | ${gu(n.reason)}${Eu(n)} |`)].join(`
-`)}function li(t,{compared:e,runUrl:n}){let s=[Et,"### \u{1F480} Deadweight",""];if(e?t.added.length>0?s.push(`**This pull request adds ${$e(t.added)}.**`):s.push("\u2705 **This pull request adds no unused code.**"):s.push(t.added.length>0?`**This project has ${$e(t.added)}.**`:"\u2705 **No unused packages, files or exports found.**"),t.added.length>0){let r=t.added.flatMap(i=>i.footprint?.advisories??[]);r.length>0&&s.push("",`> [!WARNING]
-> The unused packages carry ${Xt(r)}. Removing them removes the risk.`),s.push("",oi(t.added))}return t.removed.length>0&&s.push("",`\u{1F389} It also removes ${$e(t.removed)} that ${t.removed.length===1?"was":"were"} already there.`),e&&t.existing.length>0&&s.push("",`<details><summary>${$e(t.existing)} already on the base branch</summary>`,"",oi(t.existing),"","</details>"),s.push("",`<sub>Score = how safe it is to delete (0\u2013100). Clean up safely with the [Deadweight VS Code extension](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight): every removal is verified with your build and tests, and undoable.${n?` \xB7 [Run details](${n})`:""}</sub>`),`${s.join(`
-`)}
-`}function wt(t,e,{file:n,line:s,title:r}){let i=c=>c.replace(/%/g,"%25").replace(/\r/g,"%0D").replace(/\n/g,"%0A"),o=c=>i(c).replace(/:/g,"%3A").replace(/,/g,"%2C"),a=[...n?[`file=${o(n)}`]:[],...s?[`line=${s}`]:[],...r?[`title=${o(r)}`]:[]];return`::${t}${a.length>0?` ${a.join(",")}`:""}::${i(e)}`}function Oe(t,e,n=""){return(t[`INPUT_${e.toUpperCase()}`]??"").trim()||n}function ui(t,e){return Oe(t,e).split(/[\n,]/).map(n=>n.trim()).filter(Boolean)}async function fi(t,e){let n=i=>ye("git",i,{cwd:t});if((await n(["cat-file","-e",`${e}^{commit}`])).code!==0){let i=await n(["fetch","--no-tags","--depth=1","origin",e]);if(i.code!==0)throw new Error(`Couldn't fetch the base commit ${e}: ${i.stderr.trim()}`)}let s=(0,J.join)((0,le.mkdtempSync)((0,J.join)((0,pi.tmpdir)(),"deadweight-base-")),"repo"),r=await n(["worktree","add","--detach",s,e]);if(r.code!==0)throw new Error(`Couldn't check out the base commit ${e}: ${r.stderr.trim()}`);return{dir:s,cleanup:async()=>{await n(["worktree","remove","--force",s])}}}async function wu({env:t,fetch:e=fetch},n,s,r,i){let o=t.GITHUB_API_URL??"https://api.github.com",a=t.GITHUB_REPOSITORY;if(!a)throw new Error("GITHUB_REPOSITORY is not set.");let c={authorization:`Bearer ${n}`,accept:"application/vnd.github+json","x-github-api-version":"2022-11-28","user-agent":"deadweight-pr-guard","content-type":"application/json"},u=async(f,g,d)=>{let $=await e(`${o}${g}`,{method:f,headers:c,body:d?JSON.stringify(d):void 0});if(!$.ok)throw new Error(`GitHub API ${f} ${g} answered ${$.status}: ${(await $.text()).slice(0,200)}`);return $.json()},p;for(let f=1;f<=10&&!p;f++){let g=await u("GET",`/repos/${a}/issues/${s}/comments?per_page=100&page=${f}`);if(p=g.find(d=>d.body?.includes(Et)),g.length<100)break}return p?(await u("PATCH",`/repos/${a}/issues/comments/${p.id}`,{body:r}),"updated"):i?"skipped":(await u("POST",`/repos/${a}/issues/${s}/comments`,{body:r}),"created")}function $u(t,e,n){let s=o=>n?J.posix.join(n,o):o;if(t.kind==="export")return{file:s(t.file??""),line:t.line};if(t.kind==="file")return{file:s(t.name),line:1};let r=J.posix.join(t.workspace??"","package.json"),i;try{let o=(0,le.readFileSync)((0,J.join)(e,r),"utf8").split(/\r?\n/).findIndex(a=>a.includes(JSON.stringify(t.name)));i=o>=0?o+1:void 0}catch{}return{file:s(r),line:i}}async function di(t){let{env:e,engines:n,fetchAdvisories:s}=t,r=t.write??(O=>process.stdout.write(`${O}
-`)),i=(0,J.resolve)(e.GITHUB_WORKSPACE??process.cwd()),o=Oe(e,"path",".").replace(/\\/g,"/").replace(/^\.\/?/,"").replace(/\/$/,""),a=o?(0,J.join)(i,o):i,c=Oe(e,"fail-on","none"),u=c==="new"||c==="new-high"?c:"none",p={engines:n,exclude:ui(e,"exclude"),entryPoints:ui(e,"entry-points")},g=(e.GITHUB_EVENT_PATH?JSON.parse((0,le.readFileSync)(e.GITHUB_EVENT_PATH,"utf8")):{}).pull_request,d=async(O,N,V)=>{r(`::group::Scanning ${N}`);try{return await ii(O,{...p,fetchAdvisories:V,onProject:(Pe,Ue,$t)=>r(`Project ${Ue+1}/${$t}: ${Pe||"."}`)})}finally{r("::endgroup::")}},$=Oe(e,"check-vulnerabilities","true")==="false"?!1:s,P=await d(a,g?"the pull request":"the project",$),w={added:P.findings,removed:[],existing:[]},T=!1;if(g){let O=t.checkoutBase??fi;try{let N=await O(i,g.base.sha);try{let V=await d(o?(0,J.join)(N.dir,o):N.dir,"the base branch",!1);w=ai(V.findings,P.findings),T=!0}finally{await N.cleanup()}}catch(N){r(wt("warning",`Couldn't scan the base branch, so every unused item is reported, not only new ones: ${N.message}`,{title:"Deadweight"}))}}let _=e.GITHUB_SERVER_URL&&e.GITHUB_REPOSITORY&&e.GITHUB_RUN_ID?`${e.GITHUB_SERVER_URL}/${e.GITHUB_REPOSITORY}/actions/runs/${e.GITHUB_RUN_ID}`:void 0,k=li(w,{compared:T,runUrl:_});for(let O of w.added){let N=$u(O,a,o),V=O.kind==="package"?`Unused package ${O.name}`:O.kind==="export"?`Unused export ${O.name}`:"Unused file";r(wt(O.confidence==="high"?"warning":"notice",`${O.reason} (safe-to-delete score ${O.score})`,{...N,title:`Deadweight: ${V}`}))}e.GITHUB_STEP_SUMMARY&&(0,le.appendFileSync)(e.GITHUB_STEP_SUMMARY,k.replace(Et,"")),e.GITHUB_OUTPUT&&(0,le.appendFileSync)(e.GITHUB_OUTPUT,[`added=${w.added.length}`,`removed=${w.removed.length}`,`existing=${w.existing.length}`,`vulnerabilities=${w.added.reduce((O,N)=>O+(N.footprint?.advisories.length??0),0)}`,""].join(`
-`));let M=Oe(e,"github-token");if(g&&Oe(e,"comment","true")!=="false"&&M)try{let O=await wu(t,M,g.number,k,w.added.length===0);r(`PR comment: ${O}`)}catch(O){r(wt("warning",`Couldn't comment on the pull request (${O.message}). The report is in the job summary.`,{title:"Deadweight"}))}let ue=ci(w,u);return r(w.added.length>0?`Deadweight: ${T?"this pull request adds":"found"} ${$e(w.added)}.`:"Deadweight: no new unused code."),ue&&r(`::error title=Deadweight::This pull request adds ${$e(w.added)} (fail-on: ${u}).`),{diff:w,report:k,failed:ue}}typeof require<"u"&&typeof module<"u"&&require.main===module&&di({env:process.env}).then(({failed:t})=>process.exit(t?1:0),t=>{process.stdout.write(`::error title=Deadweight::${t.message.replace(/\r?\n/g,"%0A")}
-`),process.exit(1)});0&&(module.exports={checkoutBaseWithGit,run});
+"use strict";
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __commonJS = (cb, mod) => function __require() {
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// node_modules/semver/internal/constants.js
+var require_constants = __commonJS({
+  "node_modules/semver/internal/constants.js"(exports2, module2) {
+    "use strict";
+    var SEMVER_SPEC_VERSION = "2.0.0";
+    var MAX_LENGTH = 256;
+    var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || /* istanbul ignore next */
+    9007199254740991;
+    var MAX_SAFE_COMPONENT_LENGTH = 16;
+    var MAX_SAFE_BUILD_LENGTH = MAX_LENGTH - 6;
+    var RELEASE_TYPES = [
+      "major",
+      "premajor",
+      "minor",
+      "preminor",
+      "patch",
+      "prepatch",
+      "prerelease"
+    ];
+    module2.exports = {
+      MAX_LENGTH,
+      MAX_SAFE_COMPONENT_LENGTH,
+      MAX_SAFE_BUILD_LENGTH,
+      MAX_SAFE_INTEGER,
+      RELEASE_TYPES,
+      SEMVER_SPEC_VERSION,
+      FLAG_INCLUDE_PRERELEASE: 1,
+      FLAG_LOOSE: 2
+    };
+  }
+});
+
+// node_modules/semver/internal/debug.js
+var require_debug = __commonJS({
+  "node_modules/semver/internal/debug.js"(exports2, module2) {
+    "use strict";
+    var debug = typeof process === "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...args) => console.error("SEMVER", ...args) : () => {
+    };
+    module2.exports = debug;
+  }
+});
+
+// node_modules/semver/internal/re.js
+var require_re = __commonJS({
+  "node_modules/semver/internal/re.js"(exports2, module2) {
+    "use strict";
+    var {
+      MAX_SAFE_COMPONENT_LENGTH,
+      MAX_SAFE_BUILD_LENGTH,
+      MAX_LENGTH
+    } = require_constants();
+    var debug = require_debug();
+    exports2 = module2.exports = {};
+    var re = exports2.re = [];
+    var safeRe = exports2.safeRe = [];
+    var src = exports2.src = [];
+    var safeSrc = exports2.safeSrc = [];
+    var t = exports2.t = {};
+    var R = 0;
+    var LETTERDASHNUMBER = "[a-zA-Z0-9-]";
+    var safeRegexReplacements = [
+      ["\\s", 1],
+      ["\\d", MAX_LENGTH],
+      [LETTERDASHNUMBER, MAX_SAFE_BUILD_LENGTH]
+    ];
+    var makeSafeRegex = (value) => {
+      for (const [token, max] of safeRegexReplacements) {
+        value = value.split(`${token}*`).join(`${token}{0,${max}}`).split(`${token}+`).join(`${token}{1,${max}}`);
+      }
+      return value;
+    };
+    var createToken = (name, value, isGlobal) => {
+      const safe = makeSafeRegex(value);
+      const index = R++;
+      debug(name, index, value);
+      t[name] = index;
+      src[index] = value;
+      safeSrc[index] = safe;
+      re[index] = new RegExp(value, isGlobal ? "g" : void 0);
+      safeRe[index] = new RegExp(safe, isGlobal ? "g" : void 0);
+    };
+    createToken("NUMERICIDENTIFIER", "0|[1-9]\\d*");
+    createToken("NUMERICIDENTIFIERLOOSE", "\\d+");
+    createToken("NONNUMERICIDENTIFIER", `\\d*[a-zA-Z-]${LETTERDASHNUMBER}*`);
+    createToken("MAINVERSION", `(${src[t.NUMERICIDENTIFIER]})\\.(${src[t.NUMERICIDENTIFIER]})\\.(${src[t.NUMERICIDENTIFIER]})`);
+    createToken("MAINVERSIONLOOSE", `(${src[t.NUMERICIDENTIFIERLOOSE]})\\.(${src[t.NUMERICIDENTIFIERLOOSE]})\\.(${src[t.NUMERICIDENTIFIERLOOSE]})`);
+    createToken("PRERELEASEIDENTIFIER", `(?:${src[t.NONNUMERICIDENTIFIER]}|${src[t.NUMERICIDENTIFIER]})`);
+    createToken("PRERELEASEIDENTIFIERLOOSE", `(?:${src[t.NONNUMERICIDENTIFIER]}|${src[t.NUMERICIDENTIFIERLOOSE]})`);
+    createToken("PRERELEASE", `(?:-(${src[t.PRERELEASEIDENTIFIER]}(?:\\.${src[t.PRERELEASEIDENTIFIER]})*))`);
+    createToken("PRERELEASELOOSE", `(?:-?(${src[t.PRERELEASEIDENTIFIERLOOSE]}(?:\\.${src[t.PRERELEASEIDENTIFIERLOOSE]})*))`);
+    createToken("BUILDIDENTIFIER", `${LETTERDASHNUMBER}+`);
+    createToken("BUILD", `(?:\\+(${src[t.BUILDIDENTIFIER]}(?:\\.${src[t.BUILDIDENTIFIER]})*))`);
+    createToken("FULLPLAIN", `v?${src[t.MAINVERSION]}${src[t.PRERELEASE]}?${src[t.BUILD]}?`);
+    createToken("FULL", `^${src[t.FULLPLAIN]}$`);
+    createToken("LOOSEPLAIN", `[v=\\s]*${src[t.MAINVERSIONLOOSE]}${src[t.PRERELEASELOOSE]}?${src[t.BUILD]}?`);
+    createToken("LOOSE", `^${src[t.LOOSEPLAIN]}$`);
+    createToken("GTLT", "((?:<|>)?=?)");
+    createToken("XRANGEIDENTIFIERLOOSE", `${src[t.NUMERICIDENTIFIERLOOSE]}|x|X|\\*`);
+    createToken("XRANGEIDENTIFIER", `${src[t.NUMERICIDENTIFIER]}|x|X|\\*`);
+    createToken("XRANGEPLAIN", `[v=\\s]*(${src[t.XRANGEIDENTIFIER]})(?:\\.(${src[t.XRANGEIDENTIFIER]})(?:\\.(${src[t.XRANGEIDENTIFIER]})(?:${src[t.PRERELEASE]})?${src[t.BUILD]}?)?)?`);
+    createToken("XRANGEPLAINLOOSE", `[v=\\s]*(${src[t.XRANGEIDENTIFIERLOOSE]})(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})(?:${src[t.PRERELEASELOOSE]})?${src[t.BUILD]}?)?)?`);
+    createToken("XRANGE", `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAIN]}$`);
+    createToken("XRANGELOOSE", `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAINLOOSE]}$`);
+    createToken("COERCEPLAIN", `${"(^|[^\\d])(\\d{1,"}${MAX_SAFE_COMPONENT_LENGTH}})(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?`);
+    createToken("COERCE", `${src[t.COERCEPLAIN]}(?:$|[^\\d])`);
+    createToken("COERCEFULL", src[t.COERCEPLAIN] + `(?:${src[t.PRERELEASE]})?(?:${src[t.BUILD]})?(?:$|[^\\d])`);
+    createToken("COERCERTL", src[t.COERCE], true);
+    createToken("COERCERTLFULL", src[t.COERCEFULL], true);
+    createToken("LONETILDE", "(?:~>?)");
+    createToken("TILDETRIM", `(\\s*)${src[t.LONETILDE]}\\s+`, true);
+    exports2.tildeTrimReplace = "$1~";
+    createToken("TILDE", `^${src[t.LONETILDE]}${src[t.XRANGEPLAIN]}$`);
+    createToken("TILDELOOSE", `^${src[t.LONETILDE]}${src[t.XRANGEPLAINLOOSE]}$`);
+    createToken("LONECARET", "(?:\\^)");
+    createToken("CARETTRIM", `(\\s*)${src[t.LONECARET]}\\s+`, true);
+    exports2.caretTrimReplace = "$1^";
+    createToken("CARET", `^${src[t.LONECARET]}${src[t.XRANGEPLAIN]}$`);
+    createToken("CARETLOOSE", `^${src[t.LONECARET]}${src[t.XRANGEPLAINLOOSE]}$`);
+    createToken("COMPARATORLOOSE", `^${src[t.GTLT]}\\s*(${src[t.LOOSEPLAIN]})$|^$`);
+    createToken("COMPARATOR", `^${src[t.GTLT]}\\s*(${src[t.FULLPLAIN]})$|^$`);
+    createToken("COMPARATORTRIM", `(\\s*)${src[t.GTLT]}\\s*(${src[t.LOOSEPLAIN]}|${src[t.XRANGEPLAIN]})`, true);
+    exports2.comparatorTrimReplace = "$1$2$3";
+    createToken("HYPHENRANGE", `^\\s*(${src[t.XRANGEPLAIN]})\\s+-\\s+(${src[t.XRANGEPLAIN]})\\s*$`);
+    createToken("HYPHENRANGELOOSE", `^\\s*(${src[t.XRANGEPLAINLOOSE]})\\s+-\\s+(${src[t.XRANGEPLAINLOOSE]})\\s*$`);
+    createToken("STAR", "(<|>)?=?\\s*\\*");
+    createToken("GTE0", "^\\s*>=\\s*0\\.0\\.0\\s*$");
+    createToken("GTE0PRE", "^\\s*>=\\s*0\\.0\\.0-0\\s*$");
+  }
+});
+
+// node_modules/semver/internal/parse-options.js
+var require_parse_options = __commonJS({
+  "node_modules/semver/internal/parse-options.js"(exports2, module2) {
+    "use strict";
+    var looseOption = Object.freeze({ loose: true });
+    var emptyOpts = Object.freeze({});
+    var parseOptions = (options) => {
+      if (!options) {
+        return emptyOpts;
+      }
+      if (typeof options !== "object") {
+        return looseOption;
+      }
+      return options;
+    };
+    module2.exports = parseOptions;
+  }
+});
+
+// node_modules/semver/internal/identifiers.js
+var require_identifiers = __commonJS({
+  "node_modules/semver/internal/identifiers.js"(exports2, module2) {
+    "use strict";
+    var numeric = /^[0-9]+$/;
+    var compareIdentifiers = (a, b) => {
+      if (typeof a === "number" && typeof b === "number") {
+        return a === b ? 0 : a < b ? -1 : 1;
+      }
+      const anum = numeric.test(a);
+      const bnum = numeric.test(b);
+      if (anum && bnum) {
+        a = +a;
+        b = +b;
+      }
+      return a === b ? 0 : anum && !bnum ? -1 : bnum && !anum ? 1 : a < b ? -1 : 1;
+    };
+    var rcompareIdentifiers = (a, b) => compareIdentifiers(b, a);
+    module2.exports = {
+      compareIdentifiers,
+      rcompareIdentifiers
+    };
+  }
+});
+
+// node_modules/semver/classes/semver.js
+var require_semver = __commonJS({
+  "node_modules/semver/classes/semver.js"(exports2, module2) {
+    "use strict";
+    var debug = require_debug();
+    var { MAX_LENGTH, MAX_SAFE_INTEGER } = require_constants();
+    var { safeRe: re, t } = require_re();
+    var parseOptions = require_parse_options();
+    var { compareIdentifiers } = require_identifiers();
+    var isPrereleaseIdentifier = (prerelease, identifier) => {
+      const identifiers = identifier.split(".");
+      if (identifiers.length > prerelease.length) {
+        return false;
+      }
+      for (let i = 0; i < identifiers.length; i++) {
+        if (compareIdentifiers(prerelease[i], identifiers[i]) !== 0) {
+          return false;
+        }
+      }
+      return true;
+    };
+    var SemVer = class _SemVer {
+      constructor(version, options) {
+        options = parseOptions(options);
+        if (version instanceof _SemVer) {
+          if (version.loose === !!options.loose && version.includePrerelease === !!options.includePrerelease) {
+            return version;
+          } else {
+            version = version.version;
+          }
+        } else if (typeof version !== "string") {
+          throw new TypeError(`Invalid version. Must be a string. Got type "${typeof version}".`);
+        }
+        if (version.length > MAX_LENGTH) {
+          throw new TypeError(
+            `version is longer than ${MAX_LENGTH} characters`
+          );
+        }
+        debug("SemVer", version, options);
+        this.options = options;
+        this.loose = !!options.loose;
+        this.includePrerelease = !!options.includePrerelease;
+        const m = version.trim().match(options.loose ? re[t.LOOSE] : re[t.FULL]);
+        if (!m) {
+          throw new TypeError(`Invalid Version: ${version}`);
+        }
+        this.raw = version;
+        this.major = +m[1];
+        this.minor = +m[2];
+        this.patch = +m[3];
+        if (this.major > MAX_SAFE_INTEGER || this.major < 0) {
+          throw new TypeError("Invalid major version");
+        }
+        if (this.minor > MAX_SAFE_INTEGER || this.minor < 0) {
+          throw new TypeError("Invalid minor version");
+        }
+        if (this.patch > MAX_SAFE_INTEGER || this.patch < 0) {
+          throw new TypeError("Invalid patch version");
+        }
+        if (!m[4]) {
+          this.prerelease = [];
+        } else {
+          this.prerelease = m[4].split(".").map((id) => {
+            if (/^[0-9]+$/.test(id)) {
+              const num = +id;
+              if (num >= 0 && num < MAX_SAFE_INTEGER) {
+                return num;
+              }
+            }
+            return id;
+          });
+        }
+        this.build = m[5] ? m[5].split(".") : [];
+        this.format();
+      }
+      format() {
+        this.version = `${this.major}.${this.minor}.${this.patch}`;
+        if (this.prerelease.length) {
+          this.version += `-${this.prerelease.join(".")}`;
+        }
+        return this.version;
+      }
+      toString() {
+        return this.version;
+      }
+      compare(other) {
+        debug("SemVer.compare", this.version, this.options, other);
+        if (!(other instanceof _SemVer)) {
+          if (typeof other === "string" && other === this.version) {
+            return 0;
+          }
+          other = new _SemVer(other, this.options);
+        }
+        if (other.version === this.version) {
+          return 0;
+        }
+        return this.compareMain(other) || this.comparePre(other);
+      }
+      compareMain(other) {
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
+        }
+        if (this.major < other.major) {
+          return -1;
+        }
+        if (this.major > other.major) {
+          return 1;
+        }
+        if (this.minor < other.minor) {
+          return -1;
+        }
+        if (this.minor > other.minor) {
+          return 1;
+        }
+        if (this.patch < other.patch) {
+          return -1;
+        }
+        if (this.patch > other.patch) {
+          return 1;
+        }
+        return 0;
+      }
+      comparePre(other) {
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
+        }
+        if (this.prerelease.length && !other.prerelease.length) {
+          return -1;
+        } else if (!this.prerelease.length && other.prerelease.length) {
+          return 1;
+        } else if (!this.prerelease.length && !other.prerelease.length) {
+          return 0;
+        }
+        let i = 0;
+        do {
+          const a = this.prerelease[i];
+          const b = other.prerelease[i];
+          debug("prerelease compare", i, a, b);
+          if (a === void 0 && b === void 0) {
+            return 0;
+          } else if (b === void 0) {
+            return 1;
+          } else if (a === void 0) {
+            return -1;
+          } else if (a === b) {
+            continue;
+          } else {
+            return compareIdentifiers(a, b);
+          }
+        } while (++i);
+      }
+      compareBuild(other) {
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
+        }
+        let i = 0;
+        do {
+          const a = this.build[i];
+          const b = other.build[i];
+          debug("build compare", i, a, b);
+          if (a === void 0 && b === void 0) {
+            return 0;
+          } else if (b === void 0) {
+            return 1;
+          } else if (a === void 0) {
+            return -1;
+          } else if (a === b) {
+            continue;
+          } else {
+            return compareIdentifiers(a, b);
+          }
+        } while (++i);
+      }
+      // preminor will bump the version up to the next minor release, and immediately
+      // down to pre-release. premajor and prepatch work the same way.
+      inc(release, identifier, identifierBase) {
+        if (release.startsWith("pre")) {
+          if (!identifier && identifierBase === false) {
+            throw new Error("invalid increment argument: identifier is empty");
+          }
+          if (identifier) {
+            const match = `-${identifier}`.match(this.options.loose ? re[t.PRERELEASELOOSE] : re[t.PRERELEASE]);
+            if (!match || match[1] !== identifier) {
+              throw new Error(`invalid identifier: ${identifier}`);
+            }
+          }
+        }
+        switch (release) {
+          case "premajor":
+            this.prerelease.length = 0;
+            this.patch = 0;
+            this.minor = 0;
+            this.major++;
+            this.inc("pre", identifier, identifierBase);
+            break;
+          case "preminor":
+            this.prerelease.length = 0;
+            this.patch = 0;
+            this.minor++;
+            this.inc("pre", identifier, identifierBase);
+            break;
+          case "prepatch":
+            this.prerelease.length = 0;
+            this.inc("patch", identifier, identifierBase);
+            this.inc("pre", identifier, identifierBase);
+            break;
+          // If the input is a non-prerelease version, this acts the same as
+          // prepatch.
+          case "prerelease":
+            if (this.prerelease.length === 0) {
+              this.inc("patch", identifier, identifierBase);
+            }
+            this.inc("pre", identifier, identifierBase);
+            break;
+          case "release":
+            if (this.prerelease.length === 0) {
+              throw new Error(`version ${this.raw} is not a prerelease`);
+            }
+            this.prerelease.length = 0;
+            break;
+          case "major":
+            if (this.minor !== 0 || this.patch !== 0 || this.prerelease.length === 0) {
+              this.major++;
+            }
+            this.minor = 0;
+            this.patch = 0;
+            this.prerelease = [];
+            break;
+          case "minor":
+            if (this.patch !== 0 || this.prerelease.length === 0) {
+              this.minor++;
+            }
+            this.patch = 0;
+            this.prerelease = [];
+            break;
+          case "patch":
+            if (this.prerelease.length === 0) {
+              this.patch++;
+            }
+            this.prerelease = [];
+            break;
+          // This probably shouldn't be used publicly.
+          // 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
+          case "pre": {
+            const base = Number(identifierBase) ? 1 : 0;
+            if (this.prerelease.length === 0) {
+              this.prerelease = [base];
+            } else {
+              let i = this.prerelease.length;
+              while (--i >= 0) {
+                if (typeof this.prerelease[i] === "number") {
+                  this.prerelease[i]++;
+                  i = -2;
+                }
+              }
+              if (i === -1) {
+                if (identifier === this.prerelease.join(".") && identifierBase === false) {
+                  throw new Error("invalid increment argument: identifier already exists");
+                }
+                this.prerelease.push(base);
+              }
+            }
+            if (identifier) {
+              let prerelease = [identifier, base];
+              if (identifierBase === false) {
+                prerelease = [identifier];
+              }
+              if (isPrereleaseIdentifier(this.prerelease, identifier)) {
+                const prereleaseBase = this.prerelease[identifier.split(".").length];
+                if (isNaN(prereleaseBase)) {
+                  this.prerelease = prerelease;
+                }
+              } else {
+                this.prerelease = prerelease;
+              }
+            }
+            break;
+          }
+          default:
+            throw new Error(`invalid increment argument: ${release}`);
+        }
+        this.raw = this.format();
+        if (this.build.length) {
+          this.raw += `+${this.build.join(".")}`;
+        }
+        return this;
+      }
+    };
+    module2.exports = SemVer;
+  }
+});
+
+// node_modules/semver/functions/parse.js
+var require_parse = __commonJS({
+  "node_modules/semver/functions/parse.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var parse = (version, options, throwErrors = false) => {
+      if (version instanceof SemVer) {
+        return version;
+      }
+      try {
+        return new SemVer(version, options);
+      } catch (er) {
+        if (!throwErrors) {
+          return null;
+        }
+        throw er;
+      }
+    };
+    module2.exports = parse;
+  }
+});
+
+// node_modules/semver/functions/valid.js
+var require_valid = __commonJS({
+  "node_modules/semver/functions/valid.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse();
+    var valid = (version, options) => {
+      const v = parse(version, options);
+      return v ? v.version : null;
+    };
+    module2.exports = valid;
+  }
+});
+
+// node_modules/semver/functions/clean.js
+var require_clean = __commonJS({
+  "node_modules/semver/functions/clean.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse();
+    var clean = (version, options) => {
+      const s = parse(version.trim().replace(/^[=v]+/, ""), options);
+      return s ? s.version : null;
+    };
+    module2.exports = clean;
+  }
+});
+
+// node_modules/semver/functions/inc.js
+var require_inc = __commonJS({
+  "node_modules/semver/functions/inc.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var inc = (version, release, options, identifier, identifierBase) => {
+      if (typeof options === "string") {
+        identifierBase = identifier;
+        identifier = options;
+        options = void 0;
+      }
+      try {
+        return new SemVer(
+          version instanceof SemVer ? version.version : version,
+          options
+        ).inc(release, identifier, identifierBase).version;
+      } catch (er) {
+        return null;
+      }
+    };
+    module2.exports = inc;
+  }
+});
+
+// node_modules/semver/functions/diff.js
+var require_diff = __commonJS({
+  "node_modules/semver/functions/diff.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse();
+    var diff = (version1, version2) => {
+      const v1 = parse(version1, null, true);
+      const v2 = parse(version2, null, true);
+      const comparison = v1.compare(v2);
+      if (comparison === 0) {
+        return null;
+      }
+      const v1Higher = comparison > 0;
+      const highVersion = v1Higher ? v1 : v2;
+      const lowVersion = v1Higher ? v2 : v1;
+      const highHasPre = !!highVersion.prerelease.length;
+      const lowHasPre = !!lowVersion.prerelease.length;
+      if (lowHasPre && !highHasPre) {
+        if (!lowVersion.patch && !lowVersion.minor) {
+          return "major";
+        }
+        if (lowVersion.compareMain(highVersion) === 0) {
+          if (lowVersion.minor && !lowVersion.patch) {
+            return "minor";
+          }
+          return "patch";
+        }
+      }
+      const prefix = highHasPre ? "pre" : "";
+      if (v1.major !== v2.major) {
+        return prefix + "major";
+      }
+      if (v1.minor !== v2.minor) {
+        return prefix + "minor";
+      }
+      if (v1.patch !== v2.patch) {
+        return prefix + "patch";
+      }
+      return "prerelease";
+    };
+    module2.exports = diff;
+  }
+});
+
+// node_modules/semver/functions/major.js
+var require_major = __commonJS({
+  "node_modules/semver/functions/major.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var major = (a, loose) => new SemVer(a, loose).major;
+    module2.exports = major;
+  }
+});
+
+// node_modules/semver/functions/minor.js
+var require_minor = __commonJS({
+  "node_modules/semver/functions/minor.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var minor = (a, loose) => new SemVer(a, loose).minor;
+    module2.exports = minor;
+  }
+});
+
+// node_modules/semver/functions/patch.js
+var require_patch = __commonJS({
+  "node_modules/semver/functions/patch.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var patch = (a, loose) => new SemVer(a, loose).patch;
+    module2.exports = patch;
+  }
+});
+
+// node_modules/semver/functions/prerelease.js
+var require_prerelease = __commonJS({
+  "node_modules/semver/functions/prerelease.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse();
+    var prerelease = (version, options) => {
+      const parsed = parse(version, options);
+      return parsed && parsed.prerelease.length ? parsed.prerelease : null;
+    };
+    module2.exports = prerelease;
+  }
+});
+
+// node_modules/semver/functions/compare.js
+var require_compare = __commonJS({
+  "node_modules/semver/functions/compare.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var compare = (a, b, loose) => new SemVer(a, loose).compare(new SemVer(b, loose));
+    module2.exports = compare;
+  }
+});
+
+// node_modules/semver/functions/rcompare.js
+var require_rcompare = __commonJS({
+  "node_modules/semver/functions/rcompare.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var rcompare = (a, b, loose) => compare(b, a, loose);
+    module2.exports = rcompare;
+  }
+});
+
+// node_modules/semver/functions/compare-loose.js
+var require_compare_loose = __commonJS({
+  "node_modules/semver/functions/compare-loose.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var compareLoose = (a, b) => compare(a, b, true);
+    module2.exports = compareLoose;
+  }
+});
+
+// node_modules/semver/functions/compare-build.js
+var require_compare_build = __commonJS({
+  "node_modules/semver/functions/compare-build.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var compareBuild = (a, b, loose) => {
+      const versionA = new SemVer(a, loose);
+      const versionB = new SemVer(b, loose);
+      return versionA.compare(versionB) || versionA.compareBuild(versionB);
+    };
+    module2.exports = compareBuild;
+  }
+});
+
+// node_modules/semver/functions/sort.js
+var require_sort = __commonJS({
+  "node_modules/semver/functions/sort.js"(exports2, module2) {
+    "use strict";
+    var compareBuild = require_compare_build();
+    var sort = (list2, loose) => list2.sort((a, b) => compareBuild(a, b, loose));
+    module2.exports = sort;
+  }
+});
+
+// node_modules/semver/functions/rsort.js
+var require_rsort = __commonJS({
+  "node_modules/semver/functions/rsort.js"(exports2, module2) {
+    "use strict";
+    var compareBuild = require_compare_build();
+    var rsort = (list2, loose) => list2.sort((a, b) => compareBuild(b, a, loose));
+    module2.exports = rsort;
+  }
+});
+
+// node_modules/semver/functions/gt.js
+var require_gt = __commonJS({
+  "node_modules/semver/functions/gt.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var gt = (a, b, loose) => compare(a, b, loose) > 0;
+    module2.exports = gt;
+  }
+});
+
+// node_modules/semver/functions/lt.js
+var require_lt = __commonJS({
+  "node_modules/semver/functions/lt.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var lt = (a, b, loose) => compare(a, b, loose) < 0;
+    module2.exports = lt;
+  }
+});
+
+// node_modules/semver/functions/eq.js
+var require_eq = __commonJS({
+  "node_modules/semver/functions/eq.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var eq = (a, b, loose) => compare(a, b, loose) === 0;
+    module2.exports = eq;
+  }
+});
+
+// node_modules/semver/functions/neq.js
+var require_neq = __commonJS({
+  "node_modules/semver/functions/neq.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var neq = (a, b, loose) => compare(a, b, loose) !== 0;
+    module2.exports = neq;
+  }
+});
+
+// node_modules/semver/functions/gte.js
+var require_gte = __commonJS({
+  "node_modules/semver/functions/gte.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var gte = (a, b, loose) => compare(a, b, loose) >= 0;
+    module2.exports = gte;
+  }
+});
+
+// node_modules/semver/functions/lte.js
+var require_lte = __commonJS({
+  "node_modules/semver/functions/lte.js"(exports2, module2) {
+    "use strict";
+    var compare = require_compare();
+    var lte = (a, b, loose) => compare(a, b, loose) <= 0;
+    module2.exports = lte;
+  }
+});
+
+// node_modules/semver/functions/cmp.js
+var require_cmp = __commonJS({
+  "node_modules/semver/functions/cmp.js"(exports2, module2) {
+    "use strict";
+    var eq = require_eq();
+    var neq = require_neq();
+    var gt = require_gt();
+    var gte = require_gte();
+    var lt = require_lt();
+    var lte = require_lte();
+    var cmp = (a, op, b, loose) => {
+      switch (op) {
+        case "===":
+          if (typeof a === "object") {
+            a = a.version;
+          }
+          if (typeof b === "object") {
+            b = b.version;
+          }
+          return a === b;
+        case "!==":
+          if (typeof a === "object") {
+            a = a.version;
+          }
+          if (typeof b === "object") {
+            b = b.version;
+          }
+          return a !== b;
+        case "":
+        case "=":
+        case "==":
+          return eq(a, b, loose);
+        case "!=":
+          return neq(a, b, loose);
+        case ">":
+          return gt(a, b, loose);
+        case ">=":
+          return gte(a, b, loose);
+        case "<":
+          return lt(a, b, loose);
+        case "<=":
+          return lte(a, b, loose);
+        default:
+          throw new TypeError(`Invalid operator: ${op}`);
+      }
+    };
+    module2.exports = cmp;
+  }
+});
+
+// node_modules/semver/functions/coerce.js
+var require_coerce = __commonJS({
+  "node_modules/semver/functions/coerce.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var parse = require_parse();
+    var { safeRe: re, t } = require_re();
+    var coerce = (version, options) => {
+      if (version instanceof SemVer) {
+        return version;
+      }
+      if (typeof version === "number") {
+        version = String(version);
+      }
+      if (typeof version !== "string") {
+        return null;
+      }
+      options = options || {};
+      let match = null;
+      if (!options.rtl) {
+        match = version.match(options.includePrerelease ? re[t.COERCEFULL] : re[t.COERCE]);
+      } else {
+        const coerceRtlRegex = options.includePrerelease ? re[t.COERCERTLFULL] : re[t.COERCERTL];
+        let next;
+        while ((next = coerceRtlRegex.exec(version)) && (!match || match.index + match[0].length !== version.length)) {
+          if (!match || next.index + next[0].length !== match.index + match[0].length) {
+            match = next;
+          }
+          coerceRtlRegex.lastIndex = next.index + next[1].length + next[2].length;
+        }
+        coerceRtlRegex.lastIndex = -1;
+      }
+      if (match === null) {
+        return null;
+      }
+      const major = match[2];
+      const minor = match[3] || "0";
+      const patch = match[4] || "0";
+      const prerelease = options.includePrerelease && match[5] ? `-${match[5]}` : "";
+      const build = options.includePrerelease && match[6] ? `+${match[6]}` : "";
+      return parse(`${major}.${minor}.${patch}${prerelease}${build}`, options);
+    };
+    module2.exports = coerce;
+  }
+});
+
+// node_modules/semver/functions/truncate.js
+var require_truncate = __commonJS({
+  "node_modules/semver/functions/truncate.js"(exports2, module2) {
+    "use strict";
+    var parse = require_parse();
+    var constants = require_constants();
+    var SemVer = require_semver();
+    var truncate = (version, truncation, options) => {
+      if (!constants.RELEASE_TYPES.includes(truncation)) {
+        return null;
+      }
+      const clonedVersion = cloneInputVersion(version, options);
+      return clonedVersion && doTruncation(clonedVersion, truncation);
+    };
+    var cloneInputVersion = (version, options) => {
+      const versionStringToParse = version instanceof SemVer ? version.version : version;
+      return parse(versionStringToParse, options);
+    };
+    var doTruncation = (version, truncation) => {
+      if (isPrerelease(truncation)) {
+        return version.version;
+      }
+      version.prerelease = [];
+      switch (truncation) {
+        case "major":
+          version.minor = 0;
+          version.patch = 0;
+          break;
+        case "minor":
+          version.patch = 0;
+          break;
+      }
+      return version.format();
+    };
+    var isPrerelease = (type) => {
+      return type.startsWith("pre");
+    };
+    module2.exports = truncate;
+  }
+});
+
+// node_modules/semver/internal/lrucache.js
+var require_lrucache = __commonJS({
+  "node_modules/semver/internal/lrucache.js"(exports2, module2) {
+    "use strict";
+    var LRUCache = class {
+      constructor() {
+        this.max = 1e3;
+        this.map = /* @__PURE__ */ new Map();
+      }
+      get(key) {
+        const value = this.map.get(key);
+        if (value === void 0) {
+          return void 0;
+        } else {
+          this.map.delete(key);
+          this.map.set(key, value);
+          return value;
+        }
+      }
+      delete(key) {
+        return this.map.delete(key);
+      }
+      set(key, value) {
+        const deleted = this.delete(key);
+        if (!deleted && value !== void 0) {
+          if (this.map.size >= this.max) {
+            const firstKey = this.map.keys().next().value;
+            this.delete(firstKey);
+          }
+          this.map.set(key, value);
+        }
+        return this;
+      }
+    };
+    module2.exports = LRUCache;
+  }
+});
+
+// node_modules/semver/classes/range.js
+var require_range = __commonJS({
+  "node_modules/semver/classes/range.js"(exports2, module2) {
+    "use strict";
+    var SPACE_CHARACTERS = /\s+/g;
+    var Range = class _Range {
+      constructor(range, options) {
+        options = parseOptions(options);
+        if (range instanceof _Range) {
+          if (range.loose === !!options.loose && range.includePrerelease === !!options.includePrerelease) {
+            return range;
+          } else {
+            return new _Range(range.raw, options);
+          }
+        }
+        if (range instanceof Comparator) {
+          this.raw = range.value;
+          this.set = [[range]];
+          this.formatted = void 0;
+          return this;
+        }
+        this.options = options;
+        this.loose = !!options.loose;
+        this.includePrerelease = !!options.includePrerelease;
+        this.raw = range.trim().replace(SPACE_CHARACTERS, " ");
+        this.set = this.raw.split("||").map((r) => this.parseRange(r.trim())).filter((c) => c.length);
+        if (!this.set.length) {
+          throw new TypeError(`Invalid SemVer Range: ${this.raw}`);
+        }
+        if (this.set.length > 1) {
+          const first = this.set[0];
+          this.set = this.set.filter((c) => !isNullSet(c[0]));
+          if (this.set.length === 0) {
+            this.set = [first];
+          } else if (this.set.length > 1) {
+            for (const c of this.set) {
+              if (c.length === 1 && isAny(c[0])) {
+                this.set = [c];
+                break;
+              }
+            }
+          }
+        }
+        this.formatted = void 0;
+      }
+      get range() {
+        if (this.formatted === void 0) {
+          this.formatted = "";
+          for (let i = 0; i < this.set.length; i++) {
+            if (i > 0) {
+              this.formatted += "||";
+            }
+            const comps = this.set[i];
+            for (let k = 0; k < comps.length; k++) {
+              if (k > 0) {
+                this.formatted += " ";
+              }
+              this.formatted += comps[k].toString().trim();
+            }
+          }
+        }
+        return this.formatted;
+      }
+      format() {
+        return this.range;
+      }
+      toString() {
+        return this.range;
+      }
+      parseRange(range) {
+        range = range.replace(BUILDSTRIPRE, "");
+        const memoOpts = (this.options.includePrerelease && FLAG_INCLUDE_PRERELEASE) | (this.options.loose && FLAG_LOOSE);
+        const memoKey = memoOpts + ":" + range;
+        const cached = cache.get(memoKey);
+        if (cached) {
+          return cached;
+        }
+        const loose = this.options.loose;
+        const hr = loose ? re[t.HYPHENRANGELOOSE] : re[t.HYPHENRANGE];
+        range = range.replace(hr, hyphenReplace(this.options.includePrerelease));
+        debug("hyphen replace", range);
+        range = range.replace(re[t.COMPARATORTRIM], comparatorTrimReplace);
+        debug("comparator trim", range);
+        range = range.replace(re[t.TILDETRIM], tildeTrimReplace);
+        debug("tilde trim", range);
+        range = range.replace(re[t.CARETTRIM], caretTrimReplace);
+        debug("caret trim", range);
+        let rangeList = range.split(" ").map((comp) => parseComparator(comp, this.options)).join(" ").split(/\s+/).map((comp) => replaceGTE0(comp, this.options));
+        if (loose) {
+          rangeList = rangeList.filter((comp) => {
+            debug("loose invalid filter", comp, this.options);
+            return !!comp.match(re[t.COMPARATORLOOSE]);
+          });
+        }
+        debug("range list", rangeList);
+        const rangeMap = /* @__PURE__ */ new Map();
+        const comparators = rangeList.map((comp) => new Comparator(comp, this.options));
+        for (const comp of comparators) {
+          if (isNullSet(comp)) {
+            return [comp];
+          }
+          rangeMap.set(comp.value, comp);
+        }
+        if (rangeMap.size > 1 && rangeMap.has("")) {
+          rangeMap.delete("");
+        }
+        const result = [...rangeMap.values()];
+        cache.set(memoKey, result);
+        return result;
+      }
+      intersects(range, options) {
+        if (!(range instanceof _Range)) {
+          throw new TypeError("a Range is required");
+        }
+        return this.set.some((thisComparators) => {
+          return isSatisfiable(thisComparators, options) && range.set.some((rangeComparators) => {
+            return isSatisfiable(rangeComparators, options) && thisComparators.every((thisComparator) => {
+              return rangeComparators.every((rangeComparator) => {
+                return thisComparator.intersects(rangeComparator, options);
+              });
+            });
+          });
+        });
+      }
+      // if ANY of the sets match ALL of its comparators, then pass
+      test(version) {
+        if (!version) {
+          return false;
+        }
+        if (typeof version === "string") {
+          try {
+            version = new SemVer(version, this.options);
+          } catch (er) {
+            return false;
+          }
+        }
+        for (let i = 0; i < this.set.length; i++) {
+          if (testSet(this.set[i], version, this.options)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    };
+    module2.exports = Range;
+    var LRU = require_lrucache();
+    var cache = new LRU();
+    var parseOptions = require_parse_options();
+    var Comparator = require_comparator();
+    var debug = require_debug();
+    var SemVer = require_semver();
+    var {
+      safeRe: re,
+      src,
+      t,
+      comparatorTrimReplace,
+      tildeTrimReplace,
+      caretTrimReplace
+    } = require_re();
+    var { FLAG_INCLUDE_PRERELEASE, FLAG_LOOSE } = require_constants();
+    var BUILDSTRIPRE = new RegExp(src[t.BUILD], "g");
+    var isNullSet = (c) => c.value === "<0.0.0-0";
+    var isAny = (c) => c.value === "";
+    var isSatisfiable = (comparators, options) => {
+      let result = true;
+      const remainingComparators = comparators.slice();
+      let testComparator = remainingComparators.pop();
+      while (result && remainingComparators.length) {
+        result = remainingComparators.every((otherComparator) => {
+          return testComparator.intersects(otherComparator, options);
+        });
+        testComparator = remainingComparators.pop();
+      }
+      return result;
+    };
+    var parseComparator = (comp, options) => {
+      comp = comp.replace(re[t.BUILD], "");
+      debug("comp", comp, options);
+      comp = replaceCarets(comp, options);
+      debug("caret", comp);
+      comp = replaceTildes(comp, options);
+      debug("tildes", comp);
+      comp = replaceXRanges(comp, options);
+      debug("xrange", comp);
+      comp = replaceStars(comp, options);
+      debug("stars", comp);
+      return comp;
+    };
+    var isX = (id) => !id || id.toLowerCase() === "x" || id === "*";
+    var invalidXRangeOrder = (M, m, p) => isX(M) && !isX(m) || isX(m) && p && !isX(p);
+    var replaceTildes = (comp, options) => {
+      return comp.trim().split(/\s+/).map((c) => replaceTilde(c, options)).join(" ");
+    };
+    var replaceTilde = (comp, options) => {
+      const r = options.loose ? re[t.TILDELOOSE] : re[t.TILDE];
+      const z = options.includePrerelease ? "-0" : "";
+      return comp.replace(r, (_, M, m, p, pr) => {
+        debug("tilde", comp, _, M, m, p, pr);
+        let ret;
+        if (isX(M)) {
+          ret = "";
+        } else if (isX(m)) {
+          ret = `>=${M}.0.0${z} <${+M + 1}.0.0-0`;
+        } else if (isX(p)) {
+          ret = `>=${M}.${m}.0${z} <${M}.${+m + 1}.0-0`;
+        } else if (pr) {
+          debug("replaceTilde pr", pr);
+          ret = `>=${M}.${m}.${p}-${pr} <${M}.${+m + 1}.0-0`;
+        } else {
+          ret = `>=${M}.${m}.${p} <${M}.${+m + 1}.0-0`;
+        }
+        debug("tilde return", ret);
+        return ret;
+      });
+    };
+    var replaceCarets = (comp, options) => {
+      return comp.trim().split(/\s+/).map((c) => replaceCaret(c, options)).join(" ");
+    };
+    var replaceCaret = (comp, options) => {
+      debug("caret", comp, options);
+      const r = options.loose ? re[t.CARETLOOSE] : re[t.CARET];
+      const z = options.includePrerelease ? "-0" : "";
+      return comp.replace(r, (_, M, m, p, pr) => {
+        debug("caret", comp, _, M, m, p, pr);
+        let ret;
+        if (isX(M)) {
+          ret = "";
+        } else if (isX(m)) {
+          ret = `>=${M}.0.0${z} <${+M + 1}.0.0-0`;
+        } else if (isX(p)) {
+          if (M === "0") {
+            ret = `>=${M}.${m}.0${z} <${M}.${+m + 1}.0-0`;
+          } else {
+            ret = `>=${M}.${m}.0${z} <${+M + 1}.0.0-0`;
+          }
+        } else if (pr) {
+          debug("replaceCaret pr", pr);
+          if (M === "0") {
+            if (m === "0") {
+              ret = `>=${M}.${m}.${p}-${pr} <${M}.${m}.${+p + 1}-0`;
+            } else {
+              ret = `>=${M}.${m}.${p}-${pr} <${M}.${+m + 1}.0-0`;
+            }
+          } else {
+            ret = `>=${M}.${m}.${p}-${pr} <${+M + 1}.0.0-0`;
+          }
+        } else {
+          debug("no pr");
+          if (M === "0") {
+            if (m === "0") {
+              ret = `>=${M}.${m}.${p} <${M}.${m}.${+p + 1}-0`;
+            } else {
+              ret = `>=${M}.${m}.${p} <${M}.${+m + 1}.0-0`;
+            }
+          } else {
+            ret = `>=${M}.${m}.${p} <${+M + 1}.0.0-0`;
+          }
+        }
+        debug("caret return", ret);
+        return ret;
+      });
+    };
+    var replaceXRanges = (comp, options) => {
+      debug("replaceXRanges", comp, options);
+      return comp.split(/\s+/).map((c) => replaceXRange(c, options)).join(" ");
+    };
+    var replaceXRange = (comp, options) => {
+      comp = comp.trim();
+      const r = options.loose ? re[t.XRANGELOOSE] : re[t.XRANGE];
+      return comp.replace(r, (ret, gtlt, M, m, p, pr) => {
+        debug("xRange", comp, ret, gtlt, M, m, p, pr);
+        if (invalidXRangeOrder(M, m, p)) {
+          return comp;
+        }
+        const xM = isX(M);
+        const xm = xM || isX(m);
+        const xp = xm || isX(p);
+        const anyX = xp;
+        if (gtlt === "=" && anyX) {
+          gtlt = "";
+        }
+        pr = options.includePrerelease ? "-0" : "";
+        if (xM) {
+          if (gtlt === ">" || gtlt === "<") {
+            ret = "<0.0.0-0";
+          } else {
+            ret = "*";
+          }
+        } else if (gtlt && anyX) {
+          if (xm) {
+            m = 0;
+          }
+          p = 0;
+          if (gtlt === ">") {
+            gtlt = ">=";
+            if (xm) {
+              M = +M + 1;
+              m = 0;
+              p = 0;
+            } else {
+              m = +m + 1;
+              p = 0;
+            }
+          } else if (gtlt === "<=") {
+            gtlt = "<";
+            if (xm) {
+              M = +M + 1;
+            } else {
+              m = +m + 1;
+            }
+          }
+          if (gtlt === "<") {
+            pr = "-0";
+          }
+          ret = `${gtlt + M}.${m}.${p}${pr}`;
+        } else if (xm) {
+          ret = `>=${M}.0.0${pr} <${+M + 1}.0.0-0`;
+        } else if (xp) {
+          ret = `>=${M}.${m}.0${pr} <${M}.${+m + 1}.0-0`;
+        }
+        debug("xRange return", ret);
+        return ret;
+      });
+    };
+    var replaceStars = (comp, options) => {
+      debug("replaceStars", comp, options);
+      return comp.trim().replace(re[t.STAR], "");
+    };
+    var replaceGTE0 = (comp, options) => {
+      debug("replaceGTE0", comp, options);
+      return comp.trim().replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], "");
+    };
+    var hyphenReplace = (incPr) => ($0, from, fM, fm, fp, fpr, fb, to, tM, tm, tp, tpr) => {
+      if (isX(fM)) {
+        from = "";
+      } else if (isX(fm)) {
+        from = `>=${fM}.0.0${incPr ? "-0" : ""}`;
+      } else if (isX(fp)) {
+        from = `>=${fM}.${fm}.0${incPr ? "-0" : ""}`;
+      } else if (fpr) {
+        from = `>=${from}`;
+      } else {
+        from = `>=${from}${incPr ? "-0" : ""}`;
+      }
+      if (isX(tM)) {
+        to = "";
+      } else if (isX(tm)) {
+        to = `<${+tM + 1}.0.0-0`;
+      } else if (isX(tp)) {
+        to = `<${tM}.${+tm + 1}.0-0`;
+      } else if (tpr) {
+        to = `<=${tM}.${tm}.${tp}-${tpr}`;
+      } else if (incPr) {
+        to = `<${tM}.${tm}.${+tp + 1}-0`;
+      } else {
+        to = `<=${to}`;
+      }
+      return `${from} ${to}`.trim();
+    };
+    var testSet = (set, version, options) => {
+      for (let i = 0; i < set.length; i++) {
+        if (!set[i].test(version)) {
+          return false;
+        }
+      }
+      if (version.prerelease.length && !options.includePrerelease) {
+        for (let i = 0; i < set.length; i++) {
+          debug(set[i].semver);
+          if (set[i].semver === Comparator.ANY) {
+            continue;
+          }
+          if (set[i].semver.prerelease.length > 0) {
+            const allowed = set[i].semver;
+            if (allowed.major === version.major && allowed.minor === version.minor && allowed.patch === version.patch) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+      return true;
+    };
+  }
+});
+
+// node_modules/semver/classes/comparator.js
+var require_comparator = __commonJS({
+  "node_modules/semver/classes/comparator.js"(exports2, module2) {
+    "use strict";
+    var ANY = /* @__PURE__ */ Symbol("SemVer ANY");
+    var Comparator = class _Comparator {
+      static get ANY() {
+        return ANY;
+      }
+      constructor(comp, options) {
+        options = parseOptions(options);
+        if (comp instanceof _Comparator) {
+          if (comp.loose === !!options.loose) {
+            return comp;
+          } else {
+            comp = comp.value;
+          }
+        }
+        comp = comp.trim().split(/\s+/).join(" ");
+        debug("comparator", comp, options);
+        this.options = options;
+        this.loose = !!options.loose;
+        this.parse(comp);
+        if (this.semver === ANY) {
+          this.value = "";
+        } else {
+          this.value = this.operator + this.semver.version;
+        }
+        debug("comp", this);
+      }
+      parse(comp) {
+        const r = this.options.loose ? re[t.COMPARATORLOOSE] : re[t.COMPARATOR];
+        const m = comp.match(r);
+        if (!m) {
+          throw new TypeError(`Invalid comparator: ${comp}`);
+        }
+        this.operator = m[1] !== void 0 ? m[1] : "";
+        if (this.operator === "=") {
+          this.operator = "";
+        }
+        if (!m[2]) {
+          this.semver = ANY;
+        } else {
+          this.semver = new SemVer(m[2], this.options.loose);
+        }
+      }
+      toString() {
+        return this.value;
+      }
+      test(version) {
+        debug("Comparator.test", version, this.options.loose);
+        if (this.semver === ANY || version === ANY) {
+          return true;
+        }
+        if (typeof version === "string") {
+          try {
+            version = new SemVer(version, this.options);
+          } catch (er) {
+            return false;
+          }
+        }
+        return cmp(version, this.operator, this.semver, this.options);
+      }
+      intersects(comp, options) {
+        if (!(comp instanceof _Comparator)) {
+          throw new TypeError("a Comparator is required");
+        }
+        if (this.operator === "") {
+          if (this.value === "") {
+            return true;
+          }
+          return new Range(comp.value, options).test(this.value);
+        } else if (comp.operator === "") {
+          if (comp.value === "") {
+            return true;
+          }
+          return new Range(this.value, options).test(comp.semver);
+        }
+        options = parseOptions(options);
+        if (options.includePrerelease && (this.value === "<0.0.0-0" || comp.value === "<0.0.0-0")) {
+          return false;
+        }
+        if (!options.includePrerelease && (this.value.startsWith("<0.0.0") || comp.value.startsWith("<0.0.0"))) {
+          return false;
+        }
+        if (this.operator.startsWith(">") && comp.operator.startsWith(">")) {
+          return true;
+        }
+        if (this.operator.startsWith("<") && comp.operator.startsWith("<")) {
+          return true;
+        }
+        if (this.semver.version === comp.semver.version && this.operator.includes("=") && comp.operator.includes("=")) {
+          return true;
+        }
+        if (cmp(this.semver, "<", comp.semver, options) && this.operator.startsWith(">") && comp.operator.startsWith("<")) {
+          return true;
+        }
+        if (cmp(this.semver, ">", comp.semver, options) && this.operator.startsWith("<") && comp.operator.startsWith(">")) {
+          return true;
+        }
+        return false;
+      }
+    };
+    module2.exports = Comparator;
+    var parseOptions = require_parse_options();
+    var { safeRe: re, t } = require_re();
+    var cmp = require_cmp();
+    var debug = require_debug();
+    var SemVer = require_semver();
+    var Range = require_range();
+  }
+});
+
+// node_modules/semver/functions/satisfies.js
+var require_satisfies = __commonJS({
+  "node_modules/semver/functions/satisfies.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var satisfies = (version, range, options) => {
+      try {
+        range = new Range(range, options);
+      } catch (er) {
+        return false;
+      }
+      return range.test(version);
+    };
+    module2.exports = satisfies;
+  }
+});
+
+// node_modules/semver/ranges/to-comparators.js
+var require_to_comparators = __commonJS({
+  "node_modules/semver/ranges/to-comparators.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var toComparators = (range, options) => new Range(range, options).set.map((comp) => comp.map((c) => c.value).join(" ").trim().split(" "));
+    module2.exports = toComparators;
+  }
+});
+
+// node_modules/semver/ranges/max-satisfying.js
+var require_max_satisfying = __commonJS({
+  "node_modules/semver/ranges/max-satisfying.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Range = require_range();
+    var maxSatisfying = (versions, range, options) => {
+      let max = null;
+      let maxSV = null;
+      let rangeObj = null;
+      try {
+        rangeObj = new Range(range, options);
+      } catch (er) {
+        return null;
+      }
+      versions.forEach((v) => {
+        if (rangeObj.test(v)) {
+          if (!max || maxSV.compare(v) === -1) {
+            max = v;
+            maxSV = new SemVer(max, options);
+          }
+        }
+      });
+      return max;
+    };
+    module2.exports = maxSatisfying;
+  }
+});
+
+// node_modules/semver/ranges/min-satisfying.js
+var require_min_satisfying = __commonJS({
+  "node_modules/semver/ranges/min-satisfying.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Range = require_range();
+    var minSatisfying = (versions, range, options) => {
+      let min = null;
+      let minSV = null;
+      let rangeObj = null;
+      try {
+        rangeObj = new Range(range, options);
+      } catch (er) {
+        return null;
+      }
+      versions.forEach((v) => {
+        if (rangeObj.test(v)) {
+          if (!min || minSV.compare(v) === 1) {
+            min = v;
+            minSV = new SemVer(min, options);
+          }
+        }
+      });
+      return min;
+    };
+    module2.exports = minSatisfying;
+  }
+});
+
+// node_modules/semver/ranges/min-version.js
+var require_min_version = __commonJS({
+  "node_modules/semver/ranges/min-version.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Range = require_range();
+    var gt = require_gt();
+    var minVersion = (range, loose) => {
+      range = new Range(range, loose);
+      let minver = new SemVer("0.0.0");
+      if (range.test(minver)) {
+        return minver;
+      }
+      minver = new SemVer("0.0.0-0");
+      if (range.test(minver)) {
+        return minver;
+      }
+      minver = null;
+      for (let i = 0; i < range.set.length; ++i) {
+        const comparators = range.set[i];
+        let setMin = null;
+        comparators.forEach((comparator) => {
+          const compver = new SemVer(comparator.semver.version);
+          switch (comparator.operator) {
+            case ">":
+              if (compver.prerelease.length === 0) {
+                compver.patch++;
+              } else {
+                compver.prerelease.push(0);
+              }
+              compver.raw = compver.format();
+            /* fallthrough */
+            case "":
+            case ">=":
+              if (!setMin || gt(compver, setMin)) {
+                setMin = compver;
+              }
+              break;
+            case "<":
+            case "<=":
+              break;
+            /* istanbul ignore next */
+            default:
+              throw new Error(`Unexpected operation: ${comparator.operator}`);
+          }
+        });
+        if (setMin && (!minver || gt(minver, setMin))) {
+          minver = setMin;
+        }
+      }
+      if (minver && range.test(minver)) {
+        return minver;
+      }
+      return null;
+    };
+    module2.exports = minVersion;
+  }
+});
+
+// node_modules/semver/ranges/valid.js
+var require_valid2 = __commonJS({
+  "node_modules/semver/ranges/valid.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var validRange = (range, options) => {
+      try {
+        return new Range(range, options).range || "*";
+      } catch (er) {
+        return null;
+      }
+    };
+    module2.exports = validRange;
+  }
+});
+
+// node_modules/semver/ranges/outside.js
+var require_outside = __commonJS({
+  "node_modules/semver/ranges/outside.js"(exports2, module2) {
+    "use strict";
+    var SemVer = require_semver();
+    var Comparator = require_comparator();
+    var { ANY } = Comparator;
+    var Range = require_range();
+    var satisfies = require_satisfies();
+    var gt = require_gt();
+    var lt = require_lt();
+    var lte = require_lte();
+    var gte = require_gte();
+    var outside = (version, range, hilo, options) => {
+      version = new SemVer(version, options);
+      range = new Range(range, options);
+      let gtfn, ltefn, ltfn, comp, ecomp;
+      switch (hilo) {
+        case ">":
+          gtfn = gt;
+          ltefn = lte;
+          ltfn = lt;
+          comp = ">";
+          ecomp = ">=";
+          break;
+        case "<":
+          gtfn = lt;
+          ltefn = gte;
+          ltfn = gt;
+          comp = "<";
+          ecomp = "<=";
+          break;
+        default:
+          throw new TypeError('Must provide a hilo val of "<" or ">"');
+      }
+      if (satisfies(version, range, options)) {
+        return false;
+      }
+      for (let i = 0; i < range.set.length; ++i) {
+        const comparators = range.set[i];
+        let high = null;
+        let low = null;
+        comparators.forEach((comparator) => {
+          if (comparator.semver === ANY) {
+            comparator = new Comparator(">=0.0.0");
+          }
+          high = high || comparator;
+          low = low || comparator;
+          if (gtfn(comparator.semver, high.semver, options)) {
+            high = comparator;
+          } else if (ltfn(comparator.semver, low.semver, options)) {
+            low = comparator;
+          }
+        });
+        if (high.operator === comp || high.operator === ecomp) {
+          return false;
+        }
+        if ((!low.operator || low.operator === comp) && ltefn(version, low.semver)) {
+          return false;
+        } else if (low.operator === ecomp && ltfn(version, low.semver)) {
+          return false;
+        }
+      }
+      return true;
+    };
+    module2.exports = outside;
+  }
+});
+
+// node_modules/semver/ranges/gtr.js
+var require_gtr = __commonJS({
+  "node_modules/semver/ranges/gtr.js"(exports2, module2) {
+    "use strict";
+    var outside = require_outside();
+    var gtr = (version, range, options) => outside(version, range, ">", options);
+    module2.exports = gtr;
+  }
+});
+
+// node_modules/semver/ranges/ltr.js
+var require_ltr = __commonJS({
+  "node_modules/semver/ranges/ltr.js"(exports2, module2) {
+    "use strict";
+    var outside = require_outside();
+    var ltr = (version, range, options) => outside(version, range, "<", options);
+    module2.exports = ltr;
+  }
+});
+
+// node_modules/semver/ranges/intersects.js
+var require_intersects = __commonJS({
+  "node_modules/semver/ranges/intersects.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var intersects = (r1, r2, options) => {
+      r1 = new Range(r1, options);
+      r2 = new Range(r2, options);
+      return r1.intersects(r2, options);
+    };
+    module2.exports = intersects;
+  }
+});
+
+// node_modules/semver/ranges/simplify.js
+var require_simplify = __commonJS({
+  "node_modules/semver/ranges/simplify.js"(exports2, module2) {
+    "use strict";
+    var satisfies = require_satisfies();
+    var compare = require_compare();
+    module2.exports = (versions, range, options) => {
+      const set = [];
+      let first = null;
+      let prev = null;
+      const v = versions.sort((a, b) => compare(a, b, options));
+      for (const version of v) {
+        const included = satisfies(version, range, options);
+        if (included) {
+          prev = version;
+          if (!first) {
+            first = version;
+          }
+        } else {
+          if (prev) {
+            set.push([first, prev]);
+          }
+          prev = null;
+          first = null;
+        }
+      }
+      if (first) {
+        set.push([first, null]);
+      }
+      const ranges = [];
+      for (const [min, max] of set) {
+        if (min === max) {
+          ranges.push(min);
+        } else if (!max && min === v[0]) {
+          ranges.push("*");
+        } else if (!max) {
+          ranges.push(`>=${min}`);
+        } else if (min === v[0]) {
+          ranges.push(`<=${max}`);
+        } else {
+          ranges.push(`${min} - ${max}`);
+        }
+      }
+      const simplified = ranges.join(" || ");
+      const original = typeof range.raw === "string" ? range.raw : String(range);
+      return simplified.length < original.length ? simplified : range;
+    };
+  }
+});
+
+// node_modules/semver/ranges/subset.js
+var require_subset = __commonJS({
+  "node_modules/semver/ranges/subset.js"(exports2, module2) {
+    "use strict";
+    var Range = require_range();
+    var Comparator = require_comparator();
+    var { ANY } = Comparator;
+    var satisfies = require_satisfies();
+    var compare = require_compare();
+    var subset = (sub, dom, options = {}) => {
+      if (sub === dom) {
+        return true;
+      }
+      sub = new Range(sub, options);
+      dom = new Range(dom, options);
+      let sawNonNull = false;
+      OUTER: for (const simpleSub of sub.set) {
+        for (const simpleDom of dom.set) {
+          const isSub = simpleSubset(simpleSub, simpleDom, options);
+          sawNonNull = sawNonNull || isSub !== null;
+          if (isSub) {
+            continue OUTER;
+          }
+        }
+        if (sawNonNull) {
+          return false;
+        }
+      }
+      return true;
+    };
+    var minimumVersionWithPreRelease = [new Comparator(">=0.0.0-0")];
+    var minimumVersion = [new Comparator(">=0.0.0")];
+    var simpleSubset = (sub, dom, options) => {
+      if (sub === dom) {
+        return true;
+      }
+      if (sub.length === 1 && sub[0].semver === ANY) {
+        if (dom.length === 1 && dom[0].semver === ANY) {
+          return true;
+        } else if (options.includePrerelease) {
+          sub = minimumVersionWithPreRelease;
+        } else {
+          sub = minimumVersion;
+        }
+      }
+      if (dom.length === 1 && dom[0].semver === ANY) {
+        if (options.includePrerelease) {
+          return true;
+        } else {
+          dom = minimumVersion;
+        }
+      }
+      const eqSet = /* @__PURE__ */ new Set();
+      let gt, lt;
+      for (const c of sub) {
+        if (c.operator === ">" || c.operator === ">=") {
+          gt = higherGT(gt, c, options);
+        } else if (c.operator === "<" || c.operator === "<=") {
+          lt = lowerLT(lt, c, options);
+        } else {
+          eqSet.add(c.semver);
+        }
+      }
+      if (eqSet.size > 1) {
+        return null;
+      }
+      let gtltComp;
+      if (gt && lt) {
+        gtltComp = compare(gt.semver, lt.semver, options);
+        if (gtltComp > 0) {
+          return null;
+        } else if (gtltComp === 0 && (gt.operator !== ">=" || lt.operator !== "<=")) {
+          return null;
+        }
+      }
+      for (const eq of eqSet) {
+        if (gt && !satisfies(eq, String(gt), options)) {
+          return null;
+        }
+        if (lt && !satisfies(eq, String(lt), options)) {
+          return null;
+        }
+        for (const c of dom) {
+          if (!satisfies(eq, String(c), options)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      let higher, lower;
+      let hasDomLT, hasDomGT;
+      let needDomLTPre = lt && !options.includePrerelease && lt.semver.prerelease.length ? lt.semver : false;
+      let needDomGTPre = gt && !options.includePrerelease && gt.semver.prerelease.length ? gt.semver : false;
+      if (needDomLTPre && needDomLTPre.prerelease.length === 1 && lt.operator === "<" && needDomLTPre.prerelease[0] === 0) {
+        needDomLTPre = false;
+      }
+      for (const c of dom) {
+        hasDomGT = hasDomGT || c.operator === ">" || c.operator === ">=";
+        hasDomLT = hasDomLT || c.operator === "<" || c.operator === "<=";
+        if (gt) {
+          if (needDomGTPre) {
+            if (c.semver.prerelease && c.semver.prerelease.length && c.semver.major === needDomGTPre.major && c.semver.minor === needDomGTPre.minor && c.semver.patch === needDomGTPre.patch) {
+              needDomGTPre = false;
+            }
+          }
+          if (c.operator === ">" || c.operator === ">=") {
+            higher = higherGT(gt, c, options);
+            if (higher === c && higher !== gt) {
+              return false;
+            }
+          } else if (gt.operator === ">=" && !c.test(gt.semver)) {
+            return false;
+          }
+        }
+        if (lt) {
+          if (needDomLTPre) {
+            if (c.semver.prerelease && c.semver.prerelease.length && c.semver.major === needDomLTPre.major && c.semver.minor === needDomLTPre.minor && c.semver.patch === needDomLTPre.patch) {
+              needDomLTPre = false;
+            }
+          }
+          if (c.operator === "<" || c.operator === "<=") {
+            lower = lowerLT(lt, c, options);
+            if (lower === c && lower !== lt) {
+              return false;
+            }
+          } else if (lt.operator === "<=" && !c.test(lt.semver)) {
+            return false;
+          }
+        }
+        if (!c.operator && (lt || gt) && gtltComp !== 0) {
+          return false;
+        }
+      }
+      if (gt && hasDomLT && !lt && gtltComp !== 0) {
+        return false;
+      }
+      if (lt && hasDomGT && !gt && gtltComp !== 0) {
+        return false;
+      }
+      if (needDomGTPre || needDomLTPre) {
+        return false;
+      }
+      return true;
+    };
+    var higherGT = (a, b, options) => {
+      if (!a) {
+        return b;
+      }
+      const comp = compare(a.semver, b.semver, options);
+      return comp > 0 ? a : comp < 0 ? b : b.operator === ">" && a.operator === ">=" ? b : a;
+    };
+    var lowerLT = (a, b, options) => {
+      if (!a) {
+        return b;
+      }
+      const comp = compare(a.semver, b.semver, options);
+      return comp < 0 ? a : comp > 0 ? b : b.operator === "<" && a.operator === "<=" ? b : a;
+    };
+    module2.exports = subset;
+  }
+});
+
+// node_modules/semver/index.js
+var require_semver2 = __commonJS({
+  "node_modules/semver/index.js"(exports2, module2) {
+    "use strict";
+    var internalRe = require_re();
+    var constants = require_constants();
+    var SemVer = require_semver();
+    var identifiers = require_identifiers();
+    var parse = require_parse();
+    var valid = require_valid();
+    var clean = require_clean();
+    var inc = require_inc();
+    var diff = require_diff();
+    var major = require_major();
+    var minor = require_minor();
+    var patch = require_patch();
+    var prerelease = require_prerelease();
+    var compare = require_compare();
+    var rcompare = require_rcompare();
+    var compareLoose = require_compare_loose();
+    var compareBuild = require_compare_build();
+    var sort = require_sort();
+    var rsort = require_rsort();
+    var gt = require_gt();
+    var lt = require_lt();
+    var eq = require_eq();
+    var neq = require_neq();
+    var gte = require_gte();
+    var lte = require_lte();
+    var cmp = require_cmp();
+    var coerce = require_coerce();
+    var truncate = require_truncate();
+    var Comparator = require_comparator();
+    var Range = require_range();
+    var satisfies = require_satisfies();
+    var toComparators = require_to_comparators();
+    var maxSatisfying = require_max_satisfying();
+    var minSatisfying = require_min_satisfying();
+    var minVersion = require_min_version();
+    var validRange = require_valid2();
+    var outside = require_outside();
+    var gtr = require_gtr();
+    var ltr = require_ltr();
+    var intersects = require_intersects();
+    var simplifyRange = require_simplify();
+    var subset = require_subset();
+    module2.exports = {
+      parse,
+      valid,
+      clean,
+      inc,
+      diff,
+      major,
+      minor,
+      patch,
+      prerelease,
+      compare,
+      rcompare,
+      compareLoose,
+      compareBuild,
+      sort,
+      rsort,
+      gt,
+      lt,
+      eq,
+      neq,
+      gte,
+      lte,
+      cmp,
+      coerce,
+      truncate,
+      Comparator,
+      Range,
+      satisfies,
+      toComparators,
+      maxSatisfying,
+      minSatisfying,
+      minVersion,
+      validRange,
+      outside,
+      gtr,
+      ltr,
+      intersects,
+      simplifyRange,
+      subset,
+      SemVer,
+      re: internalRe.re,
+      src: internalRe.src,
+      tokens: internalRe.t,
+      SEMVER_SPEC_VERSION: constants.SEMVER_SPEC_VERSION,
+      RELEASE_TYPES: constants.RELEASE_TYPES,
+      compareIdentifiers: identifiers.compareIdentifiers,
+      rcompareIdentifiers: identifiers.rcompareIdentifiers
+    };
+  }
+});
+
+// node_modules/ignore/index.js
+var require_ignore = __commonJS({
+  "node_modules/ignore/index.js"(exports2, module2) {
+    function makeArray(subject) {
+      return Array.isArray(subject) ? subject : [subject];
+    }
+    var UNDEFINED = void 0;
+    var EMPTY2 = "";
+    var SPACE = " ";
+    var ESCAPE = "\\";
+    var REGEX_LITERAL_SPECIAL = /[.*+?()[\]{}^$|\\/]/;
+    var REGEX_TEST_BLANK_LINE = /^\uFEFF? *$/;
+    var REGEX_INVALID_TRAILING_BACKSLASH = /(?:[^\\]|^)\\$/;
+    var REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = /^\\!/;
+    var REGEX_REPLACE_LEADING_EXCAPED_HASH = /^\\#/;
+    var REGEX_SPLITALL_CRLF = /\r?\n/g;
+    var DOUBLE_SLASH = "//";
+    var SLASH_CODE = 47;
+    var DOT_CODE = 46;
+    var SLASH = "/";
+    var TMP_KEY_IGNORE = "node-ignore";
+    if (typeof Symbol !== "undefined") {
+      TMP_KEY_IGNORE = /* @__PURE__ */ Symbol.for("node-ignore");
+    }
+    var KEY_IGNORE = TMP_KEY_IGNORE;
+    var define = (object, key, value) => {
+      Object.defineProperty(object, key, { value });
+      return value;
+    };
+    var RETURN_FALSE = () => false;
+    var cleanRangeBackSlash = (slashes) => {
+      const { length } = slashes;
+      return slashes.slice(0, length - length % 2);
+    };
+    var POSIX_CLASSES = {
+      alnum: "0-9A-Za-z",
+      alpha: "A-Za-z",
+      blank: " \\t",
+      cntrl: "\\x00-\\x1f\\x7f",
+      digit: "0-9",
+      graph: "!-.0-~",
+      lower: "a-z",
+      print: " -.0-~",
+      punct: "!-.:-@\\[-`{-~",
+      // git's `sane-ctype.h` classifies \v and \f as control, not space,
+      //   unlike C's `isspace`
+      space: " \\t\\n\\r",
+      upper: "A-Z",
+      xdigit: "0-9A-Fa-f"
+    };
+    var CLASS_MEMBERS_TO_ESCAPE = "\\]^-[";
+    var escapeMember = (char) => CLASS_MEMBERS_TO_ESCAPE.indexOf(char) < 0 ? char : ESCAPE + char;
+    var NON_SLASH = "(?!\\/)";
+    var classSource = (negated, body) => {
+      if (negated) {
+        return `[^\\/${body}]`;
+      }
+      const source = `[${body}]`;
+      return new RegExp(source).test("/") ? NON_SLASH + source : source;
+    };
+    var scanBracket = (pattern, start) => {
+      const { length } = pattern;
+      let index = start + 1;
+      let negated = EMPTY2;
+      const lead = pattern[index];
+      if (lead === "!" || lead === "^") {
+        negated = "^";
+        index++;
+      }
+      let body = EMPTY2;
+      let prev = EMPTY2;
+      for (; ; ) {
+        const char = pattern[index];
+        if (char === UNDEFINED) {
+          return null;
+        }
+        if (char === ESCAPE) {
+          const escaped = pattern[index + 1];
+          if (escaped === UNDEFINED) {
+            return null;
+          }
+          body += escapeMember(escaped);
+          prev = escaped;
+          index++;
+        } else if (char === "-" && prev && index + 1 < length && pattern[index + 1] !== "]") {
+          index++;
+          let to = pattern[index];
+          if (to === ESCAPE) {
+            to = pattern[index += 1];
+          }
+          if (prev <= to) {
+            body += `-${escapeMember(to)}`;
+          }
+          prev = EMPTY2;
+        } else if (char === "[" && pattern[index + 1] === ":") {
+          const nameStart = index + 2;
+          let end = nameStart;
+          while (end < length && pattern[end] !== "]") {
+            end++;
+          }
+          if (end === length) {
+            return null;
+          }
+          if (end > nameStart && pattern[end - 1] === ":") {
+            const expanded = POSIX_CLASSES[pattern.slice(nameStart, end - 1)];
+            if (expanded === UNDEFINED) {
+              return null;
+            }
+            body += expanded;
+            prev = EMPTY2;
+            index = end;
+          } else {
+            body += escapeMember("[");
+            prev = "[";
+            index = nameStart - 2;
+          }
+        } else {
+          body += escapeMember(char);
+          prev = char;
+        }
+        index++;
+        if (pattern[index] === "]") {
+          return {
+            end: index,
+            source: classSource(negated, body)
+          };
+        }
+      }
+    };
+    var NEVER_MATCH = "[]";
+    var PLACEHOLDER = "\0";
+    var REGEX_RESTORE_PLACEHOLDER = new RegExp(
+      `${PLACEHOLDER}(\\d+)${PLACEHOLDER}`,
+      "g"
+    );
+    var TRAILING_WILDCARD = "\uE000";
+    var extractBrackets = (pattern) => {
+      const sources = [];
+      const hold = (source) => `${PLACEHOLDER}${sources.push(source) - 1}${PLACEHOLDER}`;
+      const { length } = pattern;
+      let out = EMPTY2;
+      let index = 0;
+      while (index < length) {
+        const char = pattern[index];
+        if (char === ESCAPE) {
+          const escaped = pattern[index + 1];
+          if (escaped === "*" || escaped === "[" || escaped === SPACE || escaped === ESCAPE) {
+            out += pattern.slice(index, index + 2);
+          } else {
+            out += hold(
+              REGEX_LITERAL_SPECIAL.test(escaped) ? ESCAPE + escaped : escaped
+            );
+          }
+          index += 2;
+        } else if (char === PLACEHOLDER) {
+          out += hold(`[${PLACEHOLDER}]`);
+          index++;
+        } else if (char === "[") {
+          const scanned = scanBracket(pattern, index);
+          if (scanned === null) {
+            out += hold(NEVER_MATCH);
+            index = length;
+          } else {
+            out += hold(scanned.source);
+            index = scanned.end + 1;
+          }
+        } else {
+          out += char;
+          index++;
+        }
+      }
+      return {
+        source: out,
+        sources
+      };
+    };
+    var DIRECT = null;
+    var REGEX_INNER_SLASH = /\/(?!$)/;
+    var REPLACERS = [
+      [
+        // Remove BOM
+        // TODO:
+        // Other similar zero-width characters?
+        /^\uFEFF/,
+        () => EMPTY2,
+        "\uFEFF"
+      ],
+      [
+        // A trailing line terminator, left on when a whole file's contents are
+        //   added as one pattern rather than split into lines. git never sees one
+        //   -- it reads a `.gitignore` line by line -- so it is not part of the
+        //   pattern and is dropped here, apart from the trailing-space trimming,
+        //   which follows git in touching spaces and nothing else.
+        /[\r\n]+$/,
+        () => EMPTY2
+      ],
+      // > Trailing spaces are ignored unless they are quoted with backslash ("\")
+      [
+        // Only spaces, never tabs or other whitespace: git trims a trailing run
+        //   of `' '` and nothing else (dir.c, `trim_trailing_spaces`, a single
+        //   `case ' '`), so a pattern ending in a tab keeps it as a literal.
+        // (a\ ) -> (a )
+        // (a  ) -> (a)
+        // (a ) -> (a)
+        // (a \ ) -> (a  )
+        /((?:\\\\)*?)(\\? +)$/,
+        (_, m1, m2) => m1 + (m2.indexOf("\\") === 0 ? SPACE : EMPTY2)
+      ],
+      // Replace (\ ) with ' '
+      // Only a space: an escaped tab or other whitespace is already a literal by
+      //   the time it reaches here, and a bare tab must be left as one, not turned
+      //   into a space.
+      // (\ ) -> ' '
+      // (\\ ) -> '\\ '
+      // (\\\ ) -> '\\ '
+      [
+        /(\\+?) /g,
+        (_, m1) => {
+          const { length } = m1;
+          return m1.slice(0, length - length % 2) + SPACE;
+        }
+      ],
+      // Escape metacharacters
+      // which is written down by users but means special for regular expressions.
+      // > There are 12 characters with special meanings:
+      // > - the backslash \,
+      // > - the caret ^,
+      // > - the dollar sign $,
+      // > - the period or dot .,
+      // > - the vertical bar or pipe symbol |,
+      // > - the question mark ?,
+      // > - the asterisk or star *,
+      // > - the plus sign +,
+      // > - the opening parenthesis (,
+      // > - the closing parenthesis ),
+      // > - and the opening square bracket [,
+      // > - the opening curly brace {,
+      // > These special characters are often called "metacharacters".
+      [
+        /[\\$.|*+(){^]/g,
+        (match) => `\\${match}`
+      ],
+      [
+        // > a question mark (?) matches a single character
+        /(?!\\)\?/g,
+        () => "[^/]",
+        "?"
+      ],
+      // leading slash
+      [
+        // > A leading slash matches the beginning of the pathname.
+        // > For example, "/*.c" matches "cat-file.c" but not "mozilla-sha1/sha1.c".
+        // A leading slash matches the beginning of the pathname
+        /^\//,
+        () => "^",
+        SLASH
+      ],
+      // replace special metacharacter slash after the leading slash
+      [
+        /\//g,
+        () => "\\/",
+        SLASH
+      ],
+      [
+        // > A leading "**" followed by a slash means match in all directories.
+        // > For example, "**/foo" matches file or directory "foo" anywhere,
+        // > the same as pattern "foo".
+        // > "**/foo/bar" matches file or directory "bar" anywhere that is directly
+        // >   under directory "foo".
+        // Notice that the '*'s have been replaced as '\\*'
+        /^\^*(?:\\\*\\\*\\\/)+/,
+        // '**/foo' <-> 'foo'
+        () => "^(?:.*\\/)?",
+        "*"
+      ],
+      // starting
+      [
+        // there will be no leading '/'
+        //   (which has been replaced by section "leading slash")
+        // If starts with '**', adding a '^' to the regular expression also works
+        DIRECT,
+        (source, pattern) => {
+          if (!source || source[0] === "^") {
+            return source;
+          }
+          const anchor = !REGEX_INNER_SLASH.test(pattern) ? "(?:^|\\/)" : "^";
+          return anchor + source;
+        }
+      ],
+      // two globstars
+      [
+        // Use lookahead assertions so that we could match more than one `'/**'`
+        /\\\/\\\*\\\*(?=\\\/|$)/g,
+        // Zero, one or several directories
+        // should not use '*', or it will be replaced by the next replacer
+        // Check if it is not the last `'/**'`
+        (_, index, str) => index + 6 < str.length ? str.slice(index + 6) === "\\/" ? "(?:\\/[^\\/]+)+" : "(?:\\/[^\\/]+)*" : "\\/.+",
+        "*"
+      ],
+      // normal intermediate wildcards
+      [
+        // Never replace escaped '*'
+        // ignore rule '\*' will match the path '*'
+        // 'abc.*/' -> go
+        // 'abc.*'  -> skip this rule,
+        //    coz trailing single wildcard will be handed by [trailing wildcard]
+        /(^|[^\\]+)(\\\*)+(?=.+)/g,
+        // '*.js' matches '.js'
+        // '*.js' doesn't match 'abc'
+        (_, p1, p2) => {
+          const unescaped = p2.replace(/\\\*/g, "[^\\/]*");
+          return p1 + unescaped;
+        },
+        "*"
+      ],
+      // trailing wildcard, held apart from a literal star
+      [
+        // The step above leaves a trailing `*` alone, so a single `\*` is all that
+        //   can be left at the end here. Whether it is a wildcard or a literal
+        //   turns on the backslashes the user put in front of it: the escaper has
+        //   since doubled every one, so what stands here is those `2N` doubled
+        //   backslashes and then the star's own escape. An even number of the
+        //   original `N` leaves the star unescaped -- a wildcard -- and an odd
+        //   number escapes it -- a literal. This runs while the two are still
+        //   distinct, before the unescape steps below collapse the literal onto
+        //   the very `\*` a wildcard leaves behind.
+        /(^|[^\\])((?:\\\\)*)\\\*$/,
+        (match, p1, p2) => (
+          // `p2` holds the doubled user backslashes; half of them is `N`.
+          p2.length / 2 % 2 === 0 ? p1 + p2 + TRAILING_WILDCARD : match
+        ),
+        "*"
+      ],
+      [
+        // unescape, revert step 3 except for back slash
+        // For example, if a user escape a '\\*',
+        // after step 3, the result will be '\\\\\\*'
+        /\\\\\\(?=[$.|*+(){^])/g,
+        () => ESCAPE,
+        ESCAPE + ESCAPE
+      ],
+      [
+        // '\\\\' -> '\\'
+        /\\\\/g,
+        () => ESCAPE,
+        ESCAPE + ESCAPE
+      ],
+      [
+        // Every real bracket expression -- POSIX classes included -- has already
+        //   been held aside by `extractBrackets`, so the only `[` left in the
+        //   pattern is an escaped, literal one.
+        // `\` is escaped by step 3
+        /\\\[([^\]/]*?)(\\*)($|\])/g,
+        // '\\[bar]' -> '\\\\[bar\\]'
+        (match, range, endEscape, close) => `\\[${range}${cleanRangeBackSlash(endEscape)}${close}`,
+        "["
+      ],
+      // ending
+      [
+        // 'js' will not match 'js.'
+        // 'ab' will not match 'abc'
+        DIRECT,
+        // WTF!
+        // https://git-scm.com/docs/gitignore
+        // changes in [2.22.1](https://git-scm.com/docs/gitignore/2.22.1)
+        // which re-fixes #24, #38
+        // > If there is a separator at the end of the pattern then the pattern
+        // > will only match directories, otherwise the pattern can match both
+        // > files and directories.
+        // 'js*' will not match 'a.js'
+        // 'js/' will not match 'a.js'
+        // 'js' will match 'a.js' and 'a.js/'
+        (source) => {
+          const last = source[source.length - 1];
+          if (!last || last === TRAILING_WILDCARD) {
+            return source;
+          }
+          return last === SLASH ? `${source}$` : `${source}(?=$|\\/$)`;
+        }
+      ]
+    ];
+    var REGEX_REPLACE_TRAILING_WILDCARD = /(^|\\\/)?\uE000$/;
+    var MODE_IGNORE = "regex";
+    var MODE_CHECK_IGNORE = "checkRegex";
+    var UNDERSCORE = "_";
+    var TRAILING_WILD_CARD_REPLACERS = {
+      [MODE_IGNORE](_, p1) {
+        const prefix = p1 ? `${p1}[^/]+` : "[^/]*";
+        return `${prefix}(?=$|\\/$)`;
+      },
+      [MODE_CHECK_IGNORE](_, p1) {
+        const prefix = p1 ? `${p1}[^/]*` : "[^/]*";
+        return `${prefix}(?=$|\\/$)`;
+      }
+    };
+    var WILDCARD = "[^\\/]*";
+    var pinWildcards = (source) => {
+      if (source.indexOf(WILDCARD) < 0) {
+        return source;
+      }
+      const tokens = [];
+      const { length } = source;
+      let index = 0;
+      while (index < length) {
+        const char = source[index];
+        if (source.startsWith(WILDCARD, index)) {
+          tokens.push({ wildcard: true });
+          index += WILDCARD.length;
+        } else if (char === "[") {
+          let end = index + 1;
+          if (source[end] === "^") {
+            end++;
+          }
+          if (source[end] === "]") {
+            end++;
+          }
+          while (end < length && source[end] !== "]") {
+            end += source[end] === ESCAPE ? 2 : 1;
+          }
+          end++;
+          tokens.push({ single: source.slice(index, end) });
+          index = end;
+        } else if (char === ESCAPE) {
+          tokens.push({ single: source.slice(index, index + 2) });
+          index += 2;
+        } else if (char === "(") {
+          let depth = 0;
+          let end = index;
+          do {
+            if (source[end] === ESCAPE) {
+              end++;
+            } else if (source[end] === "(") {
+              depth++;
+            } else if (source[end] === ")") {
+              depth--;
+            }
+            end++;
+          } while (end < length && depth > 0);
+          if ("*+?".indexOf(source[end]) >= 0) {
+            end++;
+          }
+          tokens.push({ boundary: source.slice(index, end) });
+          index = end;
+        } else if (char === "^" || char === "$") {
+          tokens.push({ boundary: char });
+          index++;
+        } else {
+          tokens.push({ single: char });
+          index++;
+        }
+      }
+      let out = EMPTY2;
+      let run2 = [];
+      const flush = () => {
+        let lastWildcard;
+        run2.forEach((token, at) => {
+          if (token.wildcard) {
+            lastWildcard = at;
+          }
+        });
+        run2.forEach((token, at) => {
+          if (!token.wildcard) {
+            out += token.single;
+            return;
+          }
+          out += at === lastWildcard ? WILDCARD : `(?:(?!${run2[at + 1].single})[^\\/])*`;
+        });
+        run2 = [];
+      };
+      tokens.forEach((token) => {
+        if (token.boundary === void 0) {
+          run2.push(token);
+          return;
+        }
+        flush();
+        out += token.boundary;
+      });
+      flush();
+      return out;
+    };
+    var makeRegexPrefix = (pattern) => {
+      const { source, sources } = extractBrackets(pattern);
+      const replaced = REPLACERS.reduce(
+        // A pass whose matcher finds nothing hands back the very string it was
+        //   given, so asking first costs a search and saves a rewrite. Ten of the
+        //   fifteen passes never fire for a typical .gitignore line, and between
+        //   them they were 45% of this chain.
+        (prev, [matcher, replacer, required]) => {
+          if (matcher === DIRECT) {
+            return replacer(prev, pattern);
+          }
+          if (required !== UNDEFINED && prev.indexOf(required) < 0) {
+            return prev;
+          }
+          return matcher.test(prev) ? prev.replace(matcher, replacer.bind(pattern)) : prev;
+        },
+        source
+      );
+      return sources.length ? replaced.replace(
+        REGEX_RESTORE_PLACEHOLDER,
+        (match, index) => sources[index]
+      ) : replaced;
+    };
+    var matchesBasename = (body) => {
+      const index = body.indexOf(SLASH);
+      return index < 0 || index === body.length - 1;
+    };
+    var basenameOf = (path) => {
+      const end = path.length - 1;
+      const index = path.lastIndexOf(
+        SLASH,
+        path[end] === SLASH ? end - 1 : end
+      );
+      return index < 0 ? path : path.slice(index + 1);
+    };
+    var parentOf = (path) => {
+      if (path.charCodeAt(0) === SLASH_CODE || path.indexOf(DOUBLE_SLASH) >= 0) {
+        const slices = path.split(SLASH).filter(Boolean);
+        slices.pop();
+        return slices.length ? slices.join(SLASH) + SLASH : EMPTY2;
+      }
+      const end = path.length - 1;
+      const cut = path.lastIndexOf(
+        SLASH,
+        path.charCodeAt(end) === SLASH_CODE ? end - 1 : end
+      );
+      return cut < 0 ? EMPTY2 : path.slice(0, cut + 1);
+    };
+    var isString = (subject) => typeof subject === "string";
+    var checkPattern = (pattern) => pattern && isString(pattern) && !REGEX_TEST_BLANK_LINE.test(pattern) && !REGEX_INVALID_TRAILING_BACKSLASH.test(pattern) && pattern.indexOf("#") !== 0;
+    var splitPattern = (pattern) => pattern.split(REGEX_SPLITALL_CRLF).filter(Boolean);
+    var IgnoreRule = class {
+      constructor(pattern, mark, body, ignoreCase, negative, prefix) {
+        this.pattern = pattern;
+        this.mark = mark;
+        this.negative = negative;
+        define(this, "body", body);
+        define(this, "ignoreCase", ignoreCase);
+        define(this, "regexPrefix", prefix);
+      }
+      // Worked out on first use and kept behind an own property, the way `regex`
+      //   caches itself in `_regex`. Deciding it in the constructor instead would
+      //   add a fourth `defineProperty` to every rule ever built, which cost 4% of
+      //   every compile -- including the compiles of rules that are never matched
+      //   against anything.
+      get _basenameOnly() {
+        return define(this, "_basenameOnly", matchesBasename(this.body));
+      }
+      get regex() {
+        const key = UNDERSCORE + MODE_IGNORE;
+        if (this[key]) {
+          return this[key];
+        }
+        return this._make(MODE_IGNORE, key);
+      }
+      get checkRegex() {
+        const key = UNDERSCORE + MODE_CHECK_IGNORE;
+        if (this[key]) {
+          return this[key];
+        }
+        return this._make(MODE_CHECK_IGNORE, key);
+      }
+      _make(mode, key) {
+        const str = pinWildcards(this.regexPrefix.replace(
+          REGEX_REPLACE_TRAILING_WILDCARD,
+          // It does not need to bind pattern
+          TRAILING_WILD_CARD_REPLACERS[mode]
+        ));
+        const regex = this.ignoreCase ? new RegExp(str, "i") : new RegExp(str);
+        return define(this, key, regex);
+      }
+    };
+    var createRule = ({
+      pattern,
+      mark
+    }, ignoreCase) => {
+      let negative = false;
+      let body = pattern;
+      if (body.indexOf("!") === 0) {
+        negative = true;
+        body = body.substr(1);
+      }
+      body = body.replace(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION, "!").replace(REGEX_REPLACE_LEADING_EXCAPED_HASH, "#");
+      const regexPrefix = makeRegexPrefix(body);
+      return new IgnoreRule(
+        pattern,
+        mark,
+        body,
+        ignoreCase,
+        negative,
+        regexPrefix
+      );
+    };
+    var RuleManager = class {
+      constructor(ignoreCase) {
+        this._ignoreCase = ignoreCase;
+        this._rules = [];
+        this._basenameCount = 0;
+      }
+      _add(pattern) {
+        if (pattern && pattern[KEY_IGNORE]) {
+          this._rules = this._rules.concat(pattern._rules._rules);
+          this._basenameCount += pattern._rules._basenameCount;
+          this._added = true;
+          return;
+        }
+        if (isString(pattern)) {
+          pattern = {
+            pattern
+          };
+        }
+        if (checkPattern(pattern.pattern)) {
+          const rule = createRule(pattern, this._ignoreCase);
+          this._added = true;
+          this._rules.push(rule);
+          if (matchesBasename(rule.body)) {
+            this._basenameCount++;
+          }
+        }
+      }
+      // @param {Array<string> | string | Ignore} pattern
+      add(pattern) {
+        this._added = false;
+        makeArray(
+          isString(pattern) ? splitPattern(pattern) : pattern
+        ).forEach(this._add, this);
+        return this._added;
+      }
+      // Test one single path without recursively checking parent directories
+      //
+      // - checkUnignored `boolean` whether should check if the path is unignored,
+      //   setting `checkUnignored` to `false` could reduce additional
+      //   path matching.
+      // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
+      // @returns {TestResult} true if a file is ignored
+      test(path, checkUnignored, mode) {
+        let ignored = false;
+        let unignored = false;
+        let matchedRule;
+        const rules = this._rules;
+        const { length } = rules;
+        const shortcut = this._basenameCount * 2 >= length;
+        const basename2 = shortcut ? basenameOf(path) : path;
+        for (let index = 0; index < length; index++) {
+          const rule = rules[index];
+          const { negative } = rule;
+          const skip = unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored;
+          if (!skip && rule[mode].test(
+            shortcut && rule._basenameOnly ? basename2 : path
+          )) {
+            ignored = !negative;
+            unignored = negative;
+            matchedRule = negative ? UNDEFINED : rule;
+          }
+        }
+        const ret = {
+          ignored,
+          unignored
+        };
+        if (matchedRule) {
+          ret.rule = matchedRule;
+        }
+        return ret;
+      }
+    };
+    var throwError = (message, Ctor) => {
+      throw new Ctor(message);
+    };
+    var checkPath = (path, originalPath, doThrow) => {
+      if (!isString(path)) {
+        return doThrow(
+          `path must be a string, but got \`${originalPath}\``,
+          TypeError
+        );
+      }
+      if (!path) {
+        return doThrow(`path must not be empty`, TypeError);
+      }
+      if (checkPath.isNotRelative(path)) {
+        const r = "`path.relative()`d";
+        return doThrow(
+          `path should be a ${r} string, but got "${originalPath}"`,
+          RangeError
+        );
+      }
+      return true;
+    };
+    var isNotRelative = (path) => {
+      const first = path.charCodeAt(0);
+      if (first === SLASH_CODE) {
+        return true;
+      }
+      if (first !== DOT_CODE) {
+        return false;
+      }
+      if (path.length === 1) {
+        return true;
+      }
+      const second = path.charCodeAt(1);
+      if (second === SLASH_CODE) {
+        return true;
+      }
+      if (second !== DOT_CODE) {
+        return false;
+      }
+      return path.length === 2 || path.charCodeAt(2) === SLASH_CODE;
+    };
+    checkPath.isNotRelative = isNotRelative;
+    checkPath.convert = (p) => p;
+    var Ignore = class {
+      constructor({
+        ignorecase = true,
+        ignoreCase = ignorecase,
+        allowRelativePaths = false
+      } = {}) {
+        define(this, KEY_IGNORE, true);
+        this._rules = new RuleManager(ignoreCase);
+        this._strictPathCheck = !allowRelativePaths;
+        this._initCache();
+      }
+      _initCache() {
+        this._ignoreCache = /* @__PURE__ */ Object.create(null);
+        this._testCache = /* @__PURE__ */ Object.create(null);
+      }
+      add(pattern) {
+        if (this._rules.add(pattern)) {
+          this._initCache();
+        }
+        return this;
+      }
+      // legacy
+      addPattern(pattern) {
+        return this.add(pattern);
+      }
+      // @returns {TestResult}
+      _test(originalPath, cache, checkUnignored) {
+        const path = originalPath && checkPath.convert(originalPath);
+        checkPath(
+          path,
+          originalPath,
+          this._strictPathCheck ? throwError : RETURN_FALSE
+        );
+        return this._t(path, cache, checkUnignored);
+      }
+      checkIgnore(path) {
+        if (path.charCodeAt(path.length - 1) !== SLASH_CODE) {
+          return this.test(path);
+        }
+        const parentPath = parentOf(path);
+        if (parentPath) {
+          const parent = this._t(parentPath, this._testCache, true);
+          if (parent.ignored) {
+            return parent;
+          }
+        }
+        return this._rules.test(path, false, MODE_CHECK_IGNORE);
+      }
+      _t(path, cache, checkUnignored) {
+        if (path in cache) {
+          return cache[path];
+        }
+        const parentPath = parentOf(path);
+        const parent = parentPath ? this._t(parentPath, cache, checkUnignored) : UNDEFINED;
+        return cache[path] = parent && parent.ignored ? parent : this._rules.test(path, checkUnignored, MODE_IGNORE);
+      }
+      ignores(path) {
+        return this._test(path, this._ignoreCache, false).ignored;
+      }
+      createFilter() {
+        return (path) => !this.ignores(path);
+      }
+      filter(paths) {
+        return makeArray(paths).filter(this.createFilter());
+      }
+      // @returns {TestResult}
+      test(path) {
+        return this._test(path, this._testCache, true);
+      }
+    };
+    var factory = (options) => new Ignore(options);
+    var isPathValid = (path) => checkPath(path && checkPath.convert(path), path, RETURN_FALSE);
+    var setupWindows = () => {
+      const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
+      checkPath.convert = makePosix;
+      const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
+      checkPath.isNotRelative = (path) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path) || isNotRelative(path);
+    };
+    if (
+      // Detect `process` so that it can run in browsers.
+      typeof process !== "undefined" && process.platform === "win32"
+    ) {
+      setupWindows();
+    }
+    module2.exports = factory;
+    factory.default = factory;
+    module2.exports.isPathValid = isPathValid;
+    define(module2.exports, /* @__PURE__ */ Symbol.for("setupWindows"), setupWindows);
+  }
+});
+
+// src/action/main.ts
+var main_exports = {};
+__export(main_exports, {
+  checkoutBaseWithGit: () => checkoutBaseWithGit,
+  run: () => run
+});
+module.exports = __toCommonJS(main_exports);
+var import_node_fs4 = require("node:fs");
+var import_node_os = require("node:os");
+var import_node_path9 = require("node:path");
+
+// src/engine/exec.ts
+var import_node_child_process = require("node:child_process");
+var CancelledError = class extends Error {
+  constructor(message = "Cancelled.") {
+    super(message);
+    this.name = "CancelledError";
+  }
+};
+var SAFE_SHELL_ARG = /^[A-Za-z0-9@._/=~:-]+$/;
+function killProcessTree(child) {
+  if (process.platform === "win32" && child.pid !== void 0) {
+    (0, import_node_child_process.spawn)("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+      windowsHide: true
+    });
+    return;
+  }
+  child.kill();
+}
+function runProcess(command, args, options) {
+  return new Promise((resolve2, reject) => {
+    const { cwd, signal } = options;
+    const env = options.env ? { ...process.env, ...options.env } : void 0;
+    if (signal?.aborted) {
+      reject(new CancelledError());
+      return;
+    }
+    let child;
+    if (process.platform === "win32") {
+      const unsafe = [command, ...args].find((arg) => !SAFE_SHELL_ARG.test(arg));
+      if (unsafe !== void 0) {
+        reject(new Error(`Refusing to pass unsafe argument to the shell: ${unsafe}`));
+        return;
+      }
+      child = (0, import_node_child_process.spawn)([command, ...args].join(" "), {
+        cwd,
+        env,
+        shell: true,
+        windowsHide: true
+      });
+    } else {
+      child = (0, import_node_child_process.spawn)(command, args, { cwd, env });
+    }
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const settle = (fn) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      signal?.removeEventListener("abort", abortHandler);
+      fn();
+    };
+    const abortHandler = () => {
+      killProcessTree(child);
+      settle(() => reject(new CancelledError()));
+    };
+    signal?.addEventListener("abort", abortHandler, { once: true });
+    child.stdout?.setEncoding("utf8");
+    child.stderr?.setEncoding("utf8");
+    child.stdout?.on("data", (data) => {
+      stdout += data;
+    });
+    child.stderr?.on("data", (data) => {
+      stderr += data;
+    });
+    child.on("error", (error) => {
+      settle(() => reject(error));
+    });
+    child.on("close", (code) => {
+      settle(() => resolve2({ code, stdout, stderr }));
+    });
+  });
+}
+
+// src/engine/scan.ts
+var import_node_fs3 = require("node:fs");
+var import_node_path8 = require("node:path");
+
+// src/engine/footprint.ts
+var import_promises = require("node:fs/promises");
+var import_node_path = require("node:path");
+var import_semver = __toESM(require_semver2());
+var SEVERITIES = ["critical", "high", "moderate", "low"];
+var BULK_ADVISORY_URL = "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk";
+var ADVISORY_TIMEOUT_MS = 15e3;
+var fetchRegistryAdvisories = async (request, signal) => {
+  const timeout = AbortSignal.timeout(ADVISORY_TIMEOUT_MS);
+  const response = await fetch(BULK_ADVISORY_URL, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(request),
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout
+  });
+  if (!response.ok) {
+    throw new Error(`the npm registry answered ${response.status}`);
+  }
+  return await response.json();
+};
+var advisoryCache = /* @__PURE__ */ new Map();
+async function readJson(path) {
+  try {
+    return JSON.parse(await (0, import_promises.readFile)(path, "utf8"));
+  } catch {
+    return void 0;
+  }
+}
+function names(manifest, sections) {
+  return sections.flatMap((section) => {
+    const deps = manifest[section];
+    return deps && typeof deps === "object" ? Object.keys(deps) : [];
+  });
+}
+var NODE_MODULES_SEGMENT = `${import_node_path.sep}node_modules${import_node_path.sep}`;
+var InstalledTree = class {
+  nodes = /* @__PURE__ */ new Map();
+  resolved = /* @__PURE__ */ new Map();
+  // Node's lookup: `<dir>/node_modules/<name>`, then each parent dir. Works for
+  // pnpm too, because a package's real path sits next to its dependencies.
+  async resolve(fromDir, name) {
+    const cacheKey = `${fromDir}\0${name}`;
+    if (this.resolved.has(cacheKey)) {
+      return this.resolved.get(cacheKey);
+    }
+    let dir = fromDir;
+    let found;
+    for (; ; ) {
+      if ((0, import_node_path.basename)(dir) !== "node_modules") {
+        try {
+          const real = await (0, import_promises.realpath)((0, import_node_path.join)(dir, "node_modules", name));
+          if (await readJson((0, import_node_path.join)(real, "package.json"))) {
+            found = real;
+            break;
+          }
+        } catch {
+        }
+      }
+      const parent = (0, import_node_path.dirname)(dir);
+      if (parent === dir) {
+        break;
+      }
+      dir = parent;
+    }
+    this.resolved.set(cacheKey, found);
+    return found;
+  }
+  // Loads `dir` and everything it depends on.
+  async load(start, signal) {
+    const queue = [start];
+    while (queue.length > 0) {
+      signal?.throwIfAborted();
+      const dir = queue.pop();
+      if (this.nodes.has(dir)) {
+        continue;
+      }
+      const manifest = await readJson((0, import_node_path.join)(dir, "package.json")) ?? {};
+      const node = {
+        name: typeof manifest.name === "string" ? manifest.name : (0, import_node_path.basename)(dir),
+        version: typeof manifest.version === "string" ? manifest.version : "0.0.0",
+        dir,
+        local: !`${dir}${import_node_path.sep}`.includes(NODE_MODULES_SEGMENT),
+        deps: []
+      };
+      this.nodes.set(dir, node);
+      if (node.local) {
+        continue;
+      }
+      for (const name of names(manifest, ["dependencies", "optionalDependencies", "peerDependencies"])) {
+        const dep = await this.resolve(dir, name);
+        if (dep) {
+          node.deps.push(dep);
+          queue.push(dep);
+        }
+      }
+    }
+  }
+  reachable(starts) {
+    const seen = /* @__PURE__ */ new Set();
+    const queue = [...starts];
+    while (queue.length > 0) {
+      const dir = queue.pop();
+      if (seen.has(dir)) {
+        continue;
+      }
+      seen.add(dir);
+      queue.push(...this.nodes.get(dir)?.deps ?? []);
+    }
+    return seen;
+  }
+};
+async function directorySize(dir, signal) {
+  let total = 0;
+  let entries;
+  try {
+    entries = await (0, import_promises.readdir)(dir, { withFileTypes: true });
+  } catch {
+    return 0;
+  }
+  for (const entry of entries) {
+    signal?.throwIfAborted();
+    const path = (0, import_node_path.join)(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name !== "node_modules") {
+        total += await directorySize(path, signal);
+      }
+    } else if (entry.isFile()) {
+      try {
+        total += (await (0, import_promises.lstat)(path)).size;
+      } catch {
+      }
+    }
+  }
+  return total;
+}
+function toAdvisories(name, version, raw) {
+  return raw.filter((advisory) => {
+    try {
+      return Boolean(advisory.vulnerable_versions) && import_semver.default.satisfies(version, advisory.vulnerable_versions, { includePrerelease: true });
+    } catch {
+      return false;
+    }
+  }).map((advisory) => ({
+    package: name,
+    version,
+    severity: SEVERITIES.find((level) => level === advisory.severity) ?? "low",
+    title: advisory.title ?? "Known vulnerability",
+    url: advisory.url ?? ""
+  }));
+}
+async function lookUpAdvisories(nodes, fetcher, signal) {
+  const request = {};
+  for (const { name, version } of nodes) {
+    if (!advisoryCache.has(`${name}@${version}`)) {
+      request[name] = [.../* @__PURE__ */ new Set([...request[name] ?? [], version])];
+    }
+  }
+  if (Object.keys(request).length === 0) {
+    return;
+  }
+  const response = await fetcher(request, signal);
+  for (const [name, versions] of Object.entries(request)) {
+    for (const version of versions) {
+      advisoryCache.set(`${name}@${version}`, toAdvisories(name, version, response[name] ?? []));
+    }
+  }
+}
+var EMPTY = { packages: 0, bytes: 0, advisories: [] };
+async function measureFootprints(projectRoot, manifestDirs, removals, { signal, fetchAdvisories = fetchRegistryAdvisories } = {}) {
+  const warnings = [];
+  const tree = new InstalledTree();
+  const roots = [];
+  for (const manifestDir of /* @__PURE__ */ new Set(["", ...manifestDirs])) {
+    const manifest = await readJson((0, import_node_path.join)(projectRoot, manifestDir, "package.json"));
+    if (!manifest) {
+      continue;
+    }
+    for (const name of names(manifest, ["dependencies", "devDependencies", "optionalDependencies"])) {
+      const dir = await tree.resolve((0, import_node_path.join)(projectRoot, manifestDir), name);
+      if (dir) {
+        roots.push({ manifestDir, name, dir });
+        await tree.load(dir, signal);
+      }
+    }
+  }
+  if (roots.length === 0) {
+    return { perRemoval: /* @__PURE__ */ new Map(), combined: EMPTY, warnings };
+  }
+  const all = tree.reachable(roots.map((root) => root.dir));
+  const goneWithout = (removed) => {
+    const isRemoved = (root) => removed.some((removal) => removal.manifestDir === root.manifestDir && removal.name === root.name);
+    const kept = tree.reachable(roots.filter((root) => !isRemoved(root)).map((root) => root.dir));
+    return new Set([...all].filter((dir) => !kept.has(dir) && !tree.nodes.get(dir)?.local));
+  };
+  const combinedGone = goneWithout(removals);
+  const perRemovalGone = new Map(removals.map((removal) => [removal.id, goneWithout([removal])]));
+  const sizes = /* @__PURE__ */ new Map();
+  for (const dir of combinedGone) {
+    sizes.set(dir, await directorySize(dir, signal));
+  }
+  const goneNodes = [...combinedGone].map((dir) => tree.nodes.get(dir));
+  let advisoriesKnown = false;
+  if (fetchAdvisories && goneNodes.length > 0) {
+    try {
+      await lookUpAdvisories(goneNodes, fetchAdvisories, signal);
+      advisoriesKnown = true;
+    } catch (error) {
+      if (signal?.aborted) {
+        throw error;
+      }
+      warnings.push(`Couldn't check unused packages for known vulnerabilities (${error.message}). Sizes are still shown.`);
+    }
+  }
+  const footprintOf = (gone) => ({
+    packages: gone.size,
+    bytes: [...gone].reduce((sum, dir) => sum + (sizes.get(dir) ?? 0), 0),
+    advisories: advisoriesKnown ? [...gone].flatMap((dir) => {
+      const { name, version } = tree.nodes.get(dir);
+      return advisoryCache.get(`${name}@${version}`) ?? [];
+    }) : []
+  });
+  return {
+    perRemoval: new Map([...perRemovalGone].map(([id, gone]) => [id, footprintOf(gone)])),
+    combined: footprintOf(combinedGone),
+    warnings
+  };
+}
+function countBySeverity(advisories) {
+  const counts = { critical: 0, high: 0, moderate: 0, low: 0 };
+  for (const advisory of advisories) {
+    counts[advisory.severity]++;
+  }
+  return counts;
+}
+function formatBytes(bytes) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  const units = ["KB", "MB", "GB"];
+  let value = bytes / 1024;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
+}
+function describeAdvisories(advisories) {
+  if (advisories.length === 0) {
+    return "no known vulnerabilities";
+  }
+  const counts = countBySeverity(advisories);
+  const parts = SEVERITIES.filter((level) => counts[level] > 0).map((level) => `${counts[level]} ${level}`);
+  return `${advisories.length} known ${advisories.length === 1 ? "vulnerability" : "vulnerabilities"} (${parts.join(", ")})`;
+}
+
+// src/engine/confidence.ts
+var import_node_path3 = require("node:path");
+
+// src/engine/project.ts
+var import_promises2 = require("node:fs/promises");
+var import_node_path2 = require("node:path");
+var import_ignore = __toESM(require_ignore());
+
+// src/engine/dynamicImports.ts
+var CALL_PATTERN = /\b(?:import|require)\s*\(/g;
+function skipTrivia(source, index) {
+  let i = index;
+  while (i < source.length) {
+    if (/\s/.test(source[i])) {
+      i++;
+    } else if (source.startsWith("/*", i)) {
+      const end = source.indexOf("*/", i + 2);
+      i = end === -1 ? source.length : end + 2;
+    } else if (source.startsWith("//", i)) {
+      const end = source.indexOf("\n", i + 2);
+      i = end === -1 ? source.length : end + 1;
+    } else {
+      break;
+    }
+  }
+  return i;
+}
+function readLiteral(source, index) {
+  const quote = source[index];
+  let text = "";
+  let i = index + 1;
+  while (i < source.length) {
+    const char = source[i];
+    if (char === "\\") {
+      text += source[i + 1] ?? "";
+      i += 2;
+    } else if (char === quote) {
+      return { text, end: i + 1, interpolated: false };
+    } else if (quote === "`" && source.startsWith("${", i)) {
+      return { text, end: i, interpolated: true };
+    } else if (char === "\n" && quote !== "`") {
+      return void 0;
+    } else {
+      text += char;
+      i++;
+    }
+  }
+  return void 0;
+}
+function extractDynamicImportPrefixes(source) {
+  const prefixes = [];
+  for (const match of source.matchAll(CALL_PATTERN)) {
+    if (source[match.index - 1] === ".") {
+      continue;
+    }
+    const argStart = skipTrivia(source, match.index + match[0].length);
+    const first = source[argStart];
+    if (first === ")" || first === void 0) {
+      continue;
+    }
+    if (first !== '"' && first !== "'" && first !== "`") {
+      prefixes.push("");
+      continue;
+    }
+    const literal = readLiteral(source, argStart);
+    if (!literal) {
+      prefixes.push("");
+      continue;
+    }
+    if (literal.interpolated) {
+      prefixes.push(literal.text);
+      continue;
+    }
+    const next = source[skipTrivia(source, literal.end)];
+    if (next !== ")" && next !== ",") {
+      prefixes.push(literal.text);
+    }
+  }
+  return prefixes;
+}
+
+// src/engine/project.ts
+var TRASH_DIR = ".deadweight-trash";
+var ALWAYS_SKIPPED_DIRS = /* @__PURE__ */ new Set([
+  "node_modules",
+  ".git",
+  TRASH_DIR,
+  ".next",
+  ".nuxt",
+  ".svelte-kit",
+  ".turbo",
+  ".cache",
+  "coverage",
+  ".deadweight"
+  // generated project maps for AI agents
+]);
+var SOURCE_FILE = /\.(?:[cm]?[jt]sx?|vue|svelte|astro)$/;
+var CONFIG_FILE = /\.config\.(?:[cm]?[jt]s|json|ya?ml)$|^\.[\w.-]*rc(?:\.(?:[cm]?[jt]s|json|ya?ml))?$|^(?:tsconfig|jsconfig)(?:\.[\w-]+)?\.json$/;
+var CI_FILE = /^(?:\.github\/workflows\/.+\.ya?ml|\.gitlab-ci\.ya?ml|\.circleci\/config\.ya?ml|azure-pipelines\.ya?ml|bitbucket-pipelines\.ya?ml|\.travis\.ya?ml|Jenkinsfile|Dockerfile|Makefile)$/;
+var MAX_SCANNED_FILE_BYTES = 1024 * 1024;
+function isIgnored(path, isDir, scopes) {
+  return scopes.some(({ base, rules }) => {
+    const relative = base ? path.slice(base.length + 1) : path;
+    return rules.ignores(isDir ? `${relative}/` : relative);
+  });
+}
+async function readIgnoreScope(root, dir) {
+  try {
+    const text = await (0, import_promises2.readFile)((0, import_node_path2.join)(root, dir, ".gitignore"), "utf8");
+    return { base: dir, rules: (0, import_ignore.default)().add(text) };
+  } catch {
+    return void 0;
+  }
+}
+async function listFiles(root, signal) {
+  const files = [];
+  const walk = async (dir, scopes) => {
+    signal?.throwIfAborted();
+    const scope = await readIgnoreScope(root, dir);
+    const activeScopes = scope ? [...scopes, scope] : scopes;
+    let entries;
+    try {
+      entries = await (0, import_promises2.readdir)((0, import_node_path2.join)(root, dir), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const path = dir ? `${dir}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        if (!ALWAYS_SKIPPED_DIRS.has(entry.name) && !isIgnored(path, true, activeScopes)) {
+          await walk(path, activeScopes);
+        }
+      } else if (entry.isFile() && !isIgnored(path, false, activeScopes)) {
+        files.push(path);
+      }
+    }
+  };
+  await walk("", []);
+  return files;
+}
+var MAX_PROJECT_DEPTH = 6;
+async function findProjectRoots(root, signal) {
+  const projects = [];
+  const walk = async (dir, scopes, depth) => {
+    signal?.throwIfAborted();
+    let entries;
+    try {
+      entries = await (0, import_promises2.readdir)((0, import_node_path2.join)(root, dir), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    if (entries.some((entry) => entry.isFile() && entry.name === "package.json")) {
+      projects.push(dir);
+      return;
+    }
+    if (depth >= MAX_PROJECT_DEPTH) {
+      return;
+    }
+    const scope = await readIgnoreScope(root, dir);
+    const activeScopes = scope ? [...scopes, scope] : scopes;
+    for (const entry of entries) {
+      const path = dir ? `${dir}/${entry.name}` : entry.name;
+      if (entry.isDirectory() && !entry.name.startsWith(".") && !ALWAYS_SKIPPED_DIRS.has(entry.name) && !isIgnored(path, true, activeScopes)) {
+        await walk(path, activeScopes, depth + 1);
+      }
+    }
+  };
+  await walk("", [], 0);
+  return projects.sort();
+}
+async function readSmallFile(path) {
+  try {
+    if ((await (0, import_promises2.stat)(path)).size > MAX_SCANNED_FILE_BYTES) {
+      return void 0;
+    }
+    return await (0, import_promises2.readFile)(path, "utf8");
+  } catch {
+    return void 0;
+  }
+}
+async function collectProjectContext(root, signal) {
+  const files = await listFiles(root, signal);
+  const identifierFileCounts = /* @__PURE__ */ new Map();
+  const context = {
+    sourceFileCount: 0,
+    identifierFileCounts,
+    workspaceDirs: [],
+    dynamicImports: [],
+    scripts: [],
+    ci: [],
+    configs: []
+  };
+  for (const file of files) {
+    signal?.throwIfAborted();
+    const name = import_node_path2.posix.basename(file);
+    const isSource = SOURCE_FILE.test(file);
+    const isConfig = CONFIG_FILE.test(name);
+    const isCi = CI_FILE.test(file);
+    const isManifest = name === "package.json";
+    if (!isSource && !isConfig && !isCi && !isManifest) {
+      continue;
+    }
+    const text = await readSmallFile((0, import_node_path2.join)(root, file));
+    if (text === void 0) {
+      continue;
+    }
+    if (isSource) {
+      context.sourceFileCount++;
+      for (const word of new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? [])) {
+        identifierFileCounts.set(word, (identifierFileCounts.get(word) ?? 0) + 1);
+      }
+      for (const prefix of extractDynamicImportPrefixes(text)) {
+        context.dynamicImports.push({ file, prefix });
+      }
+    }
+    if (isConfig) {
+      context.configs.push({ source: file, text });
+    }
+    if (isCi) {
+      context.ci.push({ source: file, text });
+    }
+    if (isManifest) {
+      const dir = import_node_path2.posix.dirname(file);
+      context.workspaceDirs.push(dir === "." ? "" : dir);
+      try {
+        const {
+          scripts,
+          dependencies: _dependencies,
+          devDependencies: _devDependencies,
+          peerDependencies: _peerDependencies,
+          optionalDependencies: _optionalDependencies,
+          ...rest
+        } = JSON.parse(text);
+        if (scripts && typeof scripts === "object") {
+          context.scripts.push({
+            source: file,
+            text: Object.values(scripts).filter((s) => typeof s === "string").join("\n")
+          });
+        }
+        context.configs.push({ source: file, text: JSON.stringify(rest, null, 1) });
+      } catch {
+      }
+    }
+  }
+  return context;
+}
+async function readInstalledPackage(root, workspaceDir, packageName) {
+  for (const dir of /* @__PURE__ */ new Set([(0, import_node_path2.join)(root, workspaceDir), root])) {
+    try {
+      const manifest = JSON.parse(
+        await (0, import_promises2.readFile)((0, import_node_path2.join)(dir, "node_modules", packageName, "package.json"), "utf8")
+      );
+      const bins = typeof manifest.bin === "string" ? [import_node_path2.posix.basename(packageName)] : manifest.bin && typeof manifest.bin === "object" ? Object.keys(manifest.bin) : [];
+      const peers = manifest.peerDependencies && typeof manifest.peerDependencies === "object" ? Object.keys(manifest.peerDependencies) : [];
+      return { bins, peers };
+    } catch {
+    }
+  }
+  return void 0;
+}
+async function readDeclaredDependencies(root, manifest) {
+  try {
+    const json = JSON.parse(await (0, import_promises2.readFile)((0, import_node_path2.join)(root, manifest), "utf8"));
+    return ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"].flatMap((section) => {
+      const deps = json[section];
+      return deps && typeof deps === "object" ? Object.keys(deps) : [];
+    });
+  } catch {
+    return [];
+  }
+}
+
+// src/engine/confidence.ts
+var TOOL_CONFIG_FILES = [
+  ["eslint", /^(?:\.eslintrc(?:\.\w+)?|eslint\.config\.[cm]?[jt]s)$/],
+  ["prettier", /^(?:\.prettierrc(?:\.\w+)?|prettier\.config\.[cm]?[jt]s)$/],
+  ["typescript", /^tsconfig(?:\.[\w-]+)?\.json$/],
+  ["@babel/core", /^(?:\.babelrc(?:\.\w+)?|babel\.config\.\w+)$/],
+  ["jest", /^jest\.config\.\w+$/],
+  ["vitest", /^vitest\.config\.\w+$/],
+  ["vite", /^vite\.config\.\w+$/],
+  ["postcss", /^(?:postcss\.config\.\w+|\.postcssrc(?:\.\w+)?)$/],
+  ["tailwindcss", /^tailwind\.config\.\w+$/],
+  ["stylelint", /^(?:\.stylelintrc(?:\.\w+)?|stylelint\.config\.\w+)$/],
+  ["webpack", /^webpack\.config\.\w+$/],
+  ["rollup", /^rollup\.config\.\w+$/],
+  ["next", /^next\.config\.\w+$/],
+  ["@commitlint/cli", /^(?:\.commitlintrc(?:\.\w+)?|commitlint\.config\.\w+)$/],
+  ["lint-staged", /^(?:\.lintstagedrc(?:\.\w+)?|lint-staged\.config\.\w+)$/]
+];
+var PLUGIN_PACKAGE = [
+  /(?:^|\/)eslint-(?:plugin|config)(?:-|$)/,
+  /(?:^|\/)babel-(?:plugin|preset)-/,
+  /^@babel\/(?:plugin|preset)-/,
+  /(?:^|\/)prettier-plugin-/,
+  /(?:^|\/)stylelint-(?:plugin|config)(?:-|$)/,
+  /(?:^|\/)postcss-/,
+  /(?:^|\/)(?:remark|rehype)-/,
+  /^@commitlint\//,
+  /(?:^|\/)(?:vite|rollup)-plugin-/,
+  /^@(?:vitejs|rollup)\/plugin-/,
+  /-loader$/
+];
+var BARREL_FILE = /^index\.[cm]?[jt]sx?$/;
+var ALIAS_PREFIX = /^(?:\/|@\/|~\/|#|\$)/;
+var START = { high: 90, medium: 70, low: 40 };
+var CEILING = { high: 99, medium: 79, low: 49 };
+var AGREEMENT_BONUS = 8;
+var RISK_PENALTY = 5;
+function confidenceOf(score) {
+  return score >= 80 ? "high" : score >= 50 ? "medium" : "low";
+}
+var Assessment = class {
+  notes = [];
+  score;
+  ceiling;
+  constructor(level, note) {
+    this.score = START[level];
+    this.ceiling = CEILING[level];
+    this.notes.push(note);
+  }
+  // Independent evidence that the item really is unused.
+  confirm(note) {
+    this.score = Math.min(this.score + AGREEMENT_BONUS, this.ceiling);
+    this.notes.push(note);
+  }
+  // A reason it might still be in use: caps the band and costs points.
+  cap(level, note) {
+    this.ceiling = Math.min(this.ceiling, CEILING[level]);
+    this.score = Math.max(1, Math.min(this.score, this.ceiling) - RISK_PENALTY);
+    this.notes.push(note);
+  }
+  get level() {
+    return confidenceOf(this.score);
+  }
+  get value() {
+    return this.score;
+  }
+  get reason() {
+    return `${this.notes.join(". ")}.`;
+  }
+};
+var lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function mentions(text, token) {
+  return new RegExp(
+    `(?:^|[\\s"'\`(/=,:;&|])${escapeRegExp(token)}(?:$|[\\s"'\`)/@,;:&|?#])`,
+    "m"
+  ).test(text);
+}
+function findMention(sources, tokens) {
+  return sources.find(({ text }) => tokens.some((token) => mentions(text, token)));
+}
+function workspaceOf(path, workspaceDirs) {
+  return workspaceDirs.filter((dir) => dir !== "" && path.startsWith(`${dir}/`)).sort((a, b) => b.length - a.length)[0] ?? "";
+}
+function resolveDynamicImport({ file, prefix }) {
+  if (prefix === "" || ALIAS_PREFIX.test(prefix)) {
+    return { scope: "unknown" };
+  }
+  if (prefix.startsWith(".")) {
+    const path = import_node_path3.posix.join(import_node_path3.posix.dirname(file), prefix).replace(/^\.\/?/, "");
+    return { scope: "relative", path };
+  }
+  return { scope: "bare", prefix };
+}
+function describeImport({ file, prefix }) {
+  return prefix ? `${file} has a computed import starting with "${prefix}"` : `${file} has a fully computed import/require`;
+}
+function scannedFiles(count2) {
+  return `${count2} scanned ${count2 === 1 ? "file" : "files"}`;
+}
+function scorePackage(finding, input2, dynamicImports, unresolvedWorkspaces) {
+  const { context, depcheckUnused } = input2;
+  const { name } = finding;
+  const workspace = finding.workspace ?? "";
+  const base = `No import found across ${scannedFiles(context.sourceFileCount)}`;
+  let assessment;
+  if (workspace) {
+    assessment = new Assessment(
+      "medium",
+      `${base}. In monorepo workspace ${workspace}; cross-workspace usage isn't verified yet`
+    );
+  } else if (!depcheckUnused) {
+    assessment = new Assessment("medium", `${base}. depcheck didn't run, so there is no second opinion`);
+  } else if (depcheckUnused.has(name)) {
+    assessment = new Assessment("high", `${base}; depcheck agrees`);
+  } else {
+    assessment = new Assessment("low", `${base}, but depcheck found it in use`);
+  }
+  const node = input2.graph?.get(`package:${name}`);
+  if (node?.status === "unused") {
+    assessment.confirm(`Deadweight's graph agrees: ${lowerFirst(node.reason)}`);
+  } else if (node?.status === "maybe") {
+    assessment.cap("medium", `Deadweight's graph can't rule out use: ${lowerFirst(node.reason)}`);
+  } else if (node) {
+    assessment.cap("low", `Deadweight's graph found it in use: ${lowerFirst(node.reason)}`);
+  }
+  if (name.startsWith("@types/")) {
+    assessment.cap("low", "Type-only package; TypeScript can use it without any import");
+  }
+  if (PLUGIN_PACKAGE.some((pattern) => pattern.test(name))) {
+    assessment.cap("medium", "Looks like a plugin or preset, which tools load by name from config");
+  }
+  const info = input2.packageInfo.get(finding.id);
+  if (info?.peerOf) {
+    assessment.cap("low", `Peer dependency of ${info.peerOf}, which loads it without an import in your code`);
+  }
+  const toolConfig = TOOL_CONFIG_FILES.filter(([packageName]) => packageName === name).flatMap(([, pattern]) => context.configs.filter(({ source }) => pattern.test(import_node_path3.posix.basename(source))))[0];
+  if (toolConfig) {
+    assessment.cap("medium", `${toolConfig.source} exists, so ${name} is probably run by a tool or editor`);
+  }
+  const inConfig = findMention(context.configs, [name]);
+  if (inConfig) {
+    assessment.cap("medium", `Referenced by name in ${inConfig.source}`);
+  }
+  const commands = [name, ...info?.bins ?? []];
+  const inScripts = findMention(context.scripts, commands);
+  if (inScripts) {
+    assessment.cap("medium", `Used in the scripts of ${inScripts.source}`);
+  }
+  const inCi = findMention(context.ci, commands);
+  if (inCi) {
+    assessment.cap("medium", `Referenced in CI config ${inCi.source}`);
+  }
+  const unresolvedFile = unresolvedWorkspaces.get(workspace);
+  if (unresolvedFile) {
+    assessment.cap("low", `Knip couldn't resolve some imports in this workspace (e.g. ${unresolvedFile})`);
+  }
+  const dynamic = dynamicImports.find(
+    ({ resolved }) => resolved.scope === "unknown" || resolved.scope === "bare" && (name.startsWith(resolved.prefix) || resolved.prefix.startsWith(`${name}/`))
+  );
+  if (dynamic) {
+    assessment.cap("low", `May be loaded dynamically: ${describeImport(dynamic.source)}`);
+  }
+  return assessment;
+}
+function scoreFile(finding, input2, dynamicImports, unresolvedWorkspaces) {
+  const path = finding.name;
+  const assessment = new Assessment(
+    "high",
+    `No import found across ${scannedFiles(input2.context.sourceFileCount)}`
+  );
+  const node = input2.graph?.get(`file:${path}`);
+  if (node?.status === "unused") {
+    assessment.confirm(`Deadweight's graph agrees: ${lowerFirst(node.reason)}`);
+  } else if (node?.status === "maybe") {
+    assessment.cap("low", `Deadweight's graph can't rule out use: ${lowerFirst(node.reason)}`);
+  } else if (node) {
+    assessment.cap("low", `Deadweight's graph found it in use: ${lowerFirst(node.reason)}`);
+  }
+  applyFileRisks(assessment, path, input2, dynamicImports, unresolvedWorkspaces);
+  return assessment;
+}
+function scoreExport(finding, input2, dynamicImports, unresolvedWorkspaces) {
+  const { name } = finding;
+  const path = finding.file ?? "";
+  const label = name === "default" ? "The default export" : `"${name}"`;
+  const assessment = new Assessment("high", `${label} is exported from ${path}, but no file imports it`);
+  const counts = input2.context.identifierFileCounts;
+  if (counts && name !== "default") {
+    const others = Math.max(0, (counts.get(name) ?? 1) - 1);
+    if (others === 0) {
+      assessment.confirm(`The name "${name}" appears in no other file`);
+    } else {
+      assessment.cap("medium", `The name "${name}" also appears in ${others} other file${others === 1 ? "" : "s"}, so it may be used indirectly`);
+    }
+  }
+  const node = input2.graph?.get(`file:${path}`);
+  if (node?.status === "maybe") {
+    assessment.cap("low", `${path} may be loaded by a computed import, which can reach any export`);
+  } else if (node?.status === "entry") {
+    assessment.cap("medium", `${path} is an entry point, so its exports may be public API`);
+  }
+  applyFileRisks(assessment, path, input2, dynamicImports, unresolvedWorkspaces);
+  return assessment;
+}
+function applyFileRisks(assessment, path, input2, dynamicImports, unresolvedWorkspaces) {
+  const { context } = input2;
+  const workspace = workspaceOf(path, context.workspaceDirs);
+  if (workspace) {
+    assessment.cap("medium", `In monorepo workspace ${workspace}; cross-workspace usage isn't verified yet`);
+  }
+  if (BARREL_FILE.test(import_node_path3.posix.basename(path))) {
+    assessment.cap("medium", "Barrel file; chained re-exports can look unused");
+  }
+  const withoutExtension = path.replace(/\.[^./]+$/, "");
+  const tokens = [path, withoutExtension];
+  if (workspace) {
+    tokens.push(path.slice(workspace.length + 1), withoutExtension.slice(workspace.length + 1));
+  }
+  const reference = findMention([...context.configs, ...context.scripts, ...context.ci], tokens);
+  if (reference) {
+    assessment.cap("low", `Referenced from ${reference.source}`);
+  }
+  const unresolvedFile = unresolvedWorkspaces.get(workspace);
+  if (unresolvedFile) {
+    assessment.cap("low", `Knip couldn't resolve some imports in this workspace (e.g. ${unresolvedFile})`);
+  }
+  const dynamic = dynamicImports.find(
+    ({ resolved }) => resolved.scope === "unknown" || resolved.scope === "relative" && path.startsWith(resolved.path)
+  );
+  if (dynamic) {
+    assessment.cap("low", `May be loaded dynamically: ${describeImport(dynamic.source)}`);
+  }
+}
+function scoreFindings(findings, input2) {
+  const { context } = input2;
+  const dynamicImports = context.dynamicImports.map((source) => ({
+    source,
+    resolved: resolveDynamicImport(source)
+  }));
+  const unresolvedWorkspaces = /* @__PURE__ */ new Map();
+  for (const file of input2.unresolvedFiles) {
+    const workspace = workspaceOf(file, context.workspaceDirs);
+    if (!unresolvedWorkspaces.has(workspace)) {
+      unresolvedWorkspaces.set(workspace, file);
+    }
+  }
+  const unusedFiles = new Set(findings.filter((f) => f.kind === "file").map((f) => f.name));
+  const inTrash = (path) => path?.startsWith(`${TRASH_DIR}/`) ?? false;
+  return findings.filter((finding) => finding.kind === "file" ? !inTrash(finding.name) : finding.kind === "export" ? !inTrash(finding.file) && !unusedFiles.has(finding.file ?? "") : true).map((finding) => {
+    const assessment = finding.kind === "package" ? scorePackage(finding, input2, dynamicImports, unresolvedWorkspaces) : finding.kind === "export" ? scoreExport(finding, input2, dynamicImports, unresolvedWorkspaces) : scoreFile(finding, input2, dynamicImports, unresolvedWorkspaces);
+    return { ...finding, confidence: assessment.level, score: assessment.value, reason: assessment.reason };
+  }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+}
+
+// src/engine/depcheck.ts
+var DEPCHECK_ARGS = [
+  "--yes",
+  "depcheck@1",
+  "--json",
+  "--skip-missing",
+  "--ignore-patterns=.deadweight-trash"
+];
+function parseDepcheckOutput(stdout) {
+  let parsed;
+  try {
+    parsed = JSON.parse(stdout);
+  } catch {
+    throw new Error("depcheck returned invalid JSON output.");
+  }
+  const { dependencies, devDependencies } = parsed ?? {};
+  if (!Array.isArray(dependencies) || !Array.isArray(devDependencies)) {
+    throw new Error("depcheck returned an unexpected JSON format.");
+  }
+  return new Set([...dependencies, ...devDependencies].map(String));
+}
+async function runDepcheck(workspaceRoot, signal) {
+  const { code, stdout, stderr } = await runProcess("npx", DEPCHECK_ARGS, {
+    cwd: workspaceRoot,
+    signal
+  });
+  if (!stdout.trim()) {
+    throw new Error(
+      stderr.trim() || `depcheck exited with code ${code ?? "unknown"}.`
+    );
+  }
+  return {
+    unused: parseDepcheckOutput(stdout),
+    warnings: stderr.trim() ? [stderr.trim()] : []
+  };
+}
+
+// src/engine/filters.ts
+var import_ignore2 = __toESM(require_ignore());
+function createMatcher(patterns) {
+  const cleaned = patterns.map((pattern) => pattern.trim().replace(/\\/g, "/").replace(/^\.\//, "")).filter(Boolean);
+  if (cleaned.length === 0) {
+    return () => false;
+  }
+  const rules = (0, import_ignore2.default)().add(cleaned);
+  return (path) => {
+    try {
+      return rules.ignores(path);
+    } catch {
+      return false;
+    }
+  };
+}
+function filterFindings(findings, { exclude = [], entryPoints = [] }) {
+  const isExcluded = createMatcher(exclude);
+  const isEntryPoint = createMatcher(entryPoints);
+  return findings.filter((finding) => {
+    const path = finding.kind === "export" ? finding.file ?? "" : finding.name;
+    return !isExcluded(path) && !(finding.kind === "file" && isEntryPoint(path));
+  });
+}
+
+// src/engine/graph.ts
+var import_node_path5 = require("node:path");
+
+// src/engine/imports.ts
+function stripComments(source) {
+  const out = [];
+  const n = source.length;
+  let i = 0;
+  while (i < n) {
+    const char = source[i];
+    const next = source[i + 1];
+    if (char === "/" && next === "/") {
+      const end = source.indexOf("\n", i);
+      const stop = end === -1 ? n : end;
+      out.push(" ".repeat(stop - i));
+      i = stop;
+    } else if (char === "/" && next === "*") {
+      const end = source.indexOf("*/", i + 2);
+      const stop = end === -1 ? n : end + 2;
+      out.push(source.slice(i, stop).replace(/[^\n]/g, " "));
+      i = stop;
+    } else if (char === '"' || char === "'" || char === "`") {
+      let j = i + 1;
+      while (j < n && source[j] !== char) {
+        if (source[j] === "\\") {
+          j++;
+        } else if (char !== "`" && source[j] === "\n") {
+          break;
+        }
+        j++;
+      }
+      out.push(source.slice(i, j + 1));
+      i = j + 1;
+    } else {
+      out.push(char);
+      i++;
+    }
+  }
+  return out.join("");
+}
+var IMPORT_FROM = /(?:^|[^\w$.])import\s+(type\s+)?(?:[\w$*{}\s,]+?\s+from\s*)?(['"])([^'"\n]+)\2/g;
+var EXPORT_FROM = /(?:^|[^\w$.])export\s+(type\s+)?(?:\*(?:\s*as\s+[\w$]+)?|\{[^}]*\})\s*from\s*(['"])([^'"\n]+)\2/g;
+var CALL = /(?:^|[^\w$.])(require|import)\s*\(\s*(?:(['"])([^'"\n]+)\2|`([^`$\\]*)`)\s*[,)]/g;
+var REQUIRE_RESOLVE = /(?:^|[^\w$.])require\.resolve\s*\(\s*(['"])([^'"\n]+)\1/g;
+function extractImports(source) {
+  const code = stripComments(source);
+  const imports = [];
+  for (const match of code.matchAll(IMPORT_FROM)) {
+    imports.push({ specifier: match[3], kind: match[1] ? "type" : "static" });
+  }
+  for (const match of code.matchAll(EXPORT_FROM)) {
+    imports.push({ specifier: match[3], kind: match[1] ? "type" : "static" });
+  }
+  for (const match of code.matchAll(CALL)) {
+    imports.push({
+      specifier: match[3] ?? match[4],
+      kind: match[1] === "require" ? "require" : "dynamic"
+    });
+  }
+  for (const match of code.matchAll(REQUIRE_RESOLVE)) {
+    imports.push({ specifier: match[2], kind: "require" });
+  }
+  return {
+    imports: imports.filter(({ specifier }) => specifier.trim() !== ""),
+    dynamicPrefixes: extractDynamicImportPrefixes(code)
+  };
+}
+
+// src/engine/resolver.ts
+var import_node_module = require("node:module");
+var import_node_path4 = require("node:path");
+var RESOLVE_EXTENSIONS = [
+  ".ts",
+  ".tsx",
+  ".mts",
+  ".cts",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".vue",
+  ".svelte",
+  ".astro",
+  ".json"
+];
+var JS_TO_TS = {
+  ".js": [".ts", ".tsx"],
+  ".jsx": [".tsx"],
+  ".mjs": [".mts"],
+  ".cjs": [".cts"]
+};
+var BUILTINS = new Set(import_node_module.builtinModules);
+var ALIAS_LIKE = /^(?:@\/|~|#|\$)/;
+function packageNameOf(specifier) {
+  const parts = specifier.split("/");
+  return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
+}
+function manifestEntryPaths(manifest) {
+  const paths = [];
+  const collect = (value) => {
+    if (typeof value === "string") {
+      paths.push(value);
+    } else if (Array.isArray(value)) {
+      value.forEach(collect);
+    } else if (value && typeof value === "object") {
+      Object.values(value).forEach(collect);
+    }
+  };
+  for (const field of ["source", "main", "module", "browser", "exports", "bin"]) {
+    collect(manifest[field]);
+  }
+  return paths.filter((path) => !path.includes("*"));
+}
+var Resolver = class {
+  constructor(files, aliases, workspacePackages) {
+    this.files = files;
+    this.aliases = aliases;
+    this.workspacePackages = workspacePackages;
+  }
+  files;
+  aliases;
+  workspacePackages;
+  resolve(fromFile, rawSpecifier) {
+    const specifier = rawSpecifier.split(/[?#]/)[0];
+    if (!specifier) {
+      return { kind: "unresolved" };
+    }
+    if (specifier.startsWith("node:") || BUILTINS.has(specifier) || BUILTINS.has(packageNameOf(specifier))) {
+      return { kind: "builtin" };
+    }
+    if (specifier === "." || specifier === ".." || specifier.startsWith("./") || specifier.startsWith("../")) {
+      return this.resolvePath(import_node_path4.posix.join(import_node_path4.posix.dirname(fromFile), specifier)) ?? { kind: "unresolved" };
+    }
+    if (specifier.startsWith("/")) {
+      return this.resolvePath(specifier.slice(1)) ?? { kind: "unresolved" };
+    }
+    const aliases = this.nearestAliases(import_node_path4.posix.dirname(fromFile));
+    if (aliases) {
+      for (const { pattern, targets } of aliases.paths) {
+        const captured = matchPattern(pattern, specifier);
+        if (captured === void 0) {
+          continue;
+        }
+        for (const target of targets) {
+          const hit = this.resolvePath(target.replace("*", captured));
+          if (hit) {
+            return hit;
+          }
+        }
+      }
+      if (aliases.baseUrl !== void 0) {
+        const hit = this.resolvePath(import_node_path4.posix.join(aliases.baseUrl, specifier));
+        if (hit) {
+          return hit;
+        }
+      }
+    }
+    const name = packageNameOf(specifier);
+    const local = this.workspacePackages.get(name);
+    if (local) {
+      const subpath = specifier.slice(name.length + 1);
+      const hit = subpath ? this.resolvePath(import_node_path4.posix.join(local.dir, subpath)) : this.resolvePackageEntry(local);
+      return hit ?? { kind: "package", name };
+    }
+    if (ALIAS_LIKE.test(specifier)) {
+      return { kind: "unresolved" };
+    }
+    return { kind: "package", name };
+  }
+  // A path relative to the workspace root, with or without extension, or a directory.
+  resolvePath(rawPath) {
+    const path = import_node_path4.posix.normalize(rawPath).replace(/^\.\//, "").replace(/\/$/, "");
+    if (path.startsWith("..")) {
+      return void 0;
+    }
+    if (this.files.has(path)) {
+      return RESOLVE_EXTENSIONS.includes(import_node_path4.posix.extname(path)) || /\.[cm]?[jt]sx?$/.test(path) ? { kind: "file", path } : { kind: "asset" };
+    }
+    const extension = import_node_path4.posix.extname(path);
+    for (const replacement of JS_TO_TS[extension] ?? []) {
+      const candidate = path.slice(0, -extension.length) + replacement;
+      if (this.files.has(candidate)) {
+        return { kind: "file", path: candidate };
+      }
+    }
+    for (const candidateExtension of RESOLVE_EXTENSIONS) {
+      if (this.files.has(path + candidateExtension)) {
+        return { kind: "file", path: path + candidateExtension };
+      }
+    }
+    const dir = path === "." ? "" : path;
+    for (const candidateExtension of RESOLVE_EXTENSIONS) {
+      const index = import_node_path4.posix.join(dir, `index${candidateExtension}`);
+      if (this.files.has(index)) {
+        return { kind: "file", path: index };
+      }
+    }
+    return void 0;
+  }
+  resolvePackageEntry(local) {
+    for (const entry of manifestEntryPaths(local.manifest)) {
+      const hit = this.resolvePath(import_node_path4.posix.join(local.dir, entry));
+      if (hit?.kind === "file") {
+        return hit;
+      }
+    }
+    return this.resolvePath(import_node_path4.posix.join(local.dir, "src/index")) ?? this.resolvePath(import_node_path4.posix.join(local.dir, "index"));
+  }
+  nearestAliases(dir) {
+    let current = dir === "." ? "" : dir;
+    for (; ; ) {
+      const found = this.aliases.get(current);
+      if (found) {
+        return found;
+      }
+      if (current === "") {
+        return void 0;
+      }
+      const parent = import_node_path4.posix.dirname(current);
+      current = parent === "." ? "" : parent;
+    }
+  }
+};
+function matchPattern(pattern, specifier) {
+  const star = pattern.indexOf("*");
+  if (star === -1) {
+    return pattern === specifier ? "" : void 0;
+  }
+  const prefix = pattern.slice(0, star);
+  const suffix = pattern.slice(star + 1);
+  if (specifier.length >= prefix.length + suffix.length && specifier.startsWith(prefix) && specifier.endsWith(suffix)) {
+    return specifier.slice(prefix.length, specifier.length - suffix.length);
+  }
+  return void 0;
+}
+function parseJsonc(text) {
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const char = text[i];
+    if (char === '"') {
+      let j = i + 1;
+      while (j < text.length && text[j] !== '"') {
+        j += text[j] === "\\" ? 2 : 1;
+      }
+      out += text.slice(i, j + 1);
+      i = j + 1;
+    } else if (char === "/" && text[i + 1] === "/") {
+      const end = text.indexOf("\n", i);
+      i = end === -1 ? text.length : end;
+    } else if (char === "/" && text[i + 1] === "*") {
+      const end = text.indexOf("*/", i + 2);
+      i = end === -1 ? text.length : end + 2;
+    } else {
+      out += char;
+      i++;
+    }
+  }
+  return JSON.parse(out.replace(/,(\s*[}\]])/g, "$1"));
+}
+function loadPathAliases(configPath, readConfig, depth = 0) {
+  const text = readConfig(configPath);
+  if (text === void 0 || depth > 5) {
+    return void 0;
+  }
+  let config;
+  try {
+    config = parseJsonc(text);
+  } catch {
+    return void 0;
+  }
+  const dir = import_node_path4.posix.dirname(configPath) === "." ? "" : import_node_path4.posix.dirname(configPath);
+  const inherited = typeof config.extends === "string" && config.extends.startsWith(".") ? loadPathAliases(
+    import_node_path4.posix.join(dir, config.extends.endsWith(".json") ? config.extends : `${config.extends}.json`),
+    readConfig,
+    depth + 1
+  ) : void 0;
+  const options = config.compilerOptions ?? {};
+  const baseUrl = typeof options.baseUrl === "string" ? import_node_path4.posix.join(dir, options.baseUrl) : inherited?.baseUrl;
+  if (!options.paths || typeof options.paths !== "object") {
+    return inherited || baseUrl !== void 0 ? { baseUrl, paths: inherited?.paths ?? [] } : void 0;
+  }
+  const pathsBase = baseUrl ?? dir;
+  const paths = Object.entries(options.paths).map(([pattern, targets]) => ({
+    pattern,
+    targets: (Array.isArray(targets) ? targets : []).filter((target) => typeof target === "string").map((target) => import_node_path4.posix.join(pathsBase, target))
+  }));
+  return { baseUrl, paths };
+}
+
+// src/engine/graph.ts
+var TEST_FILE = /(?:^|\/)(?:__tests__|__mocks__)\/|\.(?:test|spec|stories|story)\.[cm]?[jt]sx?$/;
+var DECLARATION_FILE = /\.d\.[cm]?ts$/;
+var BUILD_OUTPUT = /^(?:dist|out|build|lib|es|esm|cjs)\/(.+)$/;
+var DEFAULT_ENTRY = /^(?:src\/)?(?:index|main|cli|server|app)\.(?:[cm]?[jt]sx?)$/;
+var FRAMEWORK_ENTRIES = [
+  [/^next$/, /^(?:src\/)?(?:pages|app)\/|^(?:src\/)?(?:middleware|instrumentation)\.[cm]?[jt]sx?$/, "Next.js"],
+  [/^nuxt$/, /^(?:pages|layouts|components|composables|plugins|middleware|server|utils)\/|^app\.vue$/, "Nuxt"],
+  [/^@sveltejs\/kit$/, /^src\/(?:routes\/|hooks\.|app\.html)/, "SvelteKit"],
+  [/^@remix-run\//, /^app\/(?:root|entry\.(?:client|server))\.|^app\/routes\//, "Remix"],
+  [/^astro$/, /^src\/(?:pages|layouts|content)\//, "Astro"],
+  [/^gatsby$/, /^src\/(?:pages|templates)\/|^gatsby-(?:browser|node|ssr)\./, "Gatsby"],
+  [/^(?:expo|react-native)$/, /^(?:App|index)\.[cm]?[jt]sx?$|^app\//, "Expo / React Native"],
+  [/^@angular\/core$/, /^src\/(?:main|polyfills)\.ts$/, "Angular"]
+];
+var HOST_PROVIDED = /* @__PURE__ */ new Set(["vscode", "electron"]);
+var JSX_RUNTIMES = ["react", "react-dom", "preact", "solid-js"];
+var PATH_LITERAL = /['"`]((?:\.{1,2}\/)?[\w@.-]+(?:\/[\w@.-]+)*\.[a-z]{1,5})['"`]/g;
+var COMMAND_PATH = /(?:^|[\s"'=])((?:\.\/)?[\w@.-]+(?:\/[\w@.-]+)*\.[cm]?[jt]sx?)(?=$|[\s"';&|)])/g;
+var HTML_SCRIPT = /<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi;
+function workspaceOf2(path, workspaceDirs) {
+  return workspaceDirs.find((dir) => dir !== "" && path.startsWith(`${dir}/`)) ?? "";
+}
+function relativeTo(dir, path) {
+  return dir ? path.slice(dir.length + 1) : path;
+}
+function dependencyNames(manifest, sections) {
+  return sections.flatMap((section) => {
+    const deps = manifest[section];
+    return deps && typeof deps === "object" ? Object.keys(deps) : [];
+  });
+}
+function list(items, max = 3) {
+  return items.length > max ? `${items.slice(0, max).join(", ")} and ${items.length - max} more` : items.join(", ");
+}
+async function buildConnectionGraph(root, options = {}) {
+  const startedAt = Date.now();
+  const { signal } = options;
+  const allFiles = (await listFiles(root, signal)).filter((file) => !file.startsWith(`${TRASH_DIR}/`));
+  const fileSet = new Set(allFiles);
+  const readText = async (file) => readSmallFile((0, import_node_path5.join)(root, file));
+  const manifests = /* @__PURE__ */ new Map();
+  for (const file of allFiles.filter((f) => import_node_path5.posix.basename(f) === "package.json")) {
+    try {
+      const dir = import_node_path5.posix.dirname(file) === "." ? "" : import_node_path5.posix.dirname(file);
+      manifests.set(dir, JSON.parse(await readText(file) ?? ""));
+    } catch {
+    }
+  }
+  const workspaceDirs = [...manifests.keys()].sort((a, b) => b.length - a.length);
+  const workspacePackages = /* @__PURE__ */ new Map();
+  for (const [dir, manifest] of manifests) {
+    if (typeof manifest.name === "string") {
+      workspacePackages.set(manifest.name, { dir, manifest });
+    }
+  }
+  const configTexts = /* @__PURE__ */ new Map();
+  for (const file of allFiles.filter((f) => /^(?:tsconfig|jsconfig)(?:\.[\w-]+)?\.json$/.test(import_node_path5.posix.basename(f)))) {
+    const text = await readText(file);
+    if (text !== void 0) {
+      configTexts.set(file, text);
+    }
+  }
+  const aliases = /* @__PURE__ */ new Map();
+  for (const file of configTexts.keys()) {
+    const name = import_node_path5.posix.basename(file);
+    if (name !== "tsconfig.json" && name !== "jsconfig.json") {
+      continue;
+    }
+    const loaded = loadPathAliases(file, (path) => configTexts.get(path));
+    const dir = import_node_path5.posix.dirname(file) === "." ? "" : import_node_path5.posix.dirname(file);
+    if (loaded && !aliases.has(dir)) {
+      aliases.set(dir, loaded);
+    }
+  }
+  const resolver = new Resolver(fileSet, aliases, workspacePackages);
+  const sourceFiles = allFiles.filter((file) => SOURCE_FILE.test(file));
+  const edges = [];
+  const edgeKeys = /* @__PURE__ */ new Set();
+  const unresolved = [];
+  const fullyComputed = [];
+  const packageImporters = /* @__PURE__ */ new Map();
+  const addEdge = (from, to, kind) => {
+    const key = `${from}>${to}`;
+    if (from !== to && !edgeKeys.has(key)) {
+      edgeKeys.add(key);
+      edges.push({ from, to, kind });
+    }
+  };
+  const configSources = [];
+  for (const file of sourceFiles) {
+    signal?.throwIfAborted();
+    const text = await readText(file);
+    if (text === void 0) {
+      continue;
+    }
+    if (CONFIG_FILE.test(import_node_path5.posix.basename(file))) {
+      configSources.push({ source: file, text });
+    }
+    const { imports, dynamicPrefixes } = extractImports(text);
+    for (const { specifier, kind } of imports) {
+      const resolution = resolver.resolve(file, specifier);
+      if (resolution.kind === "file") {
+        addEdge(`file:${file}`, `file:${resolution.path}`, kind);
+      } else if (resolution.kind === "package") {
+        addEdge(`file:${file}`, `package:${resolution.name}`, kind);
+        const importers = packageImporters.get(resolution.name) ?? /* @__PURE__ */ new Set();
+        importers.add(file);
+        packageImporters.set(resolution.name, importers);
+      } else if (resolution.kind === "unresolved") {
+        unresolved.push({ file, specifier });
+      }
+    }
+    for (const prefix of dynamicPrefixes) {
+      if (prefix === "") {
+        fullyComputed.push(file);
+        continue;
+      }
+      if (!prefix.startsWith(".")) {
+        continue;
+      }
+      const base = import_node_path5.posix.normalize(import_node_path5.posix.join(import_node_path5.posix.dirname(file), prefix)).replace(/^\.\//, "");
+      for (const candidate of sourceFiles) {
+        if (candidate.startsWith(base) && candidate !== file) {
+          addEdge(`file:${file}`, `file:${candidate}`, "maybe");
+        }
+      }
+    }
+  }
+  for (const file of allFiles.filter((f) => CONFIG_FILE.test(import_node_path5.posix.basename(f)) && !SOURCE_FILE.test(f))) {
+    const text = await readText(file);
+    if (text !== void 0) {
+      configSources.push({ source: file, text });
+    }
+  }
+  const followPathLiterals = (source, text) => {
+    const dir = import_node_path5.posix.dirname(source) === "." ? "" : import_node_path5.posix.dirname(source);
+    const workspace = workspaceOf2(source, workspaceDirs);
+    for (const match of text.matchAll(PATH_LITERAL)) {
+      const hit = resolver.resolvePath(import_node_path5.posix.join(dir, match[1])) ?? resolver.resolvePath(import_node_path5.posix.join(workspace, match[1]));
+      if (hit?.kind === "file" && SOURCE_FILE.test(hit.path)) {
+        addEdge(`file:${source}`, `file:${hit.path}`, "config");
+      }
+    }
+  };
+  for (const { source, text } of configSources) {
+    followPathLiterals(source, text);
+  }
+  const entries = /* @__PURE__ */ new Map();
+  const addEntry = (path, reason) => {
+    if (fileSet.has(path) && !entries.has(path)) {
+      entries.set(path, reason);
+    }
+  };
+  const scriptSources = [];
+  const frameworks = /* @__PURE__ */ new Map();
+  for (const [dir, manifest] of manifests) {
+    const manifestPath = import_node_path5.posix.join(dir, "package.json");
+    for (const entry of manifestEntryPaths(manifest)) {
+      const hit = resolver.resolvePath(import_node_path5.posix.join(dir, entry));
+      if (hit?.kind === "file") {
+        addEntry(hit.path, `Entry point in ${manifestPath}`);
+        continue;
+      }
+      const built = import_node_path5.posix.normalize(entry).match(BUILD_OUTPUT);
+      if (built) {
+        const source = resolver.resolvePath(import_node_path5.posix.join(dir, "src", built[1].replace(/\.[cm]?js$/, "")));
+        if (source?.kind === "file") {
+          addEntry(source.path, `Source of ${entry}, the entry point in ${manifestPath}`);
+        }
+      }
+    }
+    const scripts = manifest.scripts && typeof manifest.scripts === "object" ? Object.values(manifest.scripts).filter((s) => typeof s === "string").join("\n") : "";
+    if (scripts) {
+      scriptSources.push({ source: manifestPath, text: scripts });
+      for (const match of scripts.matchAll(COMMAND_PATH)) {
+        const hit = resolver.resolvePath(import_node_path5.posix.join(dir, match[1]));
+        if (hit?.kind === "file") {
+          addEntry(hit.path, `Run by a script in ${manifestPath}`);
+        }
+      }
+    }
+    const dependencies = dependencyNames(manifest, ["dependencies", "devDependencies", "peerDependencies"]);
+    for (const [dependency, pattern, framework] of FRAMEWORK_ENTRIES) {
+      const frameworkPackage = dependencies.find((name) => dependency.test(name));
+      if (!frameworkPackage) {
+        continue;
+      }
+      frameworks.set(frameworkPackage, framework);
+      for (const file of sourceFiles) {
+        if (workspaceOf2(file, workspaceDirs) === dir && pattern.test(relativeTo(dir, file))) {
+          addEntry(file, `${framework} loads this file by convention`);
+        }
+      }
+    }
+  }
+  const ciSources = [];
+  for (const file of allFiles.filter((f) => CI_FILE.test(f))) {
+    const text = await readText(file);
+    if (text === void 0) {
+      continue;
+    }
+    ciSources.push({ source: file, text });
+    for (const match of text.matchAll(COMMAND_PATH)) {
+      const hit = resolver.resolvePath(match[1]);
+      if (hit?.kind === "file") {
+        addEntry(hit.path, `Run from ${file}`);
+      }
+    }
+  }
+  for (const file of allFiles.filter((f) => f.endsWith(".html"))) {
+    const text = await readText(file);
+    const dir = import_node_path5.posix.dirname(file) === "." ? "" : import_node_path5.posix.dirname(file);
+    for (const match of text?.matchAll(HTML_SCRIPT) ?? []) {
+      const src = match[1];
+      const hit = resolver.resolvePath(src.startsWith("/") ? import_node_path5.posix.join(workspaceOf2(file, workspaceDirs), src) : import_node_path5.posix.join(dir, src));
+      if (hit?.kind === "file") {
+        addEntry(hit.path, `Loaded by <script> in ${file}`);
+      }
+    }
+  }
+  const isUserEntry = createMatcher(options.entryPoints ?? []);
+  for (const file of sourceFiles) {
+    const dir = workspaceOf2(file, workspaceDirs);
+    const name = import_node_path5.posix.basename(file);
+    if (isUserEntry(file)) {
+      addEntry(file, "Listed in the deadweight.entryPoints setting");
+    } else if (CONFIG_FILE.test(name) || name.startsWith(".")) {
+      addEntry(file, "Config file, loaded by its tool");
+    } else if (DECLARATION_FILE.test(file)) {
+      addEntry(file, "Type declarations, used by TypeScript without an import");
+    } else if (TEST_FILE.test(file)) {
+      addEntry(file, "Test or story file, loaded by its runner");
+    } else if (DEFAULT_ENTRY.test(relativeTo(dir, file))) {
+      addEntry(file, "Default entry file");
+    }
+  }
+  for (const [path, reason] of entries) {
+    if (reason.startsWith("Run ") && SOURCE_FILE.test(path) && !CONFIG_FILE.test(import_node_path5.posix.basename(path))) {
+      const text = await readText(path);
+      if (text !== void 0) {
+        followPathLiterals(path, text);
+      }
+    }
+  }
+  const outgoing = /* @__PURE__ */ new Map();
+  const incoming = /* @__PURE__ */ new Map();
+  for (const edge of edges) {
+    if (!outgoing.has(edge.from)) {
+      outgoing.set(edge.from, []);
+    }
+    if (!incoming.has(edge.to)) {
+      incoming.set(edge.to, []);
+    }
+    outgoing.get(edge.from).push(edge);
+    incoming.get(edge.to).push(edge);
+  }
+  const walk = (starts, followMaybe, seen) => {
+    const queue = [...starts];
+    queue.forEach((id) => seen.add(id));
+    for (let next = 0; next < queue.length; next++) {
+      const id = queue[next];
+      for (const edge of outgoing.get(id) ?? []) {
+        if ((followMaybe || edge.kind !== "maybe") && edge.to.startsWith("file:") && !seen.has(edge.to)) {
+          seen.add(edge.to);
+          queue.push(edge.to);
+        }
+      }
+    }
+  };
+  const used = /* @__PURE__ */ new Set();
+  walk([...entries.keys()].map((path) => `file:${path}`), false, used);
+  const maybe = new Set(used);
+  walk([...used], true, maybe);
+  for (const id of used) {
+    maybe.delete(id);
+  }
+  const isAppCode = (file) => used.has(`file:${file}`) && !TEST_FILE.test(file) && !CONFIG_FILE.test(import_node_path5.posix.basename(file));
+  const usedFullyComputed = [...new Set(fullyComputed.filter(isAppCode))];
+  const unresolvedInUse = unresolved.filter(({ file }) => isAppCode(file));
+  const nodes = [];
+  const fileNodes = /* @__PURE__ */ new Set([
+    ...sourceFiles.map((file) => `file:${file}`),
+    ...edges.flatMap((edge) => [edge.from, edge.to]).filter((id) => id.startsWith("file:"))
+  ]);
+  const importersOf = (id, among) => (incoming.get(id) ?? []).map((edge) => edge.from).filter((from) => from.startsWith("file:") && (!among || among.has(from))).map((from) => from.slice("file:".length));
+  for (const id of fileNodes) {
+    const path = id.slice("file:".length);
+    const workspace = workspaceOf2(path, workspaceDirs);
+    let status;
+    let reason;
+    if (entries.has(path)) {
+      status = "entry";
+      reason = entries.get(path);
+    } else if (used.has(id)) {
+      status = "used";
+      reason = `Imported by ${list(importersOf(id, used))}`;
+    } else if (maybe.has(id)) {
+      status = "maybe";
+      const loaders = (incoming.get(id) ?? []).filter((edge) => edge.kind === "maybe").map((edge) => edge.from.slice(5));
+      reason = loaders.length > 0 ? `May be loaded by a computed import in ${list(loaders)}` : `Only reachable through files that are loaded by a computed import`;
+    } else if (usedFullyComputed.length > 0) {
+      status = "maybe";
+      reason = `Nothing imports this file, but ${list(usedFullyComputed)} loads a computed path that could be anything`;
+    } else if (unresolvedInUse.length > 0 && unresolvedInUse.some((u) => workspaceOf2(u.file, workspaceDirs) === workspace)) {
+      const example = unresolvedInUse.find((u) => workspaceOf2(u.file, workspaceDirs) === workspace);
+      status = "maybe";
+      reason = `Nothing imports this file, but some imports couldn't be resolved (e.g. "${example.specifier}" in ${example.file})`;
+    } else {
+      status = "unused";
+      const deadImporters = importersOf(id);
+      reason = deadImporters.length > 0 ? `Only imported by unused files: ${list(deadImporters)}` : "Nothing imports this file";
+    }
+    nodes.push({ id, kind: "file", label: import_node_path5.posix.basename(path), path, workspace, status, reason });
+  }
+  const declared = /* @__PURE__ */ new Map();
+  for (const [dir, manifest] of manifests) {
+    for (const name of dependencyNames(manifest, ["dependencies", "devDependencies", "optionalDependencies"])) {
+      if (!workspacePackages.has(name)) {
+        declared.set(name, [...declared.get(name) ?? [], import_node_path5.posix.join(dir, "package.json")]);
+      }
+    }
+  }
+  const statusOf = new Map(nodes.map((node) => [node.id, node.status]));
+  const isLive = (file) => ["entry", "used"].includes(statusOf.get(`file:${file}`) ?? "");
+  const liveJsx = sourceFiles.some((file) => /\.[jt]sx$/.test(file) && isLive(file));
+  const configNames = new Set(configSources.map(({ source }) => import_node_path5.posix.basename(source)));
+  const peerOf = /* @__PURE__ */ new Map();
+  for (const [name, importers] of packageImporters) {
+    if (![...importers].some(isLive)) {
+      continue;
+    }
+    const workspace = workspaceOf2([...importers][0], workspaceDirs);
+    const installed = await readInstalledPackage(root, workspace, name);
+    for (const peer of installed?.peers ?? []) {
+      if (!peerOf.has(peer)) {
+        peerOf.set(peer, name);
+      }
+    }
+  }
+  for (const name of /* @__PURE__ */ new Set([...declared.keys(), ...packageImporters.keys()])) {
+    const importers = [...packageImporters.get(name) ?? []];
+    const liveImporters = importers.filter(isLive);
+    const maybeImporters = importers.filter((file) => statusOf.get(`file:${file}`) === "maybe");
+    const manifestsDeclaring = declared.get(name) ?? [];
+    const workspace = manifestsDeclaring.length > 0 ? workspaceOf2(manifestsDeclaring[0], workspaceDirs) : workspaceOf2(importers[0] ?? "", workspaceDirs);
+    let status;
+    let reason;
+    const toolConfig = TOOL_CONFIG_FILES.find(([tool, pattern]) => tool === name && [...configNames].some((file) => pattern.test(file)));
+    const runBy = [...scriptSources, ...ciSources].find(({ text }) => mentions(text, name));
+    const mention = configSources.find(({ text }) => mentions(text, name));
+    if (liveImporters.length > 0) {
+      status = "used";
+      reason = manifestsDeclaring.length > 0 || HOST_PROVIDED.has(name) ? `Imported by ${list(liveImporters)}` : `Imported by ${list(liveImporters)}, but not declared in any package.json`;
+    } else if (runBy) {
+      status = "used";
+      reason = runBy.source.endsWith("package.json") ? `Run by a script in ${runBy.source}` : `Run from ${runBy.source}`;
+    } else if (frameworks.has(name)) {
+      status = "used";
+      reason = `The ${frameworks.get(name)} framework; it runs the app and loads its files`;
+    } else if (peerOf.has(name)) {
+      status = "used";
+      reason = `Peer dependency of ${peerOf.get(name)}, which loads it`;
+    } else if (liveJsx && JSX_RUNTIMES.includes(name)) {
+      status = "used";
+      reason = "JSX runtime, used by .jsx/.tsx files without an import";
+    } else if (maybeImporters.length > 0) {
+      status = "maybe";
+      reason = `Only imported by files that may be unused: ${list(maybeImporters)}`;
+    } else if (toolConfig) {
+      status = "maybe";
+      reason = `A ${name} config file exists, so a tool or editor probably runs it`;
+    } else if (mention) {
+      status = "maybe";
+      reason = `Not imported, but referenced by name in ${mention.source}`;
+    } else if (name.startsWith("@types/")) {
+      status = "maybe";
+      reason = "Type definitions; TypeScript uses them without an import";
+    } else if (PLUGIN_PACKAGE.some((pattern) => pattern.test(name))) {
+      status = "maybe";
+      reason = "Looks like a plugin or preset, which tools load by name";
+    } else if (importers.length > 0) {
+      status = "unused";
+      reason = `Only imported by unused files: ${list(importers)}`;
+    } else {
+      status = "unused";
+      reason = `Declared in ${list(manifestsDeclaring)}, but nothing imports it`;
+    }
+    nodes.push({ id: `package:${name}`, kind: "package", label: name, workspace, status, reason });
+  }
+  const count2 = (kind, status) => nodes.filter((node) => node.kind === kind && node.status === status).length;
+  return {
+    nodes,
+    edges,
+    unresolved,
+    stats: {
+      files: nodes.filter((node) => node.kind === "file").length,
+      entries: count2("file", "entry"),
+      used: count2("file", "used"),
+      maybe: count2("file", "maybe"),
+      unused: count2("file", "unused"),
+      packages: nodes.filter((node) => node.kind === "package").length,
+      unusedPackages: count2("package", "unused")
+    },
+    durationMs: Date.now() - startedAt
+  };
+}
+
+// src/engine/knip.ts
+var import_node_fs = require("node:fs");
+var import_promises3 = require("node:fs/promises");
+var import_node_path6 = require("node:path");
+var KNIP_ARGS = ["--yes", "knip@6", "--reporter", "json"];
+var KNIP_ENV = { KNIP_DISABLE_RAW_TRANSFER: "1" };
+var KNIP_CONFIG_FILES = [
+  "knip.json",
+  "knip.jsonc",
+  ".knip.json",
+  ".knip.jsonc",
+  "knip.ts",
+  "knip.js",
+  "knip.config.ts",
+  "knip.config.js"
+];
+var KNIP_DEFAULT_EXTENSIONS = "js,mjs,cjs,jsx,ts,tsx,mts,cts";
+var KNIP_DEFAULT_ENTRY = [
+  `{index,cli,main}.{${KNIP_DEFAULT_EXTENSIONS}}!`,
+  `src/{index,cli,main}.{${KNIP_DEFAULT_EXTENSIONS}}!`
+];
+var GENERATED_KNIP_CONFIG = "node_modules/.cache/deadweight/knip.json";
+function findProjectKnipConfig(workspaceRoot) {
+  const file = KNIP_CONFIG_FILES.find((name) => (0, import_node_fs.existsSync)((0, import_node_path6.join)(workspaceRoot, name)));
+  if (file) {
+    return file;
+  }
+  try {
+    const manifest = JSON.parse((0, import_node_fs.readFileSync)((0, import_node_path6.join)(workspaceRoot, "package.json"), "utf8"));
+    return manifest.knip ? "package.json#knip" : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function workspaceForGlob(workspaceRoot, glob) {
+  const segments = glob.split("/");
+  const staticSegments = segments.slice(0, -1);
+  const firstDynamic = staticSegments.findIndex((segment) => /[*?{}[\]!]/.test(segment));
+  if (firstDynamic !== -1) {
+    staticSegments.length = firstDynamic;
+  }
+  for (let depth = staticSegments.length; depth > 0; depth--) {
+    const dir = staticSegments.slice(0, depth).join("/");
+    if ((0, import_node_fs.existsSync)((0, import_node_path6.join)(workspaceRoot, dir, "package.json"))) {
+      return { workspace: dir, pattern: segments.slice(depth).join("/") };
+    }
+  }
+  return { workspace: ".", pattern: glob };
+}
+function planKnipConfig(workspaceRoot, entryPoints = []) {
+  const globs = entryPoints.map((glob) => glob.trim().replace(/\\/g, "/").replace(/^\.\//, "")).filter(Boolean);
+  if (globs.length === 0) {
+    return { args: [], warnings: [] };
+  }
+  const existing = findProjectKnipConfig(workspaceRoot);
+  if (existing) {
+    return {
+      args: [],
+      warnings: [
+        `The deadweight.entryPoints setting was not passed to knip because this project has its own knip config (${existing}). Add the entry points to its "entry" list instead.`
+      ]
+    };
+  }
+  const workspaces = {};
+  for (const glob of globs) {
+    const { workspace, pattern } = workspaceForGlob(workspaceRoot, glob);
+    workspaces[workspace] ??= { entry: [...KNIP_DEFAULT_ENTRY] };
+    workspaces[workspace].entry.push(pattern);
+  }
+  return {
+    // Hints would point at the generated file, which the user never sees.
+    args: ["--config", GENERATED_KNIP_CONFIG, "--no-config-hints"],
+    config: { workspaces },
+    warnings: []
+  };
+}
+async function withKnipConfig(workspaceRoot, entryPoints, task) {
+  const plan = planKnipConfig(workspaceRoot, entryPoints);
+  if (!plan.config) {
+    return { result: await task(plan.args), warnings: plan.warnings };
+  }
+  const configPath = (0, import_node_path6.join)(workspaceRoot, GENERATED_KNIP_CONFIG);
+  await (0, import_promises3.mkdir)((0, import_node_path6.dirname)(configPath), { recursive: true });
+  await (0, import_promises3.writeFile)(configPath, JSON.stringify(plan.config, null, 2));
+  try {
+    return { result: await task(plan.args), warnings: plan.warnings };
+  } finally {
+    await (0, import_promises3.rm)(configPath, { force: true });
+  }
+}
+function parseKnipOutput(stdout) {
+  let parsed;
+  try {
+    parsed = JSON.parse(stdout);
+  } catch {
+    throw new Error("Knip returned invalid JSON output.");
+  }
+  const issues = parsed?.issues;
+  if (!Array.isArray(issues)) {
+    throw new Error(
+      "Knip returned an unexpected JSON format. The knip version in use may be unsupported."
+    );
+  }
+  const findings = [];
+  const unresolvedFiles = [];
+  for (const row of issues) {
+    if (row.unresolved?.length) {
+      unresolvedFiles.push(row.file);
+    }
+    if (row.files?.length) {
+      findings.push({
+        id: `file:${row.file}`,
+        kind: "file",
+        name: row.file,
+        confidence: "medium",
+        score: 0,
+        reason: "Knip reported this file as unused."
+      });
+    }
+    const exportIssues = [
+      ...(row.exports ?? []).map((item) => ({ item, type: false })),
+      ...(row.types ?? []).map((item) => ({ item, type: true }))
+    ];
+    for (const { item, type } of exportIssues) {
+      findings.push({
+        id: `export:${row.file}:${item.name}`,
+        kind: "export",
+        name: item.name,
+        confidence: "medium",
+        score: 0,
+        reason: type ? "Knip reported this exported type as unused." : "Knip reported this export as unused.",
+        file: row.file,
+        line: item.line,
+        column: item.col
+      });
+    }
+    const workspaceDir = import_node_path6.posix.dirname(row.file);
+    const workspace = workspaceDir === "." ? void 0 : workspaceDir;
+    const packageIssues = [
+      ...(row.dependencies ?? []).map((item) => ({ item, dev: false })),
+      ...(row.devDependencies ?? []).map((item) => ({ item, dev: true }))
+    ];
+    for (const { item, dev } of packageIssues) {
+      findings.push({
+        id: `package:${row.file}:${item.name}`,
+        kind: "package",
+        name: item.name,
+        confidence: "medium",
+        score: 0,
+        reason: dev ? "Knip reported this development dependency as unused." : "Knip reported this package as unused.",
+        workspace
+      });
+    }
+  }
+  return { findings, unresolvedFiles };
+}
+async function runKnip(workspaceRoot, { signal, entryPoints } = {}) {
+  const { result, warnings } = await withKnipConfig(
+    workspaceRoot,
+    entryPoints,
+    (args) => runProcess("npx", [...KNIP_ARGS, ...args], {
+      cwd: workspaceRoot,
+      signal,
+      env: KNIP_ENV
+    })
+  );
+  const { code, stdout, stderr } = result;
+  if (code !== 0 && code !== 1 || !stdout.trim()) {
+    throw new Error(
+      stderr.trim() || `Knip exited with code ${code ?? "unknown"}.`
+    );
+  }
+  return {
+    ...parseKnipOutput(stdout),
+    warnings: [...warnings, ...stderr.trim() ? [stderr.trim()] : []]
+  };
+}
+
+// src/engine/packageManager.ts
+var import_node_fs2 = require("node:fs");
+var import_node_path7 = require("node:path");
+var PACKAGE_MANAGERS = ["npm", "yarn", "pnpm", "bun"];
+function fromPackageJsonField(workspaceRoot) {
+  try {
+    const manifest = JSON.parse(
+      (0, import_node_fs2.readFileSync)((0, import_node_path7.join)(workspaceRoot, "package.json"), "utf8")
+    );
+    if (typeof manifest.packageManager !== "string") {
+      return void 0;
+    }
+    const name = manifest.packageManager.split("@")[0];
+    return PACKAGE_MANAGERS.find((manager) => manager === name);
+  } catch {
+    return void 0;
+  }
+}
+function detectPackageManager(workspaceRoot) {
+  const declared = fromPackageJsonField(workspaceRoot);
+  if (declared) {
+    return declared;
+  }
+  if ((0, import_node_fs2.existsSync)((0, import_node_path7.join)(workspaceRoot, "pnpm-lock.yaml"))) {
+    return "pnpm";
+  }
+  if ((0, import_node_fs2.existsSync)((0, import_node_path7.join)(workspaceRoot, "yarn.lock"))) {
+    return "yarn";
+  }
+  if ((0, import_node_fs2.existsSync)((0, import_node_path7.join)(workspaceRoot, "bun.lock")) || (0, import_node_fs2.existsSync)((0, import_node_path7.join)(workspaceRoot, "bun.lockb"))) {
+    return "bun";
+  }
+  return "npm";
+}
+
+// src/engine/scan.ts
+async function readPackageInfo(workspaceRoot, findings) {
+  const info = /* @__PURE__ */ new Map();
+  const peerOwners = /* @__PURE__ */ new Map();
+  for (const finding of findings) {
+    if (finding.kind !== "package") {
+      continue;
+    }
+    const workspace = finding.workspace ?? "";
+    if (!peerOwners.has(workspace)) {
+      const owners = /* @__PURE__ */ new Map();
+      const declared = await readDeclaredDependencies(workspaceRoot, (0, import_node_path8.join)(workspace, "package.json"));
+      for (const dependency of declared) {
+        const installed2 = await readInstalledPackage(workspaceRoot, workspace, dependency);
+        for (const peer of installed2?.peers ?? []) {
+          if (!owners.has(peer)) {
+            owners.set(peer, dependency);
+          }
+        }
+      }
+      peerOwners.set(workspace, owners);
+    }
+    const installed = await readInstalledPackage(workspaceRoot, workspace, finding.name);
+    info.set(finding.id, {
+      bins: installed?.bins ?? [],
+      peerOf: peerOwners.get(workspace)?.get(finding.name)
+    });
+  }
+  return info;
+}
+async function addFootprints(workspaceRoot, manifestDirs, findings, { signal, fetchAdvisories, warnings }) {
+  const removals = findings.filter((finding) => finding.kind === "package").map((finding) => ({ id: finding.id, manifestDir: finding.workspace ?? "", name: finding.name }));
+  if (removals.length === 0) {
+    return { findings };
+  }
+  try {
+    const result = await measureFootprints(workspaceRoot, manifestDirs, removals, { signal, fetchAdvisories });
+    warnings.push(...result.warnings);
+    return {
+      findings: findings.map((finding) => {
+        const footprint = result.perRemoval.get(finding.id);
+        return footprint ? { ...finding, footprint, sizeBytes: footprint.bytes } : finding;
+      }),
+      footprint: result.combined
+    };
+  } catch (error) {
+    if (signal.aborted) {
+      throw error;
+    }
+    warnings.push(`Couldn't measure what the unused packages take up: ${error.message}`);
+    return { findings };
+  }
+}
+var defaultEngines = { runKnip, runDepcheck };
+function rebaseGlobs(globs, project) {
+  if (!project) {
+    return globs;
+  }
+  return globs.flatMap((glob) => {
+    const cleaned = glob.trim().replace(/\\/g, "/").replace(/^\.\//, "");
+    if (cleaned.startsWith(`${project}/`)) {
+      return [cleaned.slice(project.length + 1)];
+    }
+    const body = cleaned.replace(/^!/, "");
+    const anywhere = body.startsWith("**/") || !body.replace(/\/$/, "").includes("/") || body.startsWith("@");
+    return anywhere ? [cleaned] : [];
+  });
+}
+function prefixFinding(finding, project) {
+  if (!project) {
+    return finding;
+  }
+  const inProject = (path) => import_node_path8.posix.join(project, path);
+  switch (finding.kind) {
+    case "file":
+      return { ...finding, id: `file:${inProject(finding.name)}`, name: inProject(finding.name) };
+    case "export": {
+      const file = inProject(finding.file ?? "");
+      return { ...finding, id: `export:${file}:${finding.name}`, file };
+    }
+    case "package": {
+      const workspace = inProject(finding.workspace ?? "");
+      return { ...finding, id: `package:${import_node_path8.posix.join(workspace, "package.json")}:${finding.name}`, workspace };
+    }
+  }
+}
+async function scanFolder(folder, options = {}) {
+  const { signal, onProject, exclude = [], entryPoints = [] } = options;
+  const startedAt = Date.now();
+  const projects = options.projects ?? await findProjectRoots(folder, signal);
+  if (projects.length === 0) {
+    throw new Error(
+      `No package.json found in ${folder} or its subfolders. Deadweight scans JavaScript/TypeScript projects.`
+    );
+  }
+  const findings = [];
+  const warnings = [];
+  const packageManagers = {};
+  let scannedFileCount = 0;
+  let footprint;
+  for (const [index, project] of projects.entries()) {
+    onProject?.(project, index, projects.length);
+    const result = await scanWorkspace((0, import_node_path8.join)(folder, project), {
+      ...options,
+      exclude: rebaseGlobs(exclude, project),
+      entryPoints: rebaseGlobs(entryPoints, project)
+    });
+    findings.push(...result.findings.map((finding) => prefixFinding(finding, project)));
+    warnings.push(...result.warnings.map((warning) => project ? `[${project}] ${warning}` : warning));
+    packageManagers[project] = result.packageManager;
+    scannedFileCount += result.scannedFileCount;
+    if (result.footprint) {
+      footprint = {
+        packages: (footprint?.packages ?? 0) + result.footprint.packages,
+        bytes: (footprint?.bytes ?? 0) + result.footprint.bytes,
+        advisories: [...footprint?.advisories ?? [], ...result.footprint.advisories]
+      };
+    }
+  }
+  return {
+    findings,
+    scannedFileCount,
+    packageManager: packageManagers[projects[0]],
+    durationMs: Date.now() - startedAt,
+    warnings,
+    projects,
+    footprint
+  };
+}
+async function scanWorkspace(workspaceRoot, {
+  signal,
+  engines = defaultEngines,
+  exclude = [],
+  entryPoints = [],
+  packageManager,
+  fetchAdvisories
+} = {}) {
+  if (!(0, import_node_fs3.existsSync)((0, import_node_path8.join)(workspaceRoot, "package.json"))) {
+    throw new Error(
+      `No package.json found in ${workspaceRoot}. Deadweight scans JavaScript/TypeScript projects. Open the folder that contains package.json.`
+    );
+  }
+  const startedAt = Date.now();
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener("abort", abort, { once: true });
+  const stopOthersOnFailure = (task) => task.catch((error) => {
+    controller.abort();
+    throw error;
+  });
+  const depcheckTask = engines.runDepcheck(workspaceRoot, controller.signal).catch(
+    (error) => {
+      if (error instanceof CancelledError) {
+        throw error;
+      }
+      return error instanceof Error ? error : new Error(String(error));
+    }
+  );
+  const graphTask = buildConnectionGraph(workspaceRoot, { signal: controller.signal, entryPoints }).catch(
+    (error) => {
+      if (error instanceof CancelledError || controller.signal.aborted) {
+        throw new CancelledError("Scan cancelled.");
+      }
+      return error instanceof Error ? error : new Error(String(error));
+    }
+  );
+  try {
+    const [knip, depcheck, context, graph] = await Promise.all([
+      stopOthersOnFailure(engines.runKnip(workspaceRoot, { signal: controller.signal, entryPoints })),
+      stopOthersOnFailure(depcheckTask),
+      stopOthersOnFailure(collectProjectContext(workspaceRoot, controller.signal)),
+      stopOthersOnFailure(graphTask)
+    ]);
+    const warnings = [...knip.warnings];
+    let depcheckUnused;
+    if (depcheck instanceof Error) {
+      warnings.push(
+        `depcheck couldn't run, so package confidence is capped at medium: ${depcheck.message}`
+      );
+    } else {
+      depcheckUnused = depcheck.unused;
+      warnings.push(...depcheck.warnings);
+    }
+    if (graph instanceof Error) {
+      warnings.push(`Deadweight's connection graph couldn't be built, so scores rely on knip alone: ${graph.message}`);
+    }
+    const findings = filterFindings(knip.findings, { exclude, entryPoints });
+    const packageInfo = await readPackageInfo(workspaceRoot, findings);
+    const scored = scoreFindings(findings, {
+      context,
+      unresolvedFiles: knip.unresolvedFiles,
+      depcheckUnused,
+      packageInfo,
+      graph: graph instanceof Error ? void 0 : new Map(graph.nodes.map((node) => [node.id, node]))
+    });
+    const { findings: measured, footprint } = await addFootprints(
+      workspaceRoot,
+      context.workspaceDirs,
+      scored,
+      { signal: controller.signal, fetchAdvisories, warnings }
+    );
+    return {
+      findings: measured,
+      scannedFileCount: context.sourceFileCount,
+      packageManager: packageManager ?? detectPackageManager(workspaceRoot),
+      durationMs: Date.now() - startedAt,
+      warnings,
+      footprint
+    };
+  } catch (error) {
+    if (signal?.aborted) {
+      throw new CancelledError("Scan cancelled.");
+    }
+    throw error;
+  } finally {
+    signal?.removeEventListener("abort", abort);
+  }
+}
+
+// src/action/report.ts
+var COMMENT_MARKER = "<!-- deadweight-pr-guard -->";
+function diffFindings(base, head) {
+  const baseIds = new Set(base.map((finding) => finding.id));
+  const headIds = new Set(head.map((finding) => finding.id));
+  return {
+    added: head.filter((finding) => !baseIds.has(finding.id)),
+    removed: base.filter((finding) => !headIds.has(finding.id)),
+    existing: head.filter((finding) => baseIds.has(finding.id))
+  };
+}
+function shouldFail(diff, failOn) {
+  return failOn === "new" ? diff.added.length > 0 : failOn === "new-high" ? diff.added.some((finding) => finding.confidence === "high") : false;
+}
+var KIND = {
+  file: { icon: "\u{1F4C4}", one: "unused file", many: "unused files" },
+  package: { icon: "\u{1F4E6}", one: "unused package", many: "unused packages" },
+  export: { icon: "\u{1F523}", one: "unused export", many: "unused exports" }
+};
+var KIND_ORDER = ["package", "file", "export"];
+function count(findings, kind) {
+  const n = findings.filter((finding) => finding.kind === kind).length;
+  return `${n} ${n === 1 ? KIND[kind].one : KIND[kind].many}`;
+}
+function summarize(findings) {
+  const parts = KIND_ORDER.filter((kind) => findings.some((finding) => finding.kind === kind)).map((kind) => count(findings, kind));
+  return parts.length <= 1 ? parts.join("") : `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`;
+}
+function cell(text, max = 160) {
+  const flat = text.replace(/\s+/g, " ").replace(/\|/g, "\\|").trim();
+  return flat.length > max ? `${flat.slice(0, max - 1)}\u2026` : flat;
+}
+function itemLabel(finding) {
+  if (finding.kind === "export") {
+    return `\`${finding.name}\` in \`${finding.file}${finding.line ? `:${finding.line}` : ""}\``;
+  }
+  return finding.kind === "package" && finding.workspace ? `\`${finding.name}\` (${finding.workspace})` : `\`${finding.name}\``;
+}
+function gainLabel(finding) {
+  const footprint = finding.footprint;
+  if (!footprint || footprint.packages === 0) {
+    return "";
+  }
+  const vulnerabilities = footprint.advisories.length > 0 ? ` \xB7 \u26A0\uFE0F ${describeAdvisories(footprint.advisories)}` : "";
+  return ` \xB7 ${formatBytes(footprint.bytes)}${vulnerabilities}`;
+}
+function table(findings) {
+  const rows = [...findings].sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || b.score - a.score).map((finding) => `| ${KIND[finding.kind].icon} | ${itemLabel(finding)} | ${finding.score} ${finding.confidence} | ${cell(finding.reason)}${gainLabel(finding)} |`);
+  return ["| | Unused | Score | Why |", "|---|---|---|---|", ...rows].join("\n");
+}
+function renderReport(diff, { compared, runUrl }) {
+  const lines = [COMMENT_MARKER, "### \u{1F480} Deadweight", ""];
+  if (!compared) {
+    lines.push(
+      diff.added.length > 0 ? `**This project has ${summarize(diff.added)}.**` : "\u2705 **No unused packages, files or exports found.**"
+    );
+  } else if (diff.added.length > 0) {
+    lines.push(`**This pull request adds ${summarize(diff.added)}.**`);
+  } else {
+    lines.push("\u2705 **This pull request adds no unused code.**");
+  }
+  if (diff.added.length > 0) {
+    const vulnerable = diff.added.flatMap((finding) => finding.footprint?.advisories ?? []);
+    if (vulnerable.length > 0) {
+      lines.push("", `> [!WARNING]
+> The unused packages carry ${describeAdvisories(vulnerable)}. Removing them removes the risk.`);
+    }
+    lines.push("", table(diff.added));
+  }
+  if (diff.removed.length > 0) {
+    lines.push("", `\u{1F389} It also removes ${summarize(diff.removed)} that ${diff.removed.length === 1 ? "was" : "were"} already there.`);
+  }
+  if (compared && diff.existing.length > 0) {
+    lines.push(
+      "",
+      `<details><summary>${summarize(diff.existing)} already on the base branch</summary>`,
+      "",
+      table(diff.existing),
+      "",
+      "</details>"
+    );
+  }
+  lines.push(
+    "",
+    `<sub>Score = how safe it is to delete (0\u2013100). Clean up safely with the [Deadweight VS Code extension](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight): every removal is verified with your build and tests, and undoable.${runUrl ? ` \xB7 [Run details](${runUrl})` : ""}</sub>`
+  );
+  return `${lines.join("\n")}
+`;
+}
+function annotation(level, message, { file, line, title }) {
+  const escapeData = (text) => text.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+  const escapeProperty = (text) => escapeData(text).replace(/:/g, "%3A").replace(/,/g, "%2C");
+  const properties = [
+    ...file ? [`file=${escapeProperty(file)}`] : [],
+    ...line ? [`line=${line}`] : [],
+    ...title ? [`title=${escapeProperty(title)}`] : []
+  ];
+  return `::${level}${properties.length > 0 ? ` ${properties.join(",")}` : ""}::${escapeData(message)}`;
+}
+
+// src/action/main.ts
+function input(env, name, fallback = "") {
+  return (env[`INPUT_${name.toUpperCase()}`] ?? "").trim() || fallback;
+}
+function listInput(env, name) {
+  return input(env, name).split(/[\n,]/).map((item) => item.trim()).filter(Boolean);
+}
+async function checkoutBaseWithGit(repoDir, sha) {
+  const git = (args) => runProcess("git", args, { cwd: repoDir });
+  if ((await git(["cat-file", "-e", `${sha}^{commit}`])).code !== 0) {
+    const fetched = await git(["fetch", "--no-tags", "--depth=1", "origin", sha]);
+    if (fetched.code !== 0) {
+      throw new Error(`Couldn't fetch the base commit ${sha}: ${fetched.stderr.trim()}`);
+    }
+  }
+  const dir = (0, import_node_path9.join)((0, import_node_fs4.mkdtempSync)((0, import_node_path9.join)((0, import_node_os.tmpdir)(), "deadweight-base-")), "repo");
+  const added = await git(["worktree", "add", "--detach", dir, sha]);
+  if (added.code !== 0) {
+    throw new Error(`Couldn't check out the base commit ${sha}: ${added.stderr.trim()}`);
+  }
+  return {
+    dir,
+    cleanup: async () => {
+      await git(["worktree", "remove", "--force", dir]);
+    }
+  };
+}
+async function upsertComment({ env, fetch: fetchImpl = fetch }, token, prNumber, body, onlyIfExists) {
+  const api = env.GITHUB_API_URL ?? "https://api.github.com";
+  const repo = env.GITHUB_REPOSITORY;
+  if (!repo) {
+    throw new Error("GITHUB_REPOSITORY is not set.");
+  }
+  const headers = {
+    authorization: `Bearer ${token}`,
+    accept: "application/vnd.github+json",
+    "x-github-api-version": "2022-11-28",
+    "user-agent": "deadweight-pr-guard",
+    "content-type": "application/json"
+  };
+  const call = async (method, path, payload) => {
+    const response = await fetchImpl(`${api}${path}`, { method, headers, body: payload ? JSON.stringify(payload) : void 0 });
+    if (!response.ok) {
+      throw new Error(`GitHub API ${method} ${path} answered ${response.status}: ${(await response.text()).slice(0, 200)}`);
+    }
+    return response.json();
+  };
+  let existing;
+  for (let page = 1; page <= 10 && !existing; page++) {
+    const comments = await call("GET", `/repos/${repo}/issues/${prNumber}/comments?per_page=100&page=${page}`);
+    existing = comments.find((comment) => comment.body?.includes(COMMENT_MARKER));
+    if (comments.length < 100) {
+      break;
+    }
+  }
+  if (existing) {
+    await call("PATCH", `/repos/${repo}/issues/comments/${existing.id}`, { body });
+    return "updated";
+  }
+  if (onlyIfExists) {
+    return "skipped";
+  }
+  await call("POST", `/repos/${repo}/issues/${prNumber}/comments`, { body });
+  return "created";
+}
+function locate(finding, projectDir, repoPrefix) {
+  const inRepo = (path) => repoPrefix ? import_node_path9.posix.join(repoPrefix, path) : path;
+  if (finding.kind === "export") {
+    return { file: inRepo(finding.file ?? ""), line: finding.line };
+  }
+  if (finding.kind === "file") {
+    return { file: inRepo(finding.name), line: 1 };
+  }
+  const manifest = import_node_path9.posix.join(finding.workspace ?? "", "package.json");
+  let line;
+  try {
+    const index = (0, import_node_fs4.readFileSync)((0, import_node_path9.join)(projectDir, manifest), "utf8").split(/\r?\n/).findIndex((text) => text.includes(JSON.stringify(finding.name)));
+    line = index >= 0 ? index + 1 : void 0;
+  } catch {
+  }
+  return { file: inRepo(manifest), line };
+}
+async function run(options) {
+  const { env, engines, fetchAdvisories } = options;
+  const write = options.write ?? ((line) => process.stdout.write(`${line}
+`));
+  const repoDir = (0, import_node_path9.resolve)(env.GITHUB_WORKSPACE ?? process.cwd());
+  const relativePath = input(env, "path", ".").replace(/\\/g, "/").replace(/^\.\/?/, "").replace(/\/$/, "");
+  const projectDir = relativePath ? (0, import_node_path9.join)(repoDir, relativePath) : repoDir;
+  const failOnInput = input(env, "fail-on", "none");
+  const failOn = failOnInput === "new" || failOnInput === "new-high" ? failOnInput : "none";
+  const scanOptions = {
+    engines,
+    exclude: listInput(env, "exclude"),
+    entryPoints: listInput(env, "entry-points")
+  };
+  const event = env.GITHUB_EVENT_PATH ? JSON.parse((0, import_node_fs4.readFileSync)(env.GITHUB_EVENT_PATH, "utf8")) : {};
+  const pullRequest = event.pull_request;
+  const scan = async (dir, label, advisories) => {
+    write(`::group::Scanning ${label}`);
+    try {
+      return await scanFolder(dir, {
+        ...scanOptions,
+        fetchAdvisories: advisories,
+        onProject: (project, index, total) => write(`Project ${index + 1}/${total}: ${project || "."}`)
+      });
+    } finally {
+      write("::endgroup::");
+    }
+  };
+  const vulnerabilityLookup = input(env, "check-vulnerabilities", "true") === "false" ? false : fetchAdvisories;
+  const head = await scan(projectDir, pullRequest ? "the pull request" : "the project", vulnerabilityLookup);
+  let diff = { added: head.findings, removed: [], existing: [] };
+  let compared = false;
+  if (pullRequest) {
+    const checkout = options.checkoutBase ?? checkoutBaseWithGit;
+    try {
+      const base = await checkout(repoDir, pullRequest.base.sha);
+      try {
+        const baseResult = await scan(relativePath ? (0, import_node_path9.join)(base.dir, relativePath) : base.dir, "the base branch", false);
+        diff = diffFindings(baseResult.findings, head.findings);
+        compared = true;
+      } finally {
+        await base.cleanup();
+      }
+    } catch (error) {
+      write(annotation("warning", `Couldn't scan the base branch, so every unused item is reported, not only new ones: ${error.message}`, { title: "Deadweight" }));
+    }
+  }
+  const runUrl = env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}` : void 0;
+  const report = renderReport(diff, { compared, runUrl });
+  for (const finding of diff.added) {
+    const location = locate(finding, projectDir, relativePath);
+    const what = finding.kind === "package" ? `Unused package ${finding.name}` : finding.kind === "export" ? `Unused export ${finding.name}` : "Unused file";
+    write(annotation(finding.confidence === "high" ? "warning" : "notice", `${finding.reason} (safe-to-delete score ${finding.score})`, { ...location, title: `Deadweight: ${what}` }));
+  }
+  if (env.GITHUB_STEP_SUMMARY) {
+    (0, import_node_fs4.appendFileSync)(env.GITHUB_STEP_SUMMARY, report.replace(COMMENT_MARKER, ""));
+  }
+  if (env.GITHUB_OUTPUT) {
+    (0, import_node_fs4.appendFileSync)(env.GITHUB_OUTPUT, [
+      `added=${diff.added.length}`,
+      `removed=${diff.removed.length}`,
+      `existing=${diff.existing.length}`,
+      `vulnerabilities=${diff.added.reduce((sum, finding) => sum + (finding.footprint?.advisories.length ?? 0), 0)}`,
+      ""
+    ].join("\n"));
+  }
+  const token = input(env, "github-token");
+  if (pullRequest && input(env, "comment", "true") !== "false" && token) {
+    try {
+      const outcome = await upsertComment(options, token, pullRequest.number, report, diff.added.length === 0);
+      write(`PR comment: ${outcome}`);
+    } catch (error) {
+      write(annotation("warning", `Couldn't comment on the pull request (${error.message}). The report is in the job summary.`, { title: "Deadweight" }));
+    }
+  }
+  const failed = shouldFail(diff, failOn);
+  write(diff.added.length > 0 ? `Deadweight: ${compared ? "this pull request adds" : "found"} ${summarize(diff.added)}.` : "Deadweight: no new unused code.");
+  if (failed) {
+    write(`::error title=Deadweight::This pull request adds ${summarize(diff.added)} (fail-on: ${failOn}).`);
+  }
+  return { diff, report, failed };
+}
+if (typeof require !== "undefined" && typeof module !== "undefined" && require.main === module) {
+  run({ env: process.env }).then(
+    ({ failed }) => process.exit(failed ? 1 : 0),
+    (error) => {
+      process.stdout.write(`::error title=Deadweight::${error.message.replace(/\r?\n/g, "%0A")}
+`);
+      process.exit(1);
+    }
+  );
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  checkoutBaseWithGit,
+  run
+});

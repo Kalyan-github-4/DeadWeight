@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join, posix } from 'node:path';
-import type { Finding, Footprint, ScanResult } from '../types';
+import type { Finding, Footprint, MaliciousPackage, ScanResult } from '../types';
 import { measureFootprints, type AdvisoryFetcher } from './footprint';
 import { scoreFindings, type PackageInfo } from './confidence';
 import { runDepcheck, type DepcheckResult } from './depcheck';
@@ -8,6 +8,7 @@ import { CancelledError } from './exec';
 import { filterFindings } from './filters';
 import { buildConnectionGraph, type ConnectionGraph } from './graph';
 import { runKnip, type KnipOptions, type KnipScanResult } from './knip';
+import { findMalware, type MalwareSources } from './malware';
 import { detectPackageManager, type PackageManager } from './packageManager';
 import { collectProjectContext, findProjectRoots, readDeclaredDependencies, readInstalledPackage } from './project';
 
@@ -92,6 +93,28 @@ async function addFootprints(
   }
 }
 
+// Known malware among the installed packages. Never fails the scan: undefined means
+// it couldn't be checked, and the warning says why.
+async function checkForMalware(
+  workspaceRoot: string,
+  manifestDirs: string[],
+  { signal, sources, warnings }: { signal: AbortSignal; sources?: MalwareSources; warnings: string[] },
+): Promise<MaliciousPackage[] | undefined> {
+  try {
+    const result = await findMalware(workspaceRoot, manifestDirs, { signal, sources });
+    warnings.push(...result.warnings);
+
+    return result.malware;
+  } catch (error) {
+    if (signal.aborted) {
+      throw error;
+    }
+
+    warnings.push(`Couldn't check the installed packages for malware: ${(error as Error).message}`);
+    return undefined;
+  }
+}
+
 // The external analysers. Tests swap these for the locally installed binaries.
 export interface ScanEngines {
   runKnip: (workspaceRoot: string, options: KnipOptions) => Promise<KnipScanResult>;
@@ -105,6 +128,8 @@ export interface ScanOptions {
   engines?: ScanEngines;
   // Known-vulnerability lookup for unused packages; false measures sizes only.
   fetchAdvisories?: AdvisoryFetcher | false;
+  // Known-malware lookup for every installed package; false skips it.
+  checkMalware?: MalwareSources | false;
   exclude?: string[];                   // globs for files/packages to leave out of results
   entryPoints?: string[];               // extra entry globs, passed to knip
   packageManager?: PackageManager;      // overrides lockfile detection
@@ -180,6 +205,7 @@ export async function scanFolder(folder: string, options: FolderScanOptions = {}
   const packageManagers: Record<string, PackageManager> = {};
   let scannedFileCount = 0;
   let footprint: Footprint | undefined;
+  let malware: MaliciousPackage[] | undefined;
 
   // One project at a time: parallel knip processes compete for memory.
   for (const [index, project] of projects.entries()) {
@@ -195,6 +221,10 @@ export async function scanFolder(folder: string, options: FolderScanOptions = {}
     warnings.push(...result.warnings.map((warning) => (project ? `[${project}] ${warning}` : warning)));
     packageManagers[project] = result.packageManager;
     scannedFileCount += result.scannedFileCount;
+
+    if (result.malware) {
+      malware = [...(malware ?? []), ...result.malware.map((pkg) => (project ? { ...pkg, project } : pkg))];
+    }
 
     if (result.footprint) {
       footprint = {
@@ -213,6 +243,7 @@ export async function scanFolder(folder: string, options: FolderScanOptions = {}
     warnings,
     projects,
     footprint,
+    malware,
   };
 }
 
@@ -225,6 +256,7 @@ export async function scanWorkspace(
     entryPoints = [],
     packageManager,
     fetchAdvisories,
+    checkMalware,
   }: ScanOptions = {},
 ): Promise<ScanResult> {
   if (!existsSync(join(workspaceRoot, 'package.json'))) {
@@ -269,15 +301,29 @@ export async function scanWorkspace(
     },
   );
 
+  const contextTask = collectProjectContext(workspaceRoot, controller.signal);
+
+  // Independent of the analysis, so it runs alongside it: every installed package
+  // is checked, not only the unused ones.
+  const malwareWarnings: string[] = [];
+  const malwareTask = checkMalware === false
+    ? Promise.resolve(undefined)
+    : contextTask.then((context) => checkForMalware(workspaceRoot, context.workspaceDirs, {
+      signal: controller.signal,
+      sources: checkMalware,
+      warnings: malwareWarnings,
+    }));
+
   try {
-    const [knip, depcheck, context, graph] = await Promise.all([
+    const [knip, depcheck, context, graph, malware] = await Promise.all([
       stopOthersOnFailure(engines.runKnip(workspaceRoot, { signal: controller.signal, entryPoints })),
       stopOthersOnFailure<DepcheckResult | Error>(depcheckTask),
-      stopOthersOnFailure(collectProjectContext(workspaceRoot, controller.signal)),
+      stopOthersOnFailure(contextTask),
       stopOthersOnFailure<ConnectionGraph | Error>(graphTask),
+      stopOthersOnFailure(malwareTask),
     ]);
 
-    const warnings = [...knip.warnings];
+    const warnings = [...knip.warnings, ...malwareWarnings];
     let depcheckUnused: Set<string> | undefined;
 
     if (depcheck instanceof Error) {
@@ -318,6 +364,7 @@ export async function scanWorkspace(
       durationMs: Date.now() - startedAt,
       warnings,
       footprint,
+      malware,
     };
   } catch (error) {
     // The walk throws the signal's own reason on abort; normalise it.

@@ -9,3 +9,4 @@ node_modules
 *.vsix
 PRD.md
 prd.html
+.deadweight-trash/

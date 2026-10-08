@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { applyProvenUsed, type ProvenUsedStore } from '../actions/provenUsed';
 import { describeAdvisories, formatBytes, totalFootprint } from '../engine/footprint';
-import type { Confidence, Finding, Footprint } from '../types';
+import { MALWARE_ADVICE, malwareOrigin } from '../engine/malware';
+import type { Confidence, Finding, Footprint, MaliciousPackage } from '../types';
 
 type FindingKind = Finding['kind'];
 
@@ -65,6 +66,9 @@ export class DeadweightTreeProvider
 {
   private findings: Finding[] = [];
 
+  // Known malware among the installed packages. Shown, never removed automatically.
+  private malware: MaliciousPackage[] = [];
+
   // Ids of checked findings. Only high confidence starts checked (PRD R3.2).
   private checked = new Set<string>();
 
@@ -80,6 +84,10 @@ export class DeadweightTreeProvider
     return this.getVisibleFindings().length;
   }
 
+  get malwareCount(): number {
+    return this.malware.length;
+  }
+
   getVisibleFindings(): Finding[] {
     return this.findings.filter(
       (finding) => RANK[finding.confidence] >= RANK[this.minimumConfidence],
@@ -93,8 +101,9 @@ export class DeadweightTreeProvider
     }
   }
 
-  setFindings(findings: Finding[]) {
+  setFindings(findings: Finding[], malware: MaliciousPackage[] = []) {
     this.findings = findings;
+    this.malware = malware;
     this.checked = new Set(
       findings
         .filter((finding) => finding.confidence === 'high' && isRemovable(finding))
@@ -157,11 +166,19 @@ export class DeadweightTreeProvider
       // An empty tree lets the view's welcome content (package.json `viewsWelcome`) show.
       // Findings hidden by the threshold still render the groups, so the view never
       // claims "No deadweight found" while there is some.
-      if (this.findings.length === 0) {
+      if (this.findings.length === 0 && this.malware.length === 0) {
         return [];
       }
 
-      return GROUP_ORDER.map((kind) => {
+      const malwareGroup = this.malware.length > 0
+        ? [new DeadweightTreeItem(
+          `Malicious Packages (${this.malware.length})`,
+          vscode.TreeItemCollapsibleState.Expanded,
+          { malwareGroup: true },
+        )]
+        : [];
+
+      return [...malwareGroup, ...GROUP_ORDER.map((kind) => {
         const findings = visible.filter((finding) => finding.kind === kind);
         const selected = findings.filter((finding) => this.checked.has(finding.id)).length;
         const hidden = this.findings.filter((finding) => finding.kind === kind).length - findings.length;
@@ -184,7 +201,15 @@ export class DeadweightTreeProvider
         item.description = parts.length > 0 ? parts.join(' · ') : undefined;
 
         return item;
-      });
+      })];
+    }
+
+    if (element.contextValue === 'malwareGroup') {
+      return this.malware.map((malware) => new DeadweightTreeItem(
+        `${malware.name}@${malware.version}`,
+        vscode.TreeItemCollapsibleState.None,
+        { malware },
+      ));
     }
 
     if (element.groupKind) {
@@ -212,9 +237,37 @@ export class DeadweightTreeItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     collapsibleState: vscode.TreeItemCollapsibleState,
-    node: { groupKind: FindingKind } | { finding: Finding; checked: boolean },
+    node: { groupKind: FindingKind } | { finding: Finding; checked: boolean } | { malwareGroup: true } | { malware: MaliciousPackage },
   ) {
     super(label, collapsibleState);
+
+    if ('malwareGroup' in node) {
+      this.id = 'group:malware';
+      this.contextValue = 'malwareGroup';
+      this.description = 'known malware · remove by hand';
+      this.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('errorForeground'));
+      return;
+    }
+
+    if ('malware' in node) {
+      const { malware } = node;
+
+      this.id = `malware:${malware.project ?? ''}:${malware.name}@${malware.version}`;
+      this.contextValue = 'malware';
+      this.description = [malwareOrigin(malware), malware.project].filter(Boolean).join(' · ');
+      this.iconPath = new vscode.ThemeIcon('bug', new vscode.ThemeColor('errorForeground'));
+      this.tooltip = new vscode.MarkdownString()
+        .appendMarkdown(`**Known malware: \`${malware.name}@${malware.version}\`** (${malwareOrigin(malware)})\n`);
+
+      for (const report of malware.reports) {
+        const title = report.title.replace(/[[\]]/g, '');
+        const link = /^https:\/\//.test(report.url) ? `[${title}](${report.url})` : title;
+        this.tooltip.appendMarkdown(`\n- ${link} · ${report.id}`);
+      }
+
+      this.tooltip.appendMarkdown('\n\n').appendText(MALWARE_ADVICE);
+      return;
+    }
 
     if ('groupKind' in node) {
       this.groupKind = node.groupKind;

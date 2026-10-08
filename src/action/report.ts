@@ -1,5 +1,6 @@
 import { describeAdvisories, formatBytes } from '../engine/footprint';
-import type { Finding } from '../types';
+import { describeMalware, MALWARE_ADVICE, malwareOrigin } from '../engine/malware';
+import type { Finding, MaliciousPackage } from '../types';
 
 // The PR guard's verdict: which unused code a pull request adds (compared with its
 // base branch) and removes, rendered as one PR comment and a job summary.
@@ -92,13 +93,38 @@ function table(findings: Finding[]): string {
   return ['| | Unused | Score | Why |', '|---|---|---|---|', ...rows].join('\n');
 }
 
+// Known malware among the installed packages: above everything else in the report.
+function malwareSection(malware: MaliciousPackage[]): string[] {
+  const rows = malware.map((pkg) => {
+    const reports = pkg.reports
+      .map((report) => (/^https:\/\//.test(report.url) ? `[${cell(report.id)}](${report.url})` : cell(report.id)))
+      .join(', ');
+
+    return `| ☠️ | \`${pkg.name}@${pkg.version}\`${pkg.project ? ` (${pkg.project})` : ''} | ${cell(malwareOrigin(pkg))} | ${reports} |`;
+  });
+
+  return [
+    `> [!CAUTION]\n> **${describeMalware(malware)}.** ${MALWARE_ADVICE}`,
+    '',
+    '| | Malicious package | How it got here | Reports |',
+    '|---|---|---|---|',
+    ...rows,
+    '',
+  ];
+}
+
 export interface ReportOptions {
   compared: boolean;          // false when there was no base branch to compare with
   runUrl?: string;            // link to the workflow run
+  malware?: MaliciousPackage[];
 }
 
-export function renderReport(diff: FindingDiff, { compared, runUrl }: ReportOptions): string {
+export function renderReport(diff: FindingDiff, { compared, runUrl, malware = [] }: ReportOptions): string {
   const lines = [COMMENT_MARKER, '### 💀 Deadweight', ''];
+
+  if (malware.length > 0) {
+    lines.push(...malwareSection(malware));
+  }
 
   if (!compared) {
     lines.push(
@@ -148,7 +174,7 @@ export function renderReport(diff: FindingDiff, { compared, runUrl }: ReportOpti
 // A GitHub workflow command, e.g. a warning shown on a line of the PR diff.
 // https://docs.github.com/actions/reference/workflow-commands-for-github-actions
 export function annotation(
-  level: 'warning' | 'notice',
+  level: 'error' | 'warning' | 'notice',
   message: string,
   { file, line, title }: { file?: string; line?: number; title?: string },
 ): string {

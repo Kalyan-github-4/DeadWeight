@@ -2,6 +2,11 @@
 
 All notable changes to Deadweight are documented here.
 
+## [Unreleased]
+
+- **Malicious package detection**: every scan checks everything installed in `node_modules`, used or not, for known malware (hijacked releases and packages published to steal secrets), matching the exact installed versions against the npm advisory database and OSV.dev (the OpenSSF malicious-packages records). A **Malicious Packages** group at the top of the view shows each one with its version and the dependency that installs it, with links to the reports; the scan raises an error notification. Deadweight reports malware but doesn't remove it. Setting `deadweight.checkMalware` turns the check off.
+- **PR guard**: a known-malicious package in the PR's install fails the check and leads the comment, whatever `fail-on` says. New input `check-malware` and output `malware`.
+
 ## [0.0.6] - 2026-10-01
 
 - **PR guard runs on Node 24**: GitHub has retired Node 20 for actions, so the action now runs on Node 24. Nothing to change in your workflow; `@v1` picks it up. The example workflow in the README now uses `actions/checkout@v5`, `actions/setup-node@v5` and Node 24.

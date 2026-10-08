@@ -22,11 +22,12 @@ export interface Removal {
 }
 
 // Raw advisory as returned by the npm registry's bulk advisory endpoint.
-interface RegistryAdvisory {
+export interface RegistryAdvisory {
   severity?: string;
   title?: string;
   url?: string;
   vulnerable_versions?: string;
+  cwe?: string[];
 }
 
 export type AdvisoryFetcher = (
@@ -84,7 +85,7 @@ function names(manifest: Record<string, unknown>, sections: string[]): string[] 
 
 const NODE_MODULES_SEGMENT = `${sep}node_modules${sep}`;
 
-class InstalledTree {
+export class InstalledTree {
   readonly nodes = new Map<string, InstalledNode>();
   private readonly resolved = new Map<string, string | undefined>();
 
@@ -184,6 +185,43 @@ class InstalledTree {
 
     return seen;
   }
+}
+
+export interface DeclaredRoot {
+  manifestDir: string;        // project-relative dir of the declaring package.json
+  name: string;
+  dir: string;                // real path of the installed package
+}
+
+// The installed packages reachable from every declared dependency. `projectRoot` is
+// the project's install root; `manifestDirs` are every dir with a package.json in it
+// (relative). Each declared dependency is a root, remembered with its manifest.
+export async function loadInstalledTree(
+  projectRoot: string,
+  manifestDirs: string[],
+  signal?: AbortSignal,
+): Promise<{ tree: InstalledTree; roots: DeclaredRoot[] }> {
+  const tree = new InstalledTree();
+  const roots: DeclaredRoot[] = [];
+
+  for (const manifestDir of new Set(['', ...manifestDirs])) {
+    const manifest = await readJson(join(projectRoot, manifestDir, 'package.json'));
+
+    if (!manifest) {
+      continue;
+    }
+
+    for (const name of names(manifest, ['dependencies', 'devDependencies', 'optionalDependencies'])) {
+      const dir = await tree.resolve(join(projectRoot, manifestDir), name);
+
+      if (dir) {
+        roots.push({ manifestDir, name, dir });
+        await tree.load(dir, signal);
+      }
+    }
+  }
+
+  return { tree, roots };
 }
 
 // Size of a package's own files; nested node_modules are separate packages.
@@ -289,27 +327,7 @@ export async function measureFootprints(
   { signal, fetchAdvisories = fetchRegistryAdvisories }: FootprintOptions = {},
 ): Promise<FootprintResult> {
   const warnings: string[] = [];
-  const tree = new InstalledTree();
-
-  // Every declared dependency is a root, remembered with the manifest that declares it.
-  const roots: { manifestDir: string; name: string; dir: string }[] = [];
-
-  for (const manifestDir of new Set(['', ...manifestDirs])) {
-    const manifest = await readJson(join(projectRoot, manifestDir, 'package.json'));
-
-    if (!manifest) {
-      continue;
-    }
-
-    for (const name of names(manifest, ['dependencies', 'devDependencies', 'optionalDependencies'])) {
-      const dir = await tree.resolve(join(projectRoot, manifestDir), name);
-
-      if (dir) {
-        roots.push({ manifestDir, name, dir });
-        await tree.load(dir, signal);
-      }
-    }
-  }
+  const { tree, roots } = await loadInstalledTree(projectRoot, manifestDirs, signal);
 
   if (roots.length === 0) {
     return { perRemoval: new Map(), combined: EMPTY, warnings };

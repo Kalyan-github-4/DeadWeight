@@ -14,6 +14,7 @@ import { posix } from 'node:path';
 import { CancelledError } from './engine/exec';
 import { describeAdvisories, formatBytes } from './engine/footprint';
 import { buildConnectionGraph } from './engine/graph';
+import { describeMalware, MALWARE_ADVICE, malwareOrigin } from './engine/malware';
 import { detectPackageManagerFor } from './engine/packageManager';
 import { findProjectRoots } from './engine/project';
 import { scanFolder } from './engine/scan';
@@ -73,9 +74,13 @@ export function activate(context: vscode.ExtensionContext) {
 
   const updateViewState = () => {
     const count = treeProvider.findingCount;
+    const malwareCount = treeProvider.malwareCount;
 
-    treeView.badge = count > 0
-      ? { value: count, tooltip: `${count} unused package(s) and file(s)` }
+    treeView.badge = count + malwareCount > 0
+      ? {
+        value: count + malwareCount,
+        tooltip: `${malwareCount > 0 ? `${malwareCount} malicious package(s), ` : ''}${count} unused package(s) and file(s)`,
+      }
       : undefined;
 
     vscode.commands.executeCommand('setContext', 'deadweight.hasFindings', count > 0);
@@ -203,6 +208,8 @@ export function activate(context: vscode.ExtensionContext) {
               packageManager: settings.packageManager,
               // undefined: the default lookup in the npm advisory database.
               fetchAdvisories: settings.checkVulnerabilities ? undefined : false,
+              // undefined: the npm advisory database and OSV.dev.
+              checkMalware: settings.checkMalware ? undefined : false,
               projects: selected,
               onProject: (project, index, total) => progress.report({
                 message: total > 1 ? `${index + 1}/${total} · ${project || folder.name}` : project || folder.name,
@@ -217,7 +224,10 @@ export function activate(context: vscode.ExtensionContext) {
 
       scannedFolder = folder;
       // Items a verified removal proved to be in use stay demoted, whatever the analysis says.
-      treeProvider.setFindings(applyProvenUsed(result.findings, context.workspaceState.get<ProvenUsedStore>(PROVEN_USED_KEY, {})));
+      treeProvider.setFindings(
+        applyProvenUsed(result.findings, context.workspaceState.get<ProvenUsedStore>(PROVEN_USED_KEY, {})),
+        result.malware,
+      );
       await vscode.commands.executeCommand(
         'setContext',
         'deadweight.hasScanned',
@@ -226,6 +236,34 @@ export function activate(context: vscode.ExtensionContext) {
 
       for (const warning of result.warnings) {
         output.appendLine(warning);
+      }
+
+      // Malware is installed code that may already have run: its own error, ahead of
+      // the summary of unused code.
+      const malware = result.malware ?? [];
+
+      if (malware.length > 0) {
+        output.appendLine(`[${new Date().toLocaleString()}] Known malware is installed:`);
+
+        for (const pkg of malware) {
+          output.appendLine(`  ${pkg.name}@${pkg.version} (${[malwareOrigin(pkg), pkg.project].filter(Boolean).join(', ')})`);
+
+          for (const report of pkg.reports) {
+            output.appendLine(`    ${report.id}: ${report.title} ${report.url}`);
+          }
+        }
+
+        output.appendLine(`  ${MALWARE_ADVICE}`);
+
+        const showDetails = 'Show Details';
+
+        vscode.window
+          .showErrorMessage(`Deadweight: ${describeMalware(malware)}. ${MALWARE_ADVICE}`, showDetails)
+          .then((choice) => {
+            if (choice === showDetails) {
+              output.show();
+            }
+          });
       }
 
       const packageCount = result.findings.filter(

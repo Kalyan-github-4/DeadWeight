@@ -8,8 +8,9 @@ import { tmpdir } from 'node:os';
 import { join, posix, resolve } from 'node:path';
 import { runProcess } from '../engine/exec';
 import type { AdvisoryFetcher } from '../engine/footprint';
+import { describeMalware, MALWARE_ADVICE, type MalwareSources } from '../engine/malware';
 import { scanFolder, type ScanEngines } from '../engine/scan';
-import type { Finding, ScanResult } from '../types';
+import type { Finding, MaliciousPackage, ScanResult } from '../types';
 import { annotation, COMMENT_MARKER, diffFindings, renderReport, shouldFail, summarize, type FailOn, type FindingDiff } from './report';
 
 type Env = Record<string, string | undefined>;
@@ -23,6 +24,7 @@ export interface RunOptions {
   env: Env;
   engines?: ScanEngines;                                   // tests: local knip/depcheck
   fetchAdvisories?: AdvisoryFetcher | false;
+  checkMalware?: MalwareSources | false;
   checkoutBase?: (repoDir: string, sha: string) => Promise<BaseCheckout>;
   fetch?: typeof fetch;                                    // tests: fake GitHub API
   write?: (line: string) => void;                          // stdout (logs and workflow commands)
@@ -30,6 +32,7 @@ export interface RunOptions {
 
 export interface RunResult {
   diff: FindingDiff;
+  malware: MaliciousPackage[];    // known malware installed in the PR's checkout
   report: string;
   failed: boolean;
 }
@@ -180,13 +183,19 @@ export async function run(options: RunOptions): Promise<RunResult> {
     : {};
   const pullRequest = event.pull_request;
 
-  const scan = async (dir: string, label: string, advisories: AdvisoryFetcher | false | undefined): Promise<ScanResult> => {
+  const scan = async (
+    dir: string,
+    label: string,
+    advisories: AdvisoryFetcher | false | undefined,
+    malwareSources: MalwareSources | false | undefined,
+  ): Promise<ScanResult> => {
     write(`::group::Scanning ${label}`);
 
     try {
       return await scanFolder(dir, {
         ...scanOptions,
         fetchAdvisories: advisories,
+        checkMalware: malwareSources,
         onProject: (project, index, total) => write(`Project ${index + 1}/${total}: ${project || '.'}`),
       });
     } finally {
@@ -195,7 +204,9 @@ export async function run(options: RunOptions): Promise<RunResult> {
   };
 
   const vulnerabilityLookup = input(env, 'check-vulnerabilities', 'true') === 'false' ? false : fetchAdvisories;
-  const head = await scan(projectDir, pullRequest ? 'the pull request' : 'the project', vulnerabilityLookup);
+  const malwareLookup = input(env, 'check-malware', 'true') === 'false' ? false : options.checkMalware;
+  const head = await scan(projectDir, pullRequest ? 'the pull request' : 'the project', vulnerabilityLookup, malwareLookup);
+  const malware = head.malware ?? [];
 
   let diff: FindingDiff = { added: head.findings, removed: [], existing: [] };
   let compared = false;
@@ -207,8 +218,8 @@ export async function run(options: RunOptions): Promise<RunResult> {
       const base = await checkout(repoDir, pullRequest.base.sha);
 
       try {
-        // Only for comparing: no vulnerability lookup needed on the base.
-        const baseResult = await scan(relativePath ? join(base.dir, relativePath) : base.dir, 'the base branch', false);
+        // Only for comparing: no vulnerability or malware lookup needed on the base.
+        const baseResult = await scan(relativePath ? join(base.dir, relativePath) : base.dir, 'the base branch', false, false);
         diff = diffFindings(baseResult.findings, head.findings);
         compared = true;
       } finally {
@@ -222,7 +233,11 @@ export async function run(options: RunOptions): Promise<RunResult> {
   const runUrl = env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID
     ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`
     : undefined;
-  const report = renderReport(diff, { compared, runUrl });
+  const report = renderReport(diff, { compared, runUrl, malware });
+
+  for (const pkg of malware) {
+    write(annotation('error', `${pkg.reports.map((report) => `${report.title} (${report.id})`).join('; ')}. ${MALWARE_ADVICE}`, { title: `Deadweight: Malicious package ${pkg.name}@${pkg.version}` }));
+  }
 
   // Inline warnings on the PR's diff for what it adds.
   for (const finding of diff.added) {
@@ -241,6 +256,7 @@ export async function run(options: RunOptions): Promise<RunResult> {
       `removed=${diff.removed.length}`,
       `existing=${diff.existing.length}`,
       `vulnerabilities=${diff.added.reduce((sum, finding) => sum + (finding.footprint?.advisories.length ?? 0), 0)}`,
+      `malware=${malware.length}`,
       '',
     ].join('\n'));
   }
@@ -250,7 +266,7 @@ export async function run(options: RunOptions): Promise<RunResult> {
   if (pullRequest && input(env, 'comment', 'true') !== 'false' && token) {
     try {
       // A clean PR only gets a comment when there's an earlier one to update.
-      const outcome = await upsertComment(options, token, pullRequest.number, report, diff.added.length === 0);
+      const outcome = await upsertComment(options, token, pullRequest.number, report, diff.added.length === 0 && malware.length === 0);
       write(`PR comment: ${outcome}`);
     } catch (error) {
       // Pull requests from forks get a read-only token; the summary still has the report.
@@ -258,17 +274,22 @@ export async function run(options: RunOptions): Promise<RunResult> {
     }
   }
 
-  const failed = shouldFail(diff, failOn);
+  // Installed malware fails the check whatever `fail-on` says.
+  const failed = shouldFail(diff, failOn) || malware.length > 0;
 
   write(diff.added.length > 0
     ? `Deadweight: ${compared ? 'this pull request adds' : 'found'} ${summarize(diff.added)}.`
     : 'Deadweight: no new unused code.');
 
-  if (failed) {
+  if (malware.length > 0) {
+    write(`::error title=Deadweight::${describeMalware(malware)}.`);
+  }
+
+  if (shouldFail(diff, failOn)) {
     write(`::error title=Deadweight::This pull request adds ${summarize(diff.added)} (fail-on: ${failOn}).`);
   }
 
-  return { diff, report, failed };
+  return { diff, malware, report, failed };
 }
 
 // Entry point when GitHub runs the action (not when a test imports this file).

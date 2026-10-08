@@ -11,6 +11,7 @@ export interface DeadweightSettings {
   verifyRemovals: boolean;            // run type check / build / tests around removals
   verifyTimeoutMinutes: number;       // per check
   checkVulnerabilities: boolean;      // look unused packages up in the npm advisory database
+  checkMalware: boolean;              // look every installed package up in the malware databases
 }
 
 const CONFIDENCES: readonly Confidence[] = ['low', 'medium', 'high'];
@@ -33,5 +34,6 @@ export function readSettings(scope?: vscode.ConfigurationScope): DeadweightSetti
     verifyRemovals: config.get<boolean>('verifyRemovals') !== false,
     verifyTimeoutMinutes: Math.max(1, Number(config.get('verifyTimeoutMinutes')) || 10),
     checkVulnerabilities: config.get<boolean>('checkVulnerabilities') !== false,
+    checkMalware: config.get<boolean>('checkMalware') !== false,
   };
 }

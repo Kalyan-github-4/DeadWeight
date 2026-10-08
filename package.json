@@ -32,6 +32,8 @@
     "dependency graph",
     "vulnerabilities",
     "security",
+    "malware",
+    "supply chain",
     "npm audit",
     "node_modules size"
   ],
@@ -213,6 +215,12 @@
           "default": true,
           "scope": "resource",
           "markdownDescription": "Check what removing unused packages takes out of `node_modules` for known vulnerabilities, using the npm advisory database (the one `npm audit` uses). This sends the names and versions of those packages to `registry.npmjs.org`. Sizes are measured locally either way."
+        },
+        "deadweight.checkMalware": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "markdownDescription": "Check every installed package, used or not, for known malware: hijacked releases and packages published to steal secrets. Uses the npm advisory database and [OSV.dev](https://osv.dev) (the OpenSSF malicious-packages records). This sends the names and versions of the packages in `node_modules` to `registry.npmjs.org` and `api.osv.dev`."
         }
       }
     },

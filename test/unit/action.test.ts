@@ -139,6 +139,7 @@ describe('PR guard action', () => {
       env,
       engines: localEngines,
       fetchAdvisories: false,
+      checkMalware: false,
       checkoutBase: async () => ({ dir: base, cleanup: async () => {} }),
       fetch: github.fetch,
       write: (line) => lines.push(line),
@@ -170,6 +171,7 @@ describe('PR guard action', () => {
       env: actionEnv(base, {}).env,
       engines: localEngines,
       fetchAdvisories: false as const,
+      checkMalware: false as const,
       checkoutBase: async () => ({ dir: base, cleanup: async () => {} }),
       fetch: github.fetch,
       write: () => {},
@@ -187,6 +189,37 @@ describe('PR guard action', () => {
     expect(withoutEarlier.calls.map((call) => call.method)).toEqual(['GET']);
   });
 
+  it('fails the check and comments when a known-malicious package is installed, even on a clean PR', async () => {
+    const base = baseProject();
+    const head = makeTempProject({
+      'package.json': JSON.stringify({ name: 'shop', main: 'src/index.js', dependencies: { commander: '12' } }),
+      'src/index.js': "const { program } = require('commander');\nprogram.parse();",
+      'src/legacy.js': 'module.exports = 1;',
+      'node_modules/commander/package.json': JSON.stringify({ name: 'commander', version: '12.0.1' }),
+    });
+    const { scratch, env } = actionEnv(head, {});
+    const github = fakeGitHub([]);
+    const lines: string[] = [];
+
+    const result = await run({
+      env,
+      engines: localEngines,
+      fetchAdvisories: false,
+      checkMalware: { registry: false, osv: async (packages) => packages.map(({ name }) => (name === 'commander' ? ['MAL-2026-1'] : [])) },
+      checkoutBase: async () => ({ dir: base, cleanup: async () => {} }),
+      fetch: github.fetch,
+      write: (line) => lines.push(line),
+    });
+
+    expect(result.diff.added).toEqual([]);
+    expect(result.malware.map((pkg) => `${pkg.name}@${pkg.version}`)).toEqual(['commander@12.0.1']);
+    expect(result.failed).toBe(true);
+    expect(github.calls.at(-1)!.method).toBe('POST');
+    expect(github.calls.at(-1)!.body!.body).toContain('**1 malicious package installed: commander@12.0.1.**');
+    expect(lines).toContainEqual(expect.stringMatching(/^::error title=Deadweight%3A Malicious package commander@12\.0\.1::Malicious code in commander \(MAL-2026-1\)/));
+    expect(readFileSync(join(scratch, 'output.txt'), 'utf8')).toContain('malware=1\n');
+  });
+
   it('still reports when the base branch cannot be checked out', async () => {
     const head = prProject();
     const lines: string[] = [];
@@ -195,6 +228,7 @@ describe('PR guard action', () => {
       env: { ...actionEnv(head, { comment: 'false' }).env },
       engines: localEngines,
       fetchAdvisories: false,
+      checkMalware: false,
       checkoutBase: async () => {
         throw new Error('no base');
       },
