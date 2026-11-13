@@ -1,0 +1,348 @@
+{
+  "name": "deadweight",
+  "displayName": "Deadweight",
+  "description": "Find unused packages, dead files and unused exports, then remove them safely: every removal is verified with your own build and tests and undone automatically if anything breaks, and you see the known vulnerabilities you delete.",
+  "version": "0.0.6",
+  "publisher": "kalyanmanna",
+  "author": {
+    "name": "Kalyan Manna"
+  },
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kalyan-github-4/DeadWeight.git"
+  },
+  "homepage": "https://github.com/Kalyan-github-4/DeadWeight#readme",
+  "bugs": {
+    "url": "https://github.com/Kalyan-github-4/DeadWeight/issues"
+  },
+  "galleryBanner": {
+    "color": "#0f1117",
+    "theme": "dark"
+  },
+  "keywords": [
+    "unused",
+    "dead code",
+    "dependencies",
+    "cleanup",
+    "knip",
+    "depcheck",
+    "unused exports",
+    "dependency graph",
+    "vulnerabilities",
+    "security",
+    "malware",
+    "supply chain",
+    "npm audit",
+    "node_modules size"
+  ],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Linters",
+    "Visualization",
+    "Other"
+  ],
+  "activationEvents": [
+    "onMcpServerDefinitionProvider:deadweight.mcp"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "deadweight.mcp",
+        "label": "Deadweight"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "deadweight",
+          "title": "Deadweight",
+          "icon": "$(trash)"
+        }
+      ]
+    },
+    "views": {
+      "deadweight": [
+        {
+          "id": "deadweight.findings",
+          "name": "Findings",
+          "icon": "$(search)"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "deadweight.findings",
+        "contents": "Find unused packages and dead files in this workspace, or in every project inside it.\n[Scan Workspace](command:deadweight.scan)\nOr see how every file connects, instantly and offline:\n[Show Connection Graph](command:deadweight.showGraph)\nGive your AI agent the whole project structure in one compact file, so it reads less and spends fewer tokens:\n[Export Project Map for AI Agents](command:deadweight.exportProjectMap)",
+        "when": "!deadweight.hasScanned"
+      },
+      {
+        "view": "deadweight.findings",
+        "contents": "No deadweight found. Your dependencies and files are all in use.\n[Scan Again](command:deadweight.scan)",
+        "when": "deadweight.hasScanned"
+      }
+    ],
+    "commands": [
+      {
+        "command": "deadweight.scan",
+        "title": "Scan for unused code",
+        "category": "Deadweight",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "deadweight.reviewRemove",
+        "title": "Review & Remove",
+        "category": "Deadweight",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "deadweight.restore",
+        "title": "Restore from Trash",
+        "category": "Deadweight",
+        "icon": "$(history)"
+      },
+      {
+        "command": "deadweight.openFinding",
+        "title": "Open Finding",
+        "category": "Deadweight"
+      },
+      {
+        "command": "deadweight.showGraph",
+        "title": "Show Connection Graph",
+        "category": "Deadweight",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "deadweight.showInGraph",
+        "title": "Show in Connection Graph",
+        "category": "Deadweight",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "deadweight.exportProjectMap",
+        "title": "Export Project Map for AI Agents",
+        "category": "Deadweight",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "deadweight.connectAgents",
+        "title": "Connect AI Agents (MCP)",
+        "category": "Deadweight",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "deadweight.showBlastRadius",
+        "title": "Show Blast Radius",
+        "category": "Deadweight",
+        "icon": "$(flame)"
+      }
+    ],
+    "configuration": {
+      "title": "Deadweight",
+      "properties": {
+        "deadweight.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "markdownDescription": "Files and packages to leave out of the results, as `.gitignore`-style patterns matched against workspace-relative paths or package names, e.g. `legacy/`, `**/*.stories.tsx`, `@types/*`. Excluded files are still read when looking for references. Takes effect on the next scan."
+        },
+        "deadweight.entryPoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "markdownDescription": "Extra entry-point globs, relative to the workspace root, e.g. `scripts/*.js`. Matching files and everything they import count as used. Passed to knip only when the project has no knip config of its own; otherwise add them to its `entry` list. Takes effect on the next scan."
+        },
+        "deadweight.minimumConfidence": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "enumDescriptions": [
+            "Show every finding.",
+            "Hide low-confidence findings.",
+            "Show only high-confidence findings."
+          ],
+          "default": "low",
+          "markdownDescription": "The lowest confidence level to show in the Deadweight view. Hidden findings can't be selected for removal."
+        },
+        "deadweight.packageManager": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "npm",
+            "yarn",
+            "pnpm",
+            "bun"
+          ],
+          "enumDescriptions": [
+            "Detect from the packageManager field in package.json, then the lockfile.",
+            "Always use npm.",
+            "Always use yarn.",
+            "Always use pnpm.",
+            "Always use bun."
+          ],
+          "default": "auto",
+          "scope": "resource",
+          "markdownDescription": "The package manager used to uninstall and reinstall packages."
+        },
+        "deadweight.verifyRemovals": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "markdownDescription": "Verify removals with the project's own checks: its type check, `build` and `test` scripts run before and after removing. If one that passed before fails after, the removal is undone automatically and the cause is marked as in use. You can still untick checks in the Review & Remove panel."
+        },
+        "deadweight.verifyTimeoutMinutes": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "scope": "resource",
+          "markdownDescription": "How long one verification check may run before it counts as failed."
+        },
+        "deadweight.checkVulnerabilities": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "markdownDescription": "Check what removing unused packages takes out of `node_modules` for known vulnerabilities, using the npm advisory database (the one `npm audit` uses). This sends the names and versions of those packages to `registry.npmjs.org`. Sizes are measured locally either way."
+        },
+        "deadweight.checkMalware": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "markdownDescription": "Check every installed package, used or not, for known malware: hijacked releases and packages published to steal secrets. Uses the npm advisory database and [OSV.dev](https://osv.dev) (the OpenSSF malicious-packages records). This sends the names and versions of the packages in `node_modules` to `registry.npmjs.org` and `api.osv.dev`."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "deadweight.scan",
+          "when": "view == deadweight.findings",
+          "group": "navigation@1"
+        },
+        {
+          "command": "deadweight.reviewRemove",
+          "when": "view == deadweight.findings && deadweight.hasFindings",
+          "group": "navigation@2"
+        },
+        {
+          "command": "deadweight.restore",
+          "when": "view == deadweight.findings",
+          "group": "navigation@3"
+        },
+        {
+          "command": "deadweight.showGraph",
+          "when": "view == deadweight.findings",
+          "group": "navigation@0"
+        },
+        {
+          "command": "deadweight.exportProjectMap",
+          "when": "view == deadweight.findings",
+          "group": "1_ai"
+        },
+        {
+          "command": "deadweight.connectAgents",
+          "when": "view == deadweight.findings",
+          "group": "1_ai"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "deadweight.showBlastRadius",
+          "when": "resourceScheme == file && resourceExtname =~ /^\\.(c|m)?(j|t)sx?$|^\\.(vue|svelte|astro)$/",
+          "group": "7_deadweight"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "deadweight.showBlastRadius",
+          "when": "resourceScheme == file && resourceExtname =~ /^\\.(c|m)?(j|t)sx?$|^\\.(vue|svelte|astro)$/",
+          "group": "7_deadweight"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "deadweight.showBlastRadius",
+          "when": "resourceScheme == file && resourceExtname =~ /^\\.(c|m)?(j|t)sx?$|^\\.(vue|svelte|astro)$/",
+          "group": "7_deadweight"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "deadweight.showInGraph",
+          "when": "view == deadweight.findings && viewItem == finding",
+          "group": "inline"
+        },
+        {
+          "command": "deadweight.showInGraph",
+          "when": "view == deadweight.findings && viewItem == finding",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "deadweight.openFinding",
+          "when": "false"
+        },
+        {
+          "command": "deadweight.showInGraph",
+          "when": "false"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit && tsc --noEmit -p test && tsc --noEmit -p src/webview",
+    "lint": "eslint src test",
+    "test": "vscode-test",
+    "test:unit": "vitest run",
+    "vsix": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "@types/semver": "^7.8.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.5.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^5.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  },
+  "dependencies": {
+    "cytoscape": "^3.34.3",
+    "cytoscape-fcose": "^2.2.0",
+    "depcheck": "^1.4.7",
+    "ignore": "^7.0.9",
+    "knip": "^6.35.1",
+    "semver": "^7.8.5"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "description": "pnpm workspace. Monorepo correctness is a v1.1 goal, so nothing here may reach high yet.",
+  "unused": ["package:lodash", "package:left-pad", "file:packages/app/src/dead.js"],
+  "expectHigh": [],
+  "expectAtMost": {
+    "package:lodash": "medium",
+    "package:left-pad": "medium",
+    "package:@mono/utils": "low",
+    "file:packages/app/src/dead.js": "medium"
+  }
+}

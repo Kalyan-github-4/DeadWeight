@@ -1,0 +1,10 @@
+{
+  "description": "Plain Node CLI. c8 is only used from CI, prettier only from scripts.",
+  "unused": ["package:chalk", "file:src/legacy.js"],
+  "expectHigh": ["package:chalk", "file:src/legacy.js"],
+  "expectAtMost": {
+    "package:c8": "medium",
+    "package:prettier": "medium",
+    "file:src/commands/index.js": "medium"
+  }
+}

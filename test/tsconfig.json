@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "rootDir": "..",
+    "types": ["node"],
+    "noEmit": true,
+    // vitest's bundled typings reference DOM types we don't load.
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"]
+}
