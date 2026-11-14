@@ -2,7 +2,7 @@
   "name": "deadweight",
   "displayName": "Deadweight",
   "description": "Find unused packages, dead files and unused exports, then remove them safely: every removal is verified with your own build and tests and undone automatically if anything breaks, and you see the known vulnerabilities you delete.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "kalyanmanna",
   "author": {
     "name": "Kalyan Manna"
@@ -23,19 +23,18 @@
   },
   "keywords": [
     "unused",
+    "unused dependencies",
     "dead code",
     "dependencies",
     "cleanup",
-    "knip",
-    "depcheck",
     "unused exports",
     "dependency graph",
     "vulnerabilities",
     "security",
-    "malware",
     "supply chain",
     "npm audit",
-    "node_modules size"
+    "node_modules size",
+    "ai security"
   ],
   "engines": {
     "vscode": "^1.90.0"
@@ -77,12 +76,12 @@
     "viewsWelcome": [
       {
         "view": "deadweight.findings",
-        "contents": "Find unused packages and dead files in this workspace, or in every project inside it.\n[Scan Workspace](command:deadweight.scan)\nOr see how every file connects, instantly and offline:\n[Show Connection Graph](command:deadweight.showGraph)\nGive your AI agent the whole project structure in one compact file, so it reads less and spends fewer tokens:\n[Export Project Map for AI Agents](command:deadweight.exportProjectMap)",
+        "contents": "Find unused packages and dead files in this workspace, or in every project inside it.\n[Scan Workspace](command:deadweight.scan)\nOr see how every file connects, instantly and offline:\n[Show Connection Graph](command:deadweight.showGraph)\nGive your AI agent the whole project structure in one compact file, so it reads less and spends fewer tokens:\n[Export Project Map for AI Agents](command:deadweight.exportProjectMap)\nCheck your installed packages and your own code for malware, backdoors and loopholes with your own AI API key (Claude, OpenAI, Gemini or any OpenAI-compatible API):\n[AI Security Scan](command:deadweight.aiSecurityScan)",
         "when": "!deadweight.hasScanned"
       },
       {
         "view": "deadweight.findings",
-        "contents": "No deadweight found. Your dependencies and files are all in use.\n[Scan Again](command:deadweight.scan)",
+        "contents": "No deadweight found. Your dependencies and files are all in use.\n[Scan Again](command:deadweight.scan)\n[AI Security Scan](command:deadweight.aiSecurityScan)",
         "when": "deadweight.hasScanned"
       }
     ],
@@ -139,6 +138,18 @@
         "title": "Show Blast Radius",
         "category": "Deadweight",
         "icon": "$(flame)"
+      },
+      {
+        "command": "deadweight.aiSecurityScan",
+        "title": "AI Security Scan (Malware & Backdoors)",
+        "category": "Deadweight",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "deadweight.setAiApiKey",
+        "title": "Set AI Provider & API Key",
+        "category": "Deadweight",
+        "icon": "$(key)"
       }
     ],
     "configuration": {
@@ -221,6 +232,35 @@
           "default": true,
           "scope": "resource",
           "markdownDescription": "Check every installed package, used or not, for known malware: hijacked releases and packages published to steal secrets. Uses the npm advisory database and [OSV.dev](https://osv.dev) (the OpenSSF malicious-packages records). This sends the names and versions of the packages in `node_modules` to `registry.npmjs.org` and `api.osv.dev`."
+        },
+        "deadweight.ai.provider": {
+          "type": "string",
+          "enum": [
+            "anthropic",
+            "openai",
+            "gemini",
+            "openai-compatible"
+          ],
+          "enumDescriptions": [
+            "Claude, through the Anthropic API.",
+            "OpenAI.",
+            "Google Gemini.",
+            "Any API that speaks the OpenAI chat completions format: OpenRouter, Groq, Mistral, DeepSeek, Together, a local Ollama or LM Studio server."
+          ],
+          "scope": "application",
+          "markdownDescription": "The AI that reviews your packages and code in **Deadweight: AI Security Scan**. The API key is stored in your OS keychain; set it with **Deadweight: Set AI Provider & API Key**."
+        },
+        "deadweight.ai.model": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "markdownDescription": "The model for the AI security scan. Empty uses the provider's default: `claude-opus-5-5`, `gpt-5` or `gemini-2.5-pro`."
+        },
+        "deadweight.ai.baseUrl": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "markdownDescription": "For an OpenAI-compatible provider: the API base URL before `/chat/completions`, e.g. `https://openrouter.ai/api/v1`. Application-wide only, so a workspace can't redirect your key."
         }
       }
     },
@@ -253,6 +293,16 @@
         },
         {
           "command": "deadweight.connectAgents",
+          "when": "view == deadweight.findings",
+          "group": "1_ai"
+        },
+        {
+          "command": "deadweight.aiSecurityScan",
+          "when": "view == deadweight.findings",
+          "group": "1_ai"
+        },
+        {
+          "command": "deadweight.setAiApiKey",
           "when": "view == deadweight.findings",
           "group": "1_ai"
         }
@@ -338,6 +388,7 @@
     "serialize-javascript": "^7.0.6"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
     "cytoscape": "^3.34.3",
     "cytoscape-fcose": "^2.2.0",
     "depcheck": "^1.4.7",
