@@ -26,3 +26,5 @@ images/**
 # The PR guard GitHub Action isn't part of the VS Code extension.
 action.yml
 dist/action/**
+# /brag launch-video output
+brag-output/**

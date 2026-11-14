@@ -165,6 +165,23 @@ Deadweight **doesn't remove malware for you**: remove or replace the package (or
 
 The check needs dependencies installed, and sends the names and versions of the installed packages to `registry.npmjs.org` and `api.osv.dev`. Turn it off with `deadweight.checkMalware`.
 
+#### 🤖 AI Security Scan (bring your own key)
+
+The databases only know malware that has already been reported. **AI Security Scan** asks an AI to look for what they can't know yet, using your own API key for **Claude, OpenAI, Gemini, or any OpenAI-compatible API** (OpenRouter, Groq, Mistral, DeepSeek, a local Ollama server…). Click it in the Deadweight view, or run **Deadweight: AI Security Scan**. The first time, it asks for the provider, the key and the model.
+
+It reviews:
+
+- **Install scripts** (`preinstall` / `install` / `postinstall`) of every installed package, with the files they run. Most npm malware runs this way.
+- **Your dependencies**, looking for typosquats and packages pulled from unexpected sources.
+- **Your own code, configs and CI**: lines matching backdoor and exfiltration patterns (`eval`, shell commands, base64 payloads, environment dumps, credential-file reads, webhook hosts, reverse shells, hard-coded master passwords, disabled TLS checks), with the code around them.
+- **`.npmrc`, `.yarnrc` and CI files**, where registries and tokens get redirected.
+
+You get a report with a verdict and each finding's severity, location, evidence and fix.
+
+Before anything is sent, Deadweight shows how much evidence will go and to which host, and you can **Preview** exactly what goes. Tokens, keys and passwords are replaced with `<redacted>`, and `.env` and key files are never read. The key is kept in your OS keychain through VS Code's SecretStorage, never in settings or the workspace. Change or remove it with **Deadweight: Set AI Provider & API Key**.
+
+An AI review is a second opinion, not a guarantee: it sees the evidence Deadweight collected, not every line of every package.
+
 #### ✅ Verified removal
 
 Static analysis can only guess. Deadweight checks its work with **your project's own checks**:
@@ -350,6 +367,8 @@ Pull requests from forks get a read-only token, so they get the job summary and 
 | **Deadweight: Show Blast Radius** | See every file a change to this file can break (also on right-click) |
 | **Deadweight: Connect AI Agents (MCP)** | Give Copilot, Claude Code, Cursor and others Deadweight's graph tools |
 | **Deadweight: Export Project Map for AI Agents** | Save or copy a compact map of the project for any AI chat |
+| **Deadweight: AI Security Scan (Malware & Backdoors)** | Have Claude, OpenAI, Gemini or another AI review install scripts, dependencies and your code, with your own API key |
+| **Deadweight: Set AI Provider & API Key** | Choose the AI provider and model, and save or remove the API key |
 
 ### Settings
 
@@ -365,6 +384,7 @@ Open *Settings* (`Ctrl+,`) and search **Deadweight**.
 | `deadweight.verifyTimeoutMinutes` | `10` | A check needs longer than 10 minutes (it counts as failed after this) |
 | `deadweight.checkVulnerabilities` | `true` | Turn off to keep package names from being sent to the npm advisory database |
 | `deadweight.checkMalware` | `true` | Turn off to skip the malware check, which sends installed package names to the npm advisory database and OSV.dev |
+| `deadweight.ai.provider` / `deadweight.ai.model` / `deadweight.ai.baseUrl` | — | You want to change the AI security scan's provider, model or OpenAI-compatible URL (application-wide only; the key itself is in the keychain) |
 
 Example `.vscode/settings.json`:
 

@@ -6,6 +6,7 @@ import {
   reviewAndRemove,
   type RemovalContext,
 } from './actions/commands';
+import { aiSecurityScan, configureAiKey } from './actions/aiAuditCommand';
 import { connectAgents, installStableServer, registerMcpProvider } from './actions/agentsCommand';
 import { showBlastRadius } from './actions/blastRadiusCommand';
 import { exportProjectMap, refreshSavedProjectMaps } from './actions/projectMapCommand';
@@ -454,6 +455,14 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  const aiScan = async () => {
+    const folder = getFolder();
+
+    if (folder) {
+      await aiSecurityScan(context, folder, output);
+    }
+  };
+
   context.subscriptions.push(
     treeProvider,
     previews,
@@ -471,6 +480,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('deadweight.showGraph', () => showGraph()),
     vscode.commands.registerCommand('deadweight.exportProjectMap', exportMap),
     vscode.commands.registerCommand('deadweight.connectAgents', connect),
+    vscode.commands.registerCommand('deadweight.aiSecurityScan', aiScan),
+    vscode.commands.registerCommand('deadweight.setAiApiKey', () => configureAiKey(context)),
     vscode.commands.registerCommand('deadweight.showBlastRadius', blastRadiusOf),
     vscode.commands.registerCommand('deadweight.showInGraph', (item?: DeadweightTreeItem) => {
       const finding = item?.finding;

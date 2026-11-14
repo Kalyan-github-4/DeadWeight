@@ -10,3 +10,6 @@ node_modules
 PRD.md
 prd.html
 .deadweight-trash/
+.deadweight
+# /brag launch-video output
+brag-output/
