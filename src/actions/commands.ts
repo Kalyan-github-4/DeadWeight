@@ -381,7 +381,7 @@ export async function reviewAndRemove(
     ? ''
     : ` (−${formatBytes(gained.bytes)}${gained.advisories.length > 0 ? `, −${describeAdvisories(gained.advisories)}` : ''})`;
   const notes = [
-    ...(verification === 'passed' ? [`Verified: ${joinLabels(verified)} still ${verified.length === 1 ? 'passes' : 'pass'}.`] : []),
+    ...(verification === 'passed' ? [`Verified: ${joinLabels(verified)} passed after the removal.`] : []),
     ...(verification === 'cancelled' ? ['Verification was cancelled; use Undo if something looks wrong.'] : []),
     ...(alreadyFailing.length > 0 ? [`Not verified by ${joinLabels(alreadyFailing)}, which already failed before.`] : []),
   ];

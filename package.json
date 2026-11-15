@@ -1,8 +1,8 @@
 {
   "name": "deadweight",
   "displayName": "Deadweight",
-  "description": "Find unused packages, dead files and unused exports, then remove them safely: every removal is verified with your own build and tests and undone automatically if anything breaks, and you see the known vulnerabilities you delete.",
-  "version": "0.0.7",
+  "description": "Find and remove unused npm packages, dead files and unused exports, and catch malicious dependencies, right inside VS Code. Every removal is verified with your own build and tests and undone automatically if anything breaks.",
+  "version": "0.0.8",
   "publisher": "kalyanmanna",
   "author": {
     "name": "Kalyan Manna"
@@ -22,18 +22,33 @@
     "theme": "dark"
   },
   "keywords": [
-    "unused",
     "unused dependencies",
+    "unused packages",
+    "depcheck",
+    "knip",
     "dead code",
-    "dependencies",
-    "cleanup",
+    "dead files",
     "unused exports",
-    "dependency graph",
+    "linter",
+    "npm",
+    "npm security",
+    "malware",
+    "malicious packages",
+    "supply chain security",
     "vulnerabilities",
-    "security",
-    "supply chain",
     "npm audit",
+    "bundle size",
     "node_modules size",
+    "cleanup",
+    "refactor",
+    "dependencies",
+    "dependency graph",
+    "javascript",
+    "typescript",
+    "react",
+    "nextjs",
+    "monorepo",
+    "mcp",
     "ai security"
   ],
   "engines": {
@@ -42,6 +57,7 @@
   "categories": [
     "Linters",
     "Visualization",
+    "AI",
     "Other"
   ],
   "activationEvents": [
