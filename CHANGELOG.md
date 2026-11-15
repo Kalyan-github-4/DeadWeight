@@ -2,7 +2,10 @@
 
 All notable changes to Deadweight are documented here.
 
-## [Unreleased]
+## [0.0.8] - 2026-11-15
+
+- The success message after a verified removal now reads *"Verified: tests passed after the removal"* (it said "tests still passes").
+- README: a demo GIF at the top, a clearer one-line summary and a feature list; more Marketplace keywords and the AI category.
 
 ## [0.0.7] - 2026-11-14
 

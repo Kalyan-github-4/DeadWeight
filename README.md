@@ -1,14 +1,26 @@
 # 💀 Deadweight
 
-> **Your codebase has deadweight. Deadweight finds it.**
+> **Find and remove unused npm packages and dead code, and catch malicious dependencies, right inside VS Code.**
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/kalyanmanna.deadweight?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/kalyanmanna.deadweight?label=VS%20Code%20Marketplace&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/kalyanmanna.deadweight)](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/kalyanmanna.deadweight)](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight&ssr=false#review-details)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/Kalyan-github-4/DeadWeight?style=social)](https://github.com/Kalyan-github-4/DeadWeight)
 
-Deadweight is a VS Code extension that finds **unused dependencies, dead files and unused exports** in JavaScript and TypeScript projects — tells you **how safe each one is to delete** — and removes them **with a preview and one-click undo**.
+![Deadweight demo: a scan flags malicious and unused packages, then one-click removal frees 14 MB and is verified by the tests](images/demo.gif)
 
-![Deadweight findings with safe-to-delete scores](images/findings.png)
+**[Install from the Marketplace](https://marketplace.visualstudio.com/items?itemName=kalyanmanna.deadweight)** · or run `ext install kalyanmanna.deadweight` from `Ctrl+P`
+
+- 📦 **Unused packages:** dependencies nothing imports, with the MB each one frees from `node_modules`
+- 🗂️ **Dead files and unused exports:** code no entry point can reach, marked right in the editor
+- ☣️ **Malicious dependencies:** every installed package checked against the npm advisory database and OSV.dev malware records
+- 🎯 **Safe-to-delete score:** every finding rated 0–99 with the reason, so you know what's safe before you touch it
+- ✅ **Verified one-click removal:** your own type check, build and tests run after removal, and it's undone automatically if anything breaks
+- 🔓 **Deletes vulnerabilities too:** see the known CVEs you remove, e.g. *"frees 84 MB and 3 known vulnerabilities"*
+- 🕸️ **Connection graph, blast radius, MCP server for AI agents and a PR guard GitHub Action**
+
+Works with npm, yarn and pnpm, in JavaScript and TypeScript projects, including folders with several projects.
 
 ---
 
@@ -190,7 +202,7 @@ Static analysis can only guess. Deadweight checks its work with **your project's
 2. **After removing**, it runs the passing ones again.
 3. If one that passed before now fails, the removal is **undone automatically**. Deadweight reads the error output, names the likely cause (e.g. *"Cannot find module 'lodash'"* → `lodash`) and marks it **in use**, so it stays at the bottom of the score in future scans.
 
-When everything still passes you get *"Verified: type check, build and tests still pass"*, plus the usual **Undo**. Untick any check in the panel to skip it (your choice is remembered), or turn verification off with `deadweight.verifyRemovals`.
+When everything still passes you get *"Verified: type check, build and tests passed after the removal"*, plus the usual **Undo**. Untick any check in the panel to skip it (your choice is remembered), or turn verification off with `deadweight.verifyRemovals`.
 
 ### Step 7 — Undo (if you need to)
 
